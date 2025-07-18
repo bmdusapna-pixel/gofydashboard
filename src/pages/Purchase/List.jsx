@@ -1,0 +1,438 @@
+import React, { useState, useRef, useEffect } from "react";
+
+// Main App component for Purchase List Table
+const App = () => {
+  // Sample purchase list data
+  const purchaseList = [
+    {
+      id: "pur-001",
+      orderBy: "Supplier A",
+      items: 5,
+      purchaseStatus: "Ordered",
+      date: "2025-07-17",
+      total: 500.0,
+      paymentMethod: "Bank Transfer",
+      paymentStatus: "Pending",
+    },
+    {
+      id: "pur-002",
+      orderBy: "Supplier B",
+      items: 10,
+      purchaseStatus: "Received",
+      date: "2025-07-16",
+      total: 1200.5,
+      paymentMethod: "Credit Card",
+      paymentStatus: "Paid",
+    },
+    {
+      id: "pur-003",
+      orderBy: "Supplier C",
+      items: 2,
+      purchaseStatus: "Cancelled",
+      date: "2025-07-15",
+      total: 150.0,
+      paymentMethod: "PayPal",
+      paymentStatus: "Refunded",
+    },
+    {
+      id: "pur-004",
+      orderBy: "Supplier A",
+      items: 7,
+      purchaseStatus: "Ordered",
+      date: "2025-07-14",
+      total: 800.75,
+      paymentMethod: "Bank Transfer",
+      paymentStatus: "Pending",
+    },
+    {
+      id: "pur-005",
+      orderBy: "Supplier D",
+      items: 3,
+      purchaseStatus: "Received",
+      date: "2025-07-13",
+      total: 350.2,
+      paymentMethod: "Credit Card",
+      paymentStatus: "Paid",
+    },
+    {
+      id: "pur-006",
+      orderBy: "Supplier B",
+      items: 12,
+      purchaseStatus: "Ordered",
+      date: "2025-07-12",
+      total: 1500.0,
+      paymentMethod: "PayPal",
+      paymentStatus: "Pending",
+    },
+    {
+      id: "pur-007",
+      orderBy: "Supplier C",
+      items: 1,
+      purchaseStatus: "Received",
+      date: "2025-07-11",
+      total: 90.0,
+      paymentMethod: "Bank Transfer",
+      paymentStatus: "Paid",
+    },
+    {
+      id: "pur-008",
+      orderBy: "Supplier D",
+      items: 6,
+      purchaseStatus: "Ordered",
+      date: "2025-07-10",
+      total: 720.0,
+      paymentMethod: "Credit Card",
+      paymentStatus: "Pending",
+    },
+    {
+      id: "pur-009",
+      orderBy: "Supplier A",
+      items: 4,
+      purchaseStatus: "Received",
+      date: "2025-07-09",
+      total: 280.0,
+      paymentMethod: "PayPal",
+      paymentStatus: "Paid",
+    },
+    {
+      id: "pur-010",
+      orderBy: "Supplier B",
+      items: 9,
+      purchaseStatus: "Cancelled",
+      date: "2025-07-08",
+      total: 450.0,
+      paymentMethod: "Bank Transfer",
+      paymentStatus: "Refunded",
+    },
+  ];
+
+  // State to manage which dropdown is open (stores the purchase ID)
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Number of items to display per page
+
+  // Filter state for purchase status
+  const [filterByPurchaseStatus, setFilterByPurchaseStatus] = useState("all"); // 'all', 'Ordered', 'Received', etc.
+
+  // Ref to detect clicks outside the dropdown
+  const dropdownRef = useRef(null);
+
+  // Function to determine status badge styling for Purchase Status
+  const getPurchaseStatusClasses = (status) => {
+    switch (status) {
+      case "Ordered":
+        return "bg-blue-100 text-blue-800";
+      case "Received":
+        return "bg-green-100 text-green-800";
+      case "Cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Function to determine status badge styling for Payment Status
+  const getPaymentStatusClasses = (status) => {
+    switch (status) {
+      case "Paid":
+        return "bg-green-100 text-green-800";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "Refunded":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Toggle dropdown visibility
+  const toggleDropdown = (id) => {
+    setOpenDropdownId(openDropdownId === id ? null : id);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Placeholder functions for actions
+  const handleView = (purchaseId) => {
+    console.log(`Viewing details for purchase: ${purchaseId}`);
+    setOpenDropdownId(null); // Close dropdown after action
+  };
+
+  const handleEdit = (purchaseId) => {
+    console.log(`Editing purchase: ${purchaseId}`);
+    setOpenDropdownId(null); // Close dropdown after action
+  };
+
+  const handleDelete = (purchaseId) => {
+    console.log(`Deleting purchase: ${purchaseId}`);
+    setOpenDropdownId(null); // Close dropdown after action
+  };
+
+  // Filter logic for purchase list
+  const getFilteredPurchaseList = () => {
+    if (filterByPurchaseStatus === "all") {
+      return purchaseList;
+    }
+    return purchaseList.filter(
+      (purchase) => purchase.purchaseStatus === filterByPurchaseStatus
+    );
+  };
+
+  const filteredPurchaseList = getFilteredPurchaseList();
+
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPurchaseList = filteredPurchaseList.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  ); // Use filteredPurchaseList
+  const totalPages = Math.ceil(filteredPurchaseList.length / itemsPerPage); // Use filteredPurchaseList
+
+  // Reset page to 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterByPurchaseStatus]);
+
+  const paginate = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      setOpenDropdownId(null); // Close any open dropdown when changing page
+    }
+  };
+
+  return (
+    <>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      />
+
+      <div className="bg-white p-4 sm:p-6 lg:p-8 font-sans">
+        <div className="max-w-7xl mx-auto">
+          {/* Main component styling consistent with previous tables */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+            {/* Header Section */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+              {/* Left side: Purchase List Title */}
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4 sm:mb-0">
+                Purchase List
+              </h2>
+
+              {/* Right side: Filter Dropdown */}
+              <div className="flex items-center">
+                <select
+                  className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md shadow-sm w-auto max-w-fit"
+                  value={filterByPurchaseStatus}
+                  onChange={(e) => setFilterByPurchaseStatus(e.target.value)}
+                >
+                  <option value="all">All Purchase Statuses</option>
+                  <option value="Ordered">Ordered</option>
+                  <option value="Received">Received</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="overflow-x-auto rounded-lg border border-primary-100">
+              <table className="min-w-full divide-y divide-primary-100">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Sr No.
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Order By
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Items
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Purchase Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment Method
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-primary-100">
+                  {currentPurchaseList.length > 0 ? (
+                    currentPurchaseList.map((purchase, index) => (
+                      <tr
+                        key={purchase.id}
+                        className="hover:bg-gray-50 transition duration-150 ease-in-out"
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {indexOfFirstItem + index + 1}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
+                          {purchase.id}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {purchase.orderBy}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {purchase.items}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getPurchaseStatusClasses(
+                              purchase.purchaseStatus
+                            )}`}
+                          >
+                            {purchase.purchaseStatus}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {purchase.date}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          ${purchase.total.toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {purchase.paymentMethod}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusClasses(
+                              purchase.paymentStatus
+                            )}`}
+                          >
+                            {purchase.paymentStatus}
+                          </span>
+                        </td>
+                        <td
+                          className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 relative"
+                          ref={dropdownRef}
+                        >
+                          <button
+                            className="flex items-center justify-center w-6 h-6 text-gray-600 hover:text-gray-800 transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-gray-200 focus:ring-opacity-75 rounded-full"
+                            onClick={() => toggleDropdown(purchase.id)}
+                            title="More Actions"
+                          >
+                            <i className="fas fa-ellipsis-h"></i>
+                          </button>
+
+                          {/* Dropdown Menu */}
+                          {openDropdownId === purchase.id && (
+                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100">
+                              <div
+                                className="py-1"
+                                role="menu"
+                                aria-orientation="vertical"
+                                aria-labelledby="options-menu"
+                              >
+                                <button
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
+                                  role="menuitem"
+                                  onClick={() => handleView(purchase.id)}
+                                >
+                                  <i className="fas fa-eye mr-2 text-blue-500"></i>
+                                  View
+                                </button>
+                                <button
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
+                                  role="menuitem"
+                                  onClick={() => handleEdit(purchase.id)}
+                                >
+                                  <i className="fas fa-edit mr-2 text-yellow-500"></i>
+                                  Edit
+                                </button>
+                                <button
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
+                                  role="menuitem"
+                                  onClick={() => handleDelete(purchase.id)}
+                                >
+                                  <i className="fas fa-trash-alt mr-2 text-red-500"></i>
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="10"
+                        className="px-4 py-3 text-center text-sm text-gray-500"
+                      >
+                        No purchase orders found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls - Aligned to the right */}
+            <div className="flex justify-end items-center mt-6 space-x-2">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <div className="flex space-x-1">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => paginate(i + 1)}
+                    className={`px-3 py-1 text-sm rounded-md ${
+                      currentPage === i + 1
+                        ? "bg-yellow-200 text-yellow-800"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default App;

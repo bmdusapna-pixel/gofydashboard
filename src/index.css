@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /*
+    Define your custom color palette.
+    Tailwind v4 automatically generates utility classes like `bg-primary-500`,
+    `text-primary-600`, etc., from these CSS variables.
+  */
+  --color-primary-50: #fef2f2;
+  --color-primary-100: #fee2e2;
+  --color-primary-200: #fecaca;
+  --color-primary-300: #fca5a5;
+  --color-primary-400: #f87171;
+  --color-primary-500: #dc3545;
+  --color-primary-600: #b91c1c;
+  --color-primary-700: #991b1b;
+  --color-primary-800: #7f1d1d;
+  --color-primary-900: #63171b;
+
+  --color-custom-light: #fefefe;
+
+  /*
+    Define your custom font family.
+    This will be available as `font-bubble`.
+    Make sure to import or link the font in your HTML or CSS if it's a web font.
+  */
+  --font-bubble: "Bubblegum Sans", cursive;
+}
+
+/*
+  Optional: If you need to explicitly point Tailwind to your source files
+  (though the Vite plugin usually handles this automatically).
+*/
+@source "./index.html";
+@source "./src/**/*.{js,ts,jsx,tsx}";
+
+/*
+  Optional: Add custom base styles or components using @layer directives.
+  For example, to apply the custom font globally:
+*/
+@layer base {
+  body {
+    font-family: var(--font-bubble);
+    /* Apply the custom font to the body */
+  }
+}
