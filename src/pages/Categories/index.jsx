@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-// Removed FontAwesome imports as they are causing resolution errors in this environment.
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faPlus, faEye, faEdit, faTrashAlt, faEllipsisH } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Re-added FontAwesome import
+import {
+  faPlus,
+  faEye,
+  faEdit,
+  faTrashAlt,
+  faEllipsisH,
+} from "@fortawesome/free-solid-svg-icons"; // Re-added FontAwesome icons import
 
 // Main App component for Category Table
 const App = () => {
@@ -151,10 +156,11 @@ const App = () => {
 
   return (
     <>
-      <link
+      {/* Removed Font Awesome CDN link as we are now using the React component */}
+      {/* <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-      />
+      /> */}
 
       <div className="bg-white p-4 sm:p-6 lg:p-8 font-sans">
         <div className="max-w-7xl mx-auto">
@@ -170,7 +176,8 @@ const App = () => {
               {/* Right side: Add New Category Button and Filter Dropdown */}
               <div className="flex items-center space-x-4">
                 <button className="bg-red-200 hover:bg-red-300 text-red-800 text-xs font-semibold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out">
-                  <i className="fas fa-plus mr-2"></i>Add New Category
+                  <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                  Add New Category {/* Changed to FontAwesomeIcon */}
                 </button>
                 {/* Removed Category Name Filter Dropdown */}
                 {/* Segment Filter Dropdown */}
@@ -244,7 +251,8 @@ const App = () => {
                             onClick={() => toggleDropdown(category.id)}
                             title="More Actions"
                           >
-                            <i className="fas fa-ellipsis-h"></i>
+                            <FontAwesomeIcon icon={faEllipsisH} />{" "}
+                            {/* Changed to FontAwesomeIcon */}
                           </button>
 
                           {/* Dropdown Menu */}
@@ -261,24 +269,33 @@ const App = () => {
                                   role="menuitem"
                                   onClick={() => handleView(category.name)}
                                 >
-                                  <i className="fas fa-eye mr-2 text-blue-500"></i>
-                                  View
+                                  <FontAwesomeIcon
+                                    icon={faEye}
+                                    className="mr-2 text-blue-500"
+                                  />
+                                  View {/* Changed to FontAwesomeIcon */}
                                 </button>
                                 <button
                                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
                                   role="menuitem"
                                   onClick={() => handleEdit(category.name)}
                                 >
-                                  <i className="fas fa-edit mr-2 text-yellow-500"></i>
-                                  Edit
+                                  <FontAwesomeIcon
+                                    icon={faEdit}
+                                    className="mr-2 text-yellow-500"
+                                  />
+                                  Edit {/* Changed to FontAwesomeIcon */}
                                 </button>
                                 <button
                                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
                                   role="menuitem"
                                   onClick={() => handleDelete(category.name)}
                                 >
-                                  <i className="fas fa-trash-alt mr-2 text-red-500"></i>
-                                  Delete
+                                  <FontAwesomeIcon
+                                    icon={faTrashAlt}
+                                    className="mr-2 text-red-500"
+                                  />
+                                  Delete {/* Changed to FontAwesomeIcon */}
                                 </button>
                               </div>
                             </div>
