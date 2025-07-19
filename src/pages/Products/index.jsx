@@ -9,7 +9,7 @@ const App = () => {
   const products = [
     {
       id: "toy-001",
-      image: "https://placehold.co/40x40/FFD700/000?text=Bear",
+      image: "https://placehold.co/40x40/FFD700/000?text=Bear", // Fixed image URL
       name: "Cuddly Plush Bear",
       category: "Stuffed Animals",
       stock: 150,
@@ -19,7 +19,7 @@ const App = () => {
     },
     {
       id: "toy-002",
-      image: "https://placehold.co/40x40/87CEEB/000?text=Blocks",
+      image: "https://placehold.co/40x40/87CEEB/000?text=Blocks", // Fixed image URL
       name: "Giant Building Blocks Set",
       category: "Construction Toys",
       stock: 75,
@@ -29,7 +29,7 @@ const App = () => {
     },
     {
       id: "toy-003",
-      image: "https://placehold.co/40x40/FF6347/000?text=Car",
+      image: "https://placehold.co/40x40/FF6347/000?text=Car", // Fixed image URL
       name: "Remote Control Race Car",
       category: "Vehicles",
       stock: 30,
@@ -39,7 +39,7 @@ const App = () => {
     },
     {
       id: "toy-004",
-      image: "https://placehold.co/40x40/9ACD32/000?text=Dino",
+      image: "https://placehold.co/40x40/9ACD32/000?text=Dino", // Fixed image URL
       name: "Roaring Dinosaur Figure",
       category: "Action Figures",
       stock: 90,
@@ -49,7 +49,7 @@ const App = () => {
     },
     {
       id: "toy-005",
-      image: "https://placehold.co/40x40/DDA0DD/000?text=Game",
+      image: "https://placehold.co/40x40/DDA0DD/000?text=Game", // Fixed image URL
       name: "Family Fun Board Game",
       category: "Board Games",
       stock: 0,
@@ -59,7 +59,7 @@ const App = () => {
     },
     {
       id: "toy-006",
-      image: "https://placehold.co/40x40/C0C0C0/000?text=Robot",
+      image: "https://placehold.co/40x40/C0C0C0/000?text=Robot", // Fixed image URL
       name: "Interactive Robot",
       category: "Robotics",
       stock: 45,
@@ -69,7 +69,7 @@ const App = () => {
     },
     {
       id: "toy-007",
-      image: "https://placehold.co/40x40/ADD8E6/000?text=Doll",
+      image: "https://placehold.co/40x40/ADD8E6/000?text=Doll", // Fixed image URL
       name: "Fashion Doll Set",
       category: "Dolls",
       stock: 120,
@@ -79,7 +79,7 @@ const App = () => {
     },
     {
       id: "toy-008",
-      image: "https://placehold.co/40x40/FFB6C1/000?text=Puzzle",
+      image: "https://placehold.co/40x40/FFB6C1/000?text=Puzzle", // Fixed image URL
       name: "Jigsaw Puzzle (1000 pcs)",
       category: "Puzzles",
       stock: 60,
@@ -89,7 +89,7 @@ const App = () => {
     },
     {
       id: "toy-009",
-      image: "https://placehold.co/40x40/90EE90/000?text=Train",
+      image: "https://placehold.co/40x40/90EE90/000?text=Train", // Fixed image URL
       name: "Electric Train Set",
       category: "Vehicles",
       stock: 20,
@@ -99,7 +99,7 @@ const App = () => {
     },
     {
       id: "toy-010",
-      image: "https://placehold.co/40x40/DDA0DD/000?text=Art",
+      image: "https://placehold.co/40x40/DDA0DD/000?text=Art", // Fixed image URL
       name: "Deluxe Art Kit",
       category: "Art & Craft",
       stock: 80,
@@ -109,7 +109,7 @@ const App = () => {
     },
     {
       id: "toy-011",
-      image: "https://placehold.co/40x40/ADD8E6/000?text=Truck",
+      image: "https://placehold.co/40x40/ADD8E6/000?text=Truck", // Fixed image URL
       name: "Monster Truck",
       category: "Vehicles",
       stock: 10,
@@ -119,7 +119,7 @@ const App = () => {
     },
     {
       id: "toy-012",
-      image: "https://placehold.co/40x40/FFD700/000?text=Fig",
+      image: "https://placehold.co/40x40/FFD700/000?text=Fig", // Fixed image URL
       name: "Superhero Action Figure",
       category: "Action Figures",
       stock: 50,
@@ -138,6 +138,9 @@ const App = () => {
 
   // Date filter state
   const [filterByDate, setFilterByDate] = useState("all"); // 'all', 'week', 'month', 'year'
+
+  // Category filter state
+  const [filterByCategory, setFilterByCategory] = useState("all"); // 'all', 'Stuffed Animals', etc.
 
   // Ref to detect clicks outside the dropdown
   const dropdownRef = useRef(null);
@@ -193,7 +196,7 @@ const App = () => {
     setOpenDropdownId(null); // Close dropdown after action
   };
 
-  // Date filtering logic
+  // Filtering logic
   const getFilteredProducts = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Midnight today
@@ -202,21 +205,23 @@ const App = () => {
       const productDate = new Date(product.dateAdded);
       productDate.setHours(0, 0, 0, 0); // Normalize to midnight for comparison
 
-      if (filterByDate === "all") {
-        return true;
-      } else if (filterByDate === "week") {
-        const sevenDaysAgo = new Date(today);
+      let matchesDate = true;
+      if (filterByDate === "week") {
+        const sevenDaysAgo = new Date(today); // Create a new Date object
         sevenDaysAgo.setDate(today.getDate() - 7);
-        return productDate >= sevenDaysAgo && productDate <= today;
+        matchesDate = productDate >= sevenDaysAgo && productDate <= today;
       } else if (filterByDate === "month") {
-        return (
+        matchesDate =
           productDate.getMonth() === today.getMonth() &&
-          productDate.getFullYear() === today.getFullYear()
-        );
+          productDate.getFullYear() === today.getFullYear();
       } else if (filterByDate === "year") {
-        return productDate.getFullYear() === today.getFullYear();
+        matchesDate = productDate.getFullYear() === today.getFullYear();
       }
-      return true;
+
+      const matchesCategory =
+        filterByCategory === "all" || product.category === filterByCategory;
+
+      return matchesDate && matchesCategory;
     });
   };
 
@@ -234,7 +239,7 @@ const App = () => {
   // Reset page to 1 when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterByDate]);
+  }, [filterByDate, filterByCategory]); // Reset page on any filter change
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -260,11 +265,12 @@ const App = () => {
                 Product Catalog
               </h2>
 
-              {/* Right side: Add New Toy Button and Date Filter Dropdown, grouped */}
+              {/* Right side: Add New Toy Button and Filter Dropdowns, grouped */}
               <div className="flex items-center space-x-4">
                 <button className="bg-red-200 hover:bg-red-300 text-red-800 text-xs font-semibold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out">
                   <i className="fas fa-plus mr-2"></i>Add New Toy
                 </button>
+                {/* Date Filter Dropdown */}
                 <select
                   className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md shadow-sm w-auto max-w-fit"
                   value={filterByDate}
@@ -274,6 +280,22 @@ const App = () => {
                   <option value="week">This Week</option>
                   <option value="month">This Month</option>
                   <option value="year">This Year</option>
+                </select>
+                {/* Category Filter Dropdown */}
+                <select
+                  className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md shadow-sm w-auto max-w-fit"
+                  value={filterByCategory}
+                  onChange={(e) => setFilterByCategory(e.target.value)}
+                >
+                  <option value="all">All Categories</option>
+                  {/* Dynamically generate options from unique category names */}
+                  {[
+                    ...new Set(products.map((product) => product.category)),
+                  ].map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

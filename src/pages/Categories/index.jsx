@@ -5,57 +5,67 @@ import React, { useState, useRef, useEffect } from "react";
 
 // Main App component for Category Table
 const App = () => {
-  // Sample category data
+  // Sample category data with segment
   const categories = [
     {
       id: "cat-001",
       name: "Stuffed Animals",
       productCount: 15,
+      segment: "Toys",
     },
     {
       id: "cat-002",
       name: "Construction Toys",
       productCount: 10,
+      segment: "Toys",
     },
     {
       id: "cat-003",
       name: "Vehicles",
       productCount: 20,
+      segment: "Toys",
     },
     {
       id: "cat-004",
       name: "Action Figures",
       productCount: 12,
+      segment: "Toys",
     },
     {
       id: "cat-005",
       name: "Board Games",
       productCount: 8,
+      segment: "Toys",
     },
     {
       id: "cat-006",
-      name: "Robotics",
-      productCount: 5,
+      name: "T-Shirts",
+      productCount: 30,
+      segment: "Clothes",
     },
     {
       id: "cat-007",
-      name: "Dolls",
-      productCount: 18,
+      name: "Dresses",
+      productCount: 25,
+      segment: "Clothes",
     },
     {
       id: "cat-008",
-      name: "Puzzles",
-      productCount: 7,
+      name: "Pants",
+      productCount: 20,
+      segment: "Clothes",
     },
     {
       id: "cat-009",
-      name: "Art & Craft",
-      productCount: 14,
+      name: "Sweaters",
+      productCount: 18,
+      segment: "Clothes",
     },
     {
       id: "cat-010",
-      name: "Outdoor Toys",
-      productCount: 25,
+      name: "Outerwear",
+      productCount: 12,
+      segment: "Clothes",
     },
   ];
 
@@ -66,8 +76,8 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Number of items to display per page
 
-  // Filter state for category name
-  const [filterByCategory, setFilterByCategory] = useState("all"); // 'all', 'Stuffed Animals', etc.
+  // Filter state for segment
+  const [filterBySegment, setFilterBySegment] = useState("all"); // 'all', 'Clothes', 'Toys'
 
   // Ref to detect clicks outside the dropdown
   const dropdownRef = useRef(null);
@@ -109,10 +119,11 @@ const App = () => {
 
   // Filter logic for categories
   const getFilteredCategories = () => {
-    if (filterByCategory === "all") {
-      return categories;
-    }
-    return categories.filter((category) => category.name === filterByCategory);
+    return categories.filter((category) => {
+      const matchesSegment =
+        filterBySegment === "all" || category.segment === filterBySegment;
+      return matchesSegment;
+    });
   };
 
   const filteredCategories = getFilteredCategories();
@@ -129,7 +140,7 @@ const App = () => {
   // Reset page to 1 when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterByCategory]);
+  }, [filterBySegment]); // Reset page on segment filter change
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -161,21 +172,16 @@ const App = () => {
                 <button className="bg-red-200 hover:bg-red-300 text-red-800 text-xs font-semibold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out">
                   <i className="fas fa-plus mr-2"></i>Add New Category
                 </button>
-                {/* Category Filter Dropdown */}
+                {/* Removed Category Name Filter Dropdown */}
+                {/* Segment Filter Dropdown */}
                 <select
                   className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md shadow-sm w-auto max-w-fit"
-                  value={filterByCategory}
-                  onChange={(e) => setFilterByCategory(e.target.value)}
+                  value={filterBySegment}
+                  onChange={(e) => setFilterBySegment(e.target.value)}
                 >
-                  <option value="all">All Categories</option>
-                  {/* Dynamically generate options from unique category names */}
-                  {[...new Set(categories.map((cat) => cat.name))].map(
-                    (name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    )
-                  )}
+                  <option value="all">All Segments</option>
+                  <option value="Clothes">Clothes</option>
+                  <option value="Toys">Toys</option>
                 </select>
               </div>
             </div>
@@ -194,6 +200,10 @@ const App = () => {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Category Name
                     </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Segment
+                    </th>{" "}
+                    {/* New Segment column header */}
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Number of Products
                     </th>
@@ -218,6 +228,10 @@ const App = () => {
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
                           {category.name}
                         </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {category.segment}
+                        </td>{" "}
+                        {/* Display Segment */}
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                           {category.productCount}
                         </td>
@@ -275,7 +289,7 @@ const App = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan="5"
+                        colSpan="6" // Updated colspan to 6
                         className="px-4 py-3 text-center text-sm text-gray-500"
                       >
                         No categories found.
