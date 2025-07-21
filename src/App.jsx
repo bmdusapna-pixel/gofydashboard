@@ -16,16 +16,21 @@ import Login from "./pages/Login";
 import PurchaseList from "./pages/Purchase/List";
 import PurchaseOrder from "./pages/Purchase/Order";
 import PurchaseReturn from "./pages/Purchase/Return";
+import AddProduct from "./pages/AddProduct";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
   return (
     <div>
+      <ToastContainer/>
       <SidebarProvider>
         <Routes>
           <Route element={<MainLayout />}>
             <Route element={<ContentLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/products/add-new" element={<AddProduct />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/inventory/warehouse" element={<Warehouse />} />
               <Route path="/orders" element={<Orders />} />
