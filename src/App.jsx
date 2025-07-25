@@ -16,14 +16,17 @@ import Login from "./pages/Login";
 import PurchaseList from "./pages/Purchase/List";
 import PurchaseOrder from "./pages/Purchase/Order";
 import PurchaseReturn from "./pages/Purchase/Return";
-import AddProduct from "./pages/AddProduct";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddProduct from "./pages/Products/AddProduct";
+import ViewProduct from "./pages/Products/ViewProduct";
+import EditProduct from "./pages/Products/EditProduct";
+import AddCategory from "./pages/Categories/AddCategory";
 
 const App = () => {
   return (
     <div>
-      <ToastContainer/>
+      <ToastContainer />
       <SidebarProvider>
         <Routes>
           <Route element={<MainLayout />}>
@@ -31,7 +34,10 @@ const App = () => {
               <Route path="/" element={<Dashboard />} />
               <Route path="/products" element={<Products />} />
               <Route path="/products/add-new" element={<AddProduct />} />
+              <Route path="/products/view/:url" element={<ViewProduct />} />
+              <Route path="/products/edit/:url" element={<EditProduct />} />
               <Route path="/categories" element={<Categories />} />
+              <Route path="/categories/add-new" element={<AddCategory />} />
               <Route path="/inventory/warehouse" element={<Warehouse />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/invoices" element={<Invoices />} />

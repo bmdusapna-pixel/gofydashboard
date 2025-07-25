@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
-const images =  [
-  "https://www.radiustheme.com/demo/wordpress/themes/toyup/wp-content/uploads/2024/01/product_17.png",
-  "https://www.radiustheme.com/demo/wordpress/themes/toyup/wp-content/uploads/2023/12/product_07-300x300.png",
-  "https://www.radiustheme.com/demo/wordpress/themes/toyup/wp-content/uploads/2023/12/product_10-300x300.png",
-  "https://www.radiustheme.com/demo/wordpress/themes/toyup/wp-content/uploads/2024/01/product_20-300x300.png",
-  "https://www.radiustheme.com/demo/wordpress/themes/toyup/wp-content/uploads/2023/12/product_07-300x300.png",
-]
-
 const AddProduct = () => {
   const [productFields, setProductFields] = useState({
     productName: "",
@@ -50,14 +42,17 @@ const AddProduct = () => {
   const handleImageSubmit = (event) => {
     event.preventDefault();
     if (selectedImages.length !== 5) {
-      setImageUploadError("Upload 5 images only");
-      toast.info(imageUploadError);
+      const errorMessage = "Upload Only 5 images";
+      setImageUploadError(errorMessage);
+      toast.info(errorMessage);
       setSelectedImages([]);
       return;
     }
-    const imagePreviews = selectedImages.map((file) => window.URL.createObjectURL(file));
+    const imagePreviews = selectedImages.map((file) =>
+      window.URL.createObjectURL(file)
+    );
     setImageData(imagePreviews);
-    setProductFields((prev) => ({...prev, images: selectedImages}));
+    setProductFields((prev) => ({ ...prev, images: selectedImages }));
   };
 
   const handleInStockChange = (e) => {
@@ -91,12 +86,12 @@ const AddProduct = () => {
               </div>
               <div className="flex gap-5 items-center w-full">
                 <div className="flex flex-col gap-2 w-full">
-                  <p className="text-[16px] font-medium leading-[24px] text-black">Old Price</p>
-                  <input min="0" required onChange={inputChangeHandler} name="oldPrice" value={productFields.oldPrice} type="number" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Old Price" />
+                  <p className="text-[16px] font-medium leading-[24px] text-black">MRP</p>
+                  <input min="0" required onChange={inputChangeHandler} name="oldPrice" value={productFields.oldPrice} type="number" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="MRP" />
                 </div>
                 <div className="flex flex-col gap-2 w-full">
-                  <p className="text-[16px] font-medium leading-[24px] text-black">New Price</p>
-                  <input min="0" required onChange={inputChangeHandler} name="newPrice" value={productFields.newPrice} type="number" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="New Price" />
+                  <p className="text-[16px] font-medium leading-[24px] text-black">Sale Price</p>
+                  <input min="0" required onChange={inputChangeHandler} name="newPrice" value={productFields.newPrice} type="number" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Sale Price" />
                 </div>
               </div>
               <div className="flex gap-5 items-center w-full">
@@ -125,6 +120,10 @@ const AddProduct = () => {
               <div className="flex flex-col gap-2 w-full">
                 <p className="text-[16px] font-medium leading-[24px] text-black">Category</p>
                 <input required onChange={inputChangeHandler} name="category" value={productFields.category} type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Category" />
+              </div>
+              <div className="flex flex-col gap-2 w-full">
+                <p className="text-[16px] font-medium leading-[24px] text-black">Sub Category</p>
+                <input required onChange={inputChangeHandler} name="category" value={productFields.category} type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Sub Category" />
               </div>
               {
                 imageData && imageData.length > 0 && (
