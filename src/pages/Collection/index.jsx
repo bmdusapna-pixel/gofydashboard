@@ -1,52 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
-import { receivedOrders } from "../../assets/orders.list";
-import { EllipsisVertical, Eye, Pencil, Trash2 } from "lucide-react";
+import { EllipsisVertical, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import collections from "../../assets/collections.list.js"; // Adjust path if necessary
 
-const table_header = [
+const collectionTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
-  { title: "Order ID", _id: "orderId" },
-  { title: "Customer", _id: "customer" },
-  { title: "Items", _id: "items" },
-  { title: "Amount", _id: "amount" },
-  { title: "Payment Status", _id: "paymentStatus" },
-  { title: "Received Status", _id: "receivedStatus" },
+  { title: "Collection ID", _id: "collectionId" },
+  { title: "Collection Name", _id: "collectionName" },
+  { title: "Number of Categories", _id: "numberOfCategories" },
   { title: "Action", _id: "action" },
 ];
 
-const ReceivedOrders = () => {
+const Collections = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
-
   const itemsPerPage = 5;
-
-  const getPaymentStatusClasses = (status) => {
-    switch (status) {
-      case "Paid":
-        return "bg-green-100 text-green-800";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "Refunded":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getReceivedStatusClasses = (status) => {
-    switch (status) {
-      case "Full":
-        return "bg-green-100 text-green-800";
-      case "Partial":
-        return "bg-yellow-100 text-yellow-800";
-      case "Pending":
-        return "bg-blue-100 text-blue-800";
-      case "Not Received":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -64,33 +32,42 @@ const ReceivedOrders = () => {
     };
   }, []);
 
-  const handleView = (orderId) => {
-    console.log(`Viewing details for received order: ${orderId}`);
+  const handleView = (collectionName) => {
+    console.log(`Viewing details for collection: ${collectionName}`);
     setOpenDropdownId(null);
   };
 
-  const handleEdit = (orderId) => {
-    console.log(`Editing received order: ${orderId}`);
+  const handleEdit = (collectionName) => {
+    console.log(`Editing collection: ${collectionName}`);
     setOpenDropdownId(null);
   };
 
-  const handleDelete = (orderId) => {
-    console.log(`Deleting received order: ${orderId}`);
+  const handleDelete = (collectionName) => {
+    console.log(`Deleting collection: ${collectionName}`);
     setOpenDropdownId(null);
   };
+
+  const getFilteredCollections = () => {
+    // No filtering is implemented, so we return the raw collections data.
+    return collections;
+  };
+
+  const filteredCollections = getFilteredCollections();
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentReceivedOrders = receivedOrders.slice(
+  const currentCollections = filteredCollections.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
-  const totalPages = Math.ceil(receivedOrders.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredCollections.length / itemsPerPage);
+
+  // No useEffect dependency on filterQuery as it's removed.
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      setOpenDropdownId(null);
+      setOpenDropdownId(null); // Close dropdown on page change
     }
   };
 
@@ -100,111 +77,90 @@ const ReceivedOrders = () => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-700 whitespace-nowrap">
-              Received Orders List
+            <h2 className="text-base sm:text-lg font-semibold text-gray-700">
+              Product Collections
             </h2>
+            <div className="flex items-center gap-4">
+              <button className="cursor-pointer bg-red-100 flex items-center hover:bg-red-200 text-red-700 py-2 px-4 rounded-md shadow-sm transition-colors duration-200">
+                <Plus className="w-5 h-5" />
+                <span className="text-sm font-medium">Add New Collection</span>
+              </button>
+            </div>
           </div>
 
-          {/* Table Section */}
+          {/* Table */}
           <div className="overflow-x-auto rounded-lg border border-primary-100">
-            <table className="min-w-full divide-y divide-primary-200">
+            <table className="min-w-full divide-y divide-primary-100">
               <thead className="bg-gray-50">
                 <tr>
-                  {table_header.map((item) => (
+                  {collectionTableHeaders.map((item) => (
                     <th
                       key={item._id}
-                      className="px-4 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
                       {item.title}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-primary-200">
-                {currentReceivedOrders.length > 0 ? (
-                  currentReceivedOrders.map((order, index) => (
+              <tbody className="bg-white divide-y divide-primary-100">
+                {currentCollections.length > 0 ? (
+                  currentCollections.map((collection, index) => (
                     <tr
-                      key={order._id}
+                      key={collection._id}
                       className="hover:bg-gray-50 transition duration-150 ease-in-out"
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                         {indexOfFirstItem + index + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {order.orderId}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {order.customer}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {order.items}
+                        {collection.id}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        ₹ {order.amount.toFixed(2)}
+                        {collection.name}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusClasses(
-                            order.paymentStatus
-                          )}`}
-                        >
-                          {order.paymentStatus}
-                        </span>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {collection.categoryCount}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getReceivedStatusClasses(
-                            order.receivedStatus
-                          )}`}
-                        >
-                          {order.receivedStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 relative whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap relative">
                         <button
                           className="flex cursor-pointer items-center justify-center w-6 h-6 focus:outline-none focus:ring-1 focus:ring-gray-200 rounded-full"
-                          onClick={() => toggleDropdown(order._id)}
+                          onClick={() => toggleDropdown(collection.id)}
                           title="More Actions"
                         >
-                          <EllipsisVertical className="w-5 h-5 text-gray-600" />
+                          <EllipsisVertical className="w-4 h-4 text-gray-500" />
                         </button>
-                        {openDropdownId === order._id && (
+                        {openDropdownId === collection.id && (
                           <div
                             ref={dropdownRef}
                             className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
                           >
                             <div
-                              className="flex flex-col gap-1 w-full"
+                              className="flex flex-col w-full"
                               role="menu"
                               aria-orientation="vertical"
                               aria-labelledby="options-menu"
                             >
                               <button
-                                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md"
-                                onClick={() => handleView(order.orderId)}
+                                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                onClick={() => handleView(collection.name)}
                               >
                                 <Eye className="w-4 h-4 text-blue-500" />
-                                <span className="text-sm text-gray-700">
-                                  View
-                                </span>
+                                <span>View</span>
                               </button>
                               <button
-                                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md"
-                                onClick={() => handleEdit(order.orderId)}
+                                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                onClick={() => handleEdit(collection.name)}
                               >
                                 <Pencil className="w-4 h-4 text-yellow-500" />
-                                <span className="text-sm text-gray-700">
-                                  Edit
-                                </span>
+                                <span>Edit</span>
                               </button>
                               <button
-                                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-md"
-                                onClick={() => handleDelete(order.orderId)}
+                                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                onClick={() => handleDelete(collection.name)}
                               >
                                 <Trash2 className="w-4 h-4 text-red-500" />
-                                <span className="text-sm text-gray-700">
-                                  Delete
-                                </span>
+                                <span>Delete</span>
                               </button>
                             </div>
                           </div>
@@ -215,10 +171,10 @@ const ReceivedOrders = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan="8"
+                      colSpan="5"
                       className="px-4 py-3 text-center text-sm text-gray-600"
                     >
-                      No categories found
+                      No collections found
                     </td>
                   </tr>
                 )}
@@ -264,4 +220,4 @@ const ReceivedOrders = () => {
   );
 };
 
-export default ReceivedOrders;
+export default Collections;

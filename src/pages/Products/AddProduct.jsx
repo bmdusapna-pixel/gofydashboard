@@ -1,151 +1,425 @@
 import React, { useState } from "react";
-import { toast } from "react-toastify";
+import ageGroups from "../../assets/ageGroups.list.js";
 
 const AddProduct = () => {
-  const [productFields, setProductFields] = useState({
-    productName: "",
-    briefDescription: "",
-    detailDescription: "",
-    oldPrice: 0,
-    newPrice: 0,
-    inStock: false,
-    tags: [],
-    stockNumber: 0,
-    category: "",
-    mfg: "",
+  // Common product fields
+  const [product, setProduct] = useState({
     images: [],
+    name: "",
+    category: "",
+    material: "",
+    gender: "",
+    color: "",
+    description: "",
+    shippingPolicy: "",
+    washCare: "",
   });
-  const [imageUploadError, setImageUploadError] = useState("");
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [imageData, setImageData] = useState([]);
 
-  const inputChangeHandler = (event) => {
-    const { name, value, type } = event.target;
-    const newValue = type === "number" ? +value : value;
-    setProductFields((prev) => ({ ...prev, [name]: newValue }));
+  const categories = ["T-shirt", "Doll", "Shoes", "Pants", "Accessories"];
+  const genders = ["Unisex", "Boys", "Girls"];
+  const materials = [
+    "Cotton",
+    "Polyester",
+    "Wool",
+    "Plastic",
+    "Leather",
+    "Metal",
+  ];
+  const colors = ["Red", "Blue", "Green", "Black", "White", "Pink", "Yellow"];
+
+  // Variants
+  const [variants, setVariants] = useState([
+    {
+      ageGroup: "",
+      price: "",
+      cutPrice: "",
+      discount: "",
+      specifications: [{ key: "", value: "" }],
+    },
+  ]);
+
+  // Handle common product changes
+  const handleProductChange = (field, value) => {
+    setProduct((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleTagsChange = (e) => {
-    const value = e.target.value;
-    const array = value.split(",").map(tag => tag.trim());
-    setProductFields((prev) => ({
+  // Image upload with 2–6 limit
+  const handleImageUpload = (files) => {
+    const fileArray = Array.from(files);
+    setProduct((prev) => {
+      const totalImages = prev.images.length + fileArray.length;
+      if (totalImages > 6) {
+        alert("You can upload a maximum of 6 images.");
+      }
+      return {
+        ...prev,
+        images: [...prev.images, ...fileArray].slice(0, 6),
+      };
+    });
+  };
+
+  const removeImage = (imgIndex) => {
+    setProduct((prev) => ({
       ...prev,
-      tags: array,
+      images: prev.images.filter((_, i) => i !== imgIndex),
     }));
   };
 
-  const inputImageHandler = (event) => {
-    const files = Array.from(event.target.files);
-    setSelectedImages(files);
+  // Handle variant field change
+  const handleVariantChange = (variantIndex, field, value) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[variantIndex][field] = value;
+
+      if (field === "price" || field === "cutPrice") {
+        const price = parseFloat(updated[variantIndex].price) || 0;
+        const cutPrice = parseFloat(updated[variantIndex].cutPrice) || 0;
+        updated[variantIndex].discount =
+          cutPrice > 0 ? Math.round(((cutPrice - price) / cutPrice) * 100) : "";
+      }
+
+      return updated;
+    });
   };
 
-  const handleImageSubmit = (event) => {
-    event.preventDefault();
-    if (selectedImages.length !== 5) {
-      const errorMessage = "Upload Only 5 images";
-      setImageUploadError(errorMessage);
-      toast.info(errorMessage);
-      setSelectedImages([]);
+  // Specification changes
+  const handleSpecChange = (variantIndex, specIndex, key, value) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[variantIndex].specifications[specIndex][key] = value;
+      return updated;
+    });
+  };
+
+  const addSpec = (variantIndex) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[variantIndex].specifications.push({ key: "", value: "" });
+      return updated;
+    });
+  };
+
+  // Add/remove variant
+  const addVariant = () => {
+    setVariants((prev) => [
+      ...prev,
+      {
+        ageGroup: "",
+        price: "",
+        cutPrice: "",
+        discount: "",
+        specifications: [{ key: "", value: "" }],
+      },
+    ]);
+  };
+
+  const removeVariant = (index) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (product.images.length < 2) {
+      alert("Please upload at least 2 images.");
       return;
     }
-    const imagePreviews = selectedImages.map((file) =>
-      window.URL.createObjectURL(file)
-    );
-    setImageData(imagePreviews);
-    setProductFields((prev) => ({ ...prev, images: selectedImages }));
-  };
-
-  const handleInStockChange = (e) => {
-    const value = e.target.value === "true";
-    setProductFields((prev) => ({ ...prev, inStock: value }));
-  };
-
-  const submitForm = async (event) => {
-    event.preventDefault();
-    const formData = new FormData();
+    console.log("Final Product:", { ...product, variants });
   };
 
   return (
-    <div className="w-full p-8 overflow-y-scroll">
-      <div className="border shadow-md border-gray-200 p-5 rounded-2xl flex flex-col gap-5">
-        <p className="text-[20px] leading-[28px] text-black font-semibold">Add New Product</p>
-        <form onSubmit={submitForm} className="w-full flex flex-col gap-5">
-          <div className="flex gap-10 w-full">
-            <div className="w-1/2 flex flex-col gap-3">
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-[16px] font-medium leading-[24px] text-black">Product Name</p>
-                <input required onChange={inputChangeHandler} name="productName" value={productFields.productName} type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Name" />
-              </div>
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-[16px] font-medium leading-[24px] text-black">Breif Description</p>
-                <textarea required onChange={inputChangeHandler} name="briefDescription" value={productFields.briefDescription} rows="4" type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Description"></textarea>
-              </div>
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-[16px] font-medium leading-[24px] text-black">Detail Description</p>
-                <textarea required onChange={inputChangeHandler} name="detailDescription" value={productFields.detailDescription} rows="4" type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Description"></textarea>
-              </div>
-              <div className="flex gap-5 items-center w-full">
-                <div className="flex flex-col gap-2 w-full">
-                  <p className="text-[16px] font-medium leading-[24px] text-black">MRP</p>
-                  <input min="0" required onChange={inputChangeHandler} name="oldPrice" value={productFields.oldPrice} type="number" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="MRP" />
+    <div className="bg-white p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300">
+          <h1 className="text-lg font-medium mb-6 whitespace-nowrap">
+            Add Product
+          </h1>
+
+          <form onSubmit={handleSubmit} className="space-y-8 text-sm">
+            {/* Common Product Fields */}
+            <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
+              {/* Images */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">
+                  Product Images (2–6)
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e.target.files)}
+                  className="border border-gray-300 rounded p-2 w-full"
+                />
+                <div className="flex gap-4 flex-wrap mt-3">
+                  {product.images.map((img, imgIndex) => (
+                    <div
+                      key={imgIndex}
+                      className="relative w-24 h-24 border border-gray-300 rounded overflow-hidden"
+                    >
+                      <img
+                        src={URL.createObjectURL(img)}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(imgIndex)}
+                        className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded px-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex flex-col gap-2 w-full">
-                  <p className="text-[16px] font-medium leading-[24px] text-black">Sale Price</p>
-                  <input min="0" required onChange={inputChangeHandler} name="newPrice" value={productFields.newPrice} type="number" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Sale Price" />
-                </div>
               </div>
-              <div className="flex gap-5 items-center w-full">
-                <div className="flex flex-col gap-2 w-full">
-                  <p className="text-[16px] font-medium leading-[24px] text-black">Stock</p>
-                  <select onChange={handleInStockChange} value={productFields.inStock} className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200">
-                    <option value="true">True</option>
-                    <option value="false">False</option>
+
+              {/* Name */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Name</label>
+                <input
+                  type="text"
+                  value={product.name}
+                  onChange={(e) => handleProductChange("name", e.target.value)}
+                  className="border border-gray-300 rounded p-2 w-full"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Category</label>
+                <select
+                  value={product.category}
+                  onChange={(e) =>
+                    handleProductChange("category", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat, i) => (
+                    <option key={i} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Material */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Material</label>
+                <select
+                  value={product.material}
+                  onChange={(e) =>
+                    handleProductChange("material", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Material</option>
+                  {materials.map((mat, i) => (
+                    <option key={i} value={mat}>
+                      {mat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Gender</label>
+                <select
+                  value={product.gender}
+                  onChange={(e) =>
+                    handleProductChange("gender", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Gender</option>
+                  {genders.map((g, i) => (
+                    <option key={i} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Color */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Color</label>
+                <select
+                  value={product.color}
+                  onChange={(e) => handleProductChange("color", e.target.value)}
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Color</option>
+                  {colors.map((col, i) => (
+                    <option key={i} value={col}>
+                      {col}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Textareas */}
+              {[
+                { label: "Description", field: "description" },
+                { label: "Shipping & Return Policy", field: "shippingPolicy" },
+                { label: "Wash Care", field: "washCare" },
+              ].map(({ label, field }) => (
+                <div key={field}>
+                  <label className="block mb-2 whitespace-nowrap">
+                    {label}
+                  </label>
+                  <textarea
+                    value={product[field]}
+                    onChange={(e) => handleProductChange(field, e.target.value)}
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Variants */}
+            {variants.map((variant, vIndex) => (
+              <div
+                key={vIndex}
+                className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50"
+              >
+                <div className="flex justify-between items-center">
+                  <h2 className="font-medium whitespace-nowrap">
+                    Variant {vIndex + 1}
+                  </h2>
+                  {variants.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(vIndex)}
+                      className="text-red-500 whitespace-nowrap"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                {/* Age Group */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Age Group
+                  </label>
+                  <select
+                    value={variant.ageGroup}
+                    onChange={(e) =>
+                      handleVariantChange(vIndex, "ageGroup", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Age Group</option>
+                    {ageGroups.map((group) => (
+                      <option key={group._id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                <div className="flex flex-col gap-2 w-full">
-                  <p className="text-[16px] font-medium leading-[24px] text-black">Number of stock</p>
-                  <input min="0" required onChange={inputChangeHandler} name="stockNumber" value={productFields.stockNumber} type="number" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="number" />
+
+                {/* Price Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {[
+                    { label: "Price", field: "price" },
+                    { label: "Cut Price", field: "cutPrice" },
+                  ].map(({ label, field }) => (
+                    <div key={field}>
+                      <label className="block mb-2 whitespace-nowrap">
+                        {label}
+                      </label>
+                      <input
+                        type="number"
+                        value={variant[field]}
+                        onChange={(e) =>
+                          handleVariantChange(vIndex, field, e.target.value)
+                        }
+                        className="border border-gray-300 rounded p-2 w-full"
+                      />
+                    </div>
+                  ))}
+                  <div>
+                    <label className="block mb-2 whitespace-nowrap">
+                      Discount %
+                    </label>
+                    <input
+                      type="number"
+                      value={variant.discount}
+                      readOnly
+                      className="border border-gray-300 rounded p-2 w-full bg-gray-100"
+                    />
+                  </div>
+                </div>
+
+                {/* Specifications */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Specifications
+                  </label>
+                  {variant.specifications.map((spec, sIndex) => (
+                    <div key={sIndex} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        placeholder="Key"
+                        value={spec.key}
+                        onChange={(e) =>
+                          handleSpecChange(
+                            vIndex,
+                            sIndex,
+                            "key",
+                            e.target.value
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2 flex-1"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={spec.value}
+                        onChange={(e) =>
+                          handleSpecChange(
+                            vIndex,
+                            sIndex,
+                            "value",
+                            e.target.value
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2 flex-1"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addSpec(vIndex)}
+                    className="text-blue-500 whitespace-nowrap"
+                  >
+                    + Add Specification
+                  </button>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-[16px] font-medium leading-[24px] text-black">Tags</p>
-                <input required onChange={handleTagsChange} name="tags" value={productFields.tags} type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Enter tags like 1 to 4, 8 to 9" />
-              </div>
+            ))}
+
+            {/* Add Variant */}
+            <button
+              type="button"
+              onClick={addVariant}
+              className="text-green-600 whitespace-nowrap"
+            >
+              + Add Variant
+            </button>
+
+            {/* Submit */}
+            <div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-6 py-2 rounded whitespace-nowrap hover:bg-blue-700"
+              >
+                Add Product
+              </button>
             </div>
-            <div className="w-1/2 flex flex-col gap-3">
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-[16px] font-medium leading-[24px] text-black">Date of Manufactured</p>
-                <input required onChange={inputChangeHandler} name="mfg" value={productFields.mfg} type="date" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="number" />
-              </div>
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-[16px] font-medium leading-[24px] text-black">Category</p>
-                <input required onChange={inputChangeHandler} name="category" value={productFields.category} type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Category" />
-              </div>
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-[16px] font-medium leading-[24px] text-black">Sub Category</p>
-                <input required onChange={inputChangeHandler} name="category" value={productFields.category} type="text" className="transition-colors duration-300 text-black text-[16px] leading-[24px] font-medium py-1 px-4 rounded-md border focus:border-[#DC3545] focus:outline-none w-full border-gray-200" placeholder="Sub Category" />
-              </div>
-              {
-                imageData && imageData.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 justify-center gap-5 w-full">
-                    {
-                      imageData.map((item, index) => (
-                        <div className="w-40 flex items-center rounded-md shadow justify-center" key={index}>
-                          <img src={item} className="w-40 h-40 rounded-md" alt={`product-${index}`} />
-                        </div>
-                      ))
-                    }
-                  </div>
-                )
-              }
-              <div className="flex gap-2 w-full items-center">
-                <input onChange={inputImageHandler} accept="image/*" name="images" type="file" className="w-full rounded-xl border border-gray-200 py-1 px-4" multiple required />
-                <button onClick={handleImageSubmit} type="button" className="rounded-xl w-full h-10 text-[16px] leading-[24px] font-medium text-white transition-colors duration-300 hover:bg-[#dc3545] cursor-pointer bg-[#f87171] flex gap-3 items-center justify-center">Upload Product Images</button>
-              </div>
-              <button type="submit" className="rounded-xl w-24 h-10 text-[18px] leading-[27px] font-medium text-white transition-colors duration-300 hover:bg-[#dc3545] cursor-pointer bg-[#f87171] flex gap-3 items-center justify-center">Submit</button>
-            </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

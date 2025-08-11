@@ -22,6 +22,11 @@ import AddProduct from "./pages/Products/AddProduct";
 import ViewProduct from "./pages/Products/ViewProduct";
 import EditProduct from "./pages/Products/EditProduct";
 import AddCategory from "./pages/Categories/AddCategory";
+import Collections from "./pages/Collection";
+import AddCollection from "./pages/Collection/AddCollection";
+import AgeGroups from "./pages/AgeGroups";
+import EditAgeGroup from "./pages/AgeGroups/EditAgeGroup";
+import Banners from "./pages/Banner";
 
 const App = () => {
   return (
@@ -46,6 +51,17 @@ const App = () => {
               <Route path="/purchase/list" element={<PurchaseList />} />
               <Route path="/purchase/order" element={<PurchaseOrder />} />
               <Route path="/purchase/return" element={<PurchaseReturn />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/banners" element={<Banners />} />
+              <Route
+                path="/collections/add-collection"
+                element={<AddCollection />}
+              />
+              <Route path="/age-groups" element={<AgeGroups />} />
+              <Route
+                path="/age-groups/edit-age-group"
+                element={<EditAgeGroup />}
+              />
             </Route>
           </Route>
           <Route path="/login" element={<Login />} />

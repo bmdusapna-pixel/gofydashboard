@@ -16,7 +16,6 @@ const table_header = [
   { _id: 11, title: "Action" },
 ];
 
-
 const AllOrders = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -114,10 +113,17 @@ const AllOrders = () => {
     <div className="bg-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
+          {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-700">Order List</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-700">
+              Order List
+            </h2>
             <div className="flex items-center gap-4">
-              <select className="px-4 py-2 border border-gray-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-300 ease-in-out text-sm rounded-md shadow-sm font-semibold" value={filterByStatus} onChange={(e) => setFilterByStatus(e.target.value)}>
+              <select
+                className="px-3 py-2 border border-gray-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-300 ease-in-out text-sm rounded-md shadow-sm text-gray-600"
+                value={filterByStatus}
+                onChange={(e) => setFilterByStatus(e.target.value)}
+              >
                 <option value="all">All Statuses</option>
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
@@ -128,87 +134,159 @@ const AllOrders = () => {
             </div>
           </div>
 
-          {/* Table Section */}
+          {/* Table */}
           <div className="overflow-x-auto rounded-lg border border-primary-100">
-            <table className="min-w-full divide-y-2 divide-primary-200">
-              <thead className="bg-gray-200">
+            <table className="min-w-full divide-y divide-primary-100">
+              <thead className="bg-gray-50">
                 <tr>
-                  {
-                    table_header.map((item) => (
-                      <th key={item._id} className="px-4 whitespace-nowrap py-3 text-left text-sm font-semibold text-black uppercase tracking-wider">{item.title}</th>
-                    ))
-                  }
+                  {table_header.map((item) => (
+                    <th
+                      key={item._id}
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {item.title}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y-2 divide-primary-200">
-                {
-                  currentOrders.length > 0 ? 
-                  (
-                    currentOrders.map((order, index) => (
-                      <tr key={order._id} className="hover:bg-[#f8f9fa] transition duration-200 ease-in-out">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">{indexOfFirstItem + index + 1}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">{order._id}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">{order.createdAt}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">{order.customer}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">{order.priority}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">₹ {order.total.toFixed(2)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusClasses(order.paymentStatus)}`}>{order.paymentStatus}</span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">{order.items}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-black">{order.deliveryNumber}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getOrderStatusClasses(order.orderStatus)}`}>{order.orderStatus}</span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap relative">
-                          <button className="flex cursor-pointer items-center justify-center w-6 h-6 focus:outline-none focus:ring-1 focus:ring-gray-200 focus:ring-opacity-75 rounded-full" onClick={() => toggleDropdown(order._id)} title="More Actions">
-                            <EllipsisVertical className="w-5 h-5 text-black" />
-                          </button>
-                          {
-                            openDropdownId === order._id && (
-                              <div ref={dropdownRef} className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100">
-                                <div className="flex flex-col gap-2 w-full" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                                  <button className="flex items-center gap-2 w-full cursor-pointer px-4 py-2 hover:bg-gray-100 rounded-md" role="menuitem" onClick={() => handleView(order._id)}>
-                                    <Eye className="w-4 h-4 text-blue-500" />
-                                    <p className="hover:text-red-400 font-semibold text-left text-sm text-black">View</p>
-                                  </button>
-                                  <button className="flex items-center gap-2 w-full cursor-pointer px-4 py-2 hover:bg-gray-100 rounded-md" role="menuitem" onClick={() => handleEdit(order._id)}>
-                                    <Pencil className="w-4 h-4 text-yellow-500" />
-                                    <p className="hover:text-red-400 font-semibold text-left text-sm text-black">Edit</p>
-                                  </button>
-                                  <button className="flex items-center gap-2 w-full cursor-pointer px-4 py-2 hover:bg-gray-100 rounded-md" role="menuitem" onClick={() => handleDelete(order._id)}>
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                    <p className="hover:text-red-400 font-semibold text-left text-sm text-black">Delete</p>
-                                  </button>
-                                </div>
-                              </div>
-                            )
-                          }
-                        </td>
-                      </tr>
-                    ))
-                  ) : 
-                  (
-                    <tr>
-                      <td colSpan="8" className="px-4 py-3 text-center text-sm text-black">No categories found</td>
+              <tbody className="bg-white divide-y divide-primary-100">
+                {currentOrders.length > 0 ? (
+                  currentOrders.map((order, index) => (
+                    <tr
+                      key={order._id}
+                      className="hover:bg-gray-50 transition duration-150 ease-in-out"
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {indexOfFirstItem + index + 1}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                        {order._id}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {order.createdAt}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                        {order.customer}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {order.priority}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                        ₹ {order.total.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusClasses(
+                            order.paymentStatus
+                          )}`}
+                        >
+                          {order.paymentStatus}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {order.items}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {order.deliveryNumber}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${getOrderStatusClasses(
+                            order.orderStatus
+                          )}`}
+                        >
+                          {order.orderStatus}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap relative">
+                        <button
+                          className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-1 focus:ring-gray-200"
+                          onClick={() => toggleDropdown(order._id)}
+                          title="More Actions"
+                        >
+                          <EllipsisVertical className="w-4 h-4 text-gray-500" />
+                        </button>
+                        {openDropdownId === order._id && (
+                          <div
+                            ref={dropdownRef}
+                            className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
+                          >
+                            <div
+                              className="flex flex-col gap-1 w-full py-2"
+                              role="menu"
+                            >
+                              <button
+                                className="flex items-center gap-2 px-4 py-1.5 hover:bg-gray-50 text-sm text-gray-600"
+                                onClick={() => handleView(order._id)}
+                              >
+                                <Eye className="w-4 h-4 text-blue-500" />
+                                View
+                              </button>
+                              <button
+                                className="flex items-center gap-2 px-4 py-1.5 hover:bg-gray-50 text-sm text-gray-600"
+                                onClick={() => handleEdit(order._id)}
+                              >
+                                <Pencil className="w-4 h-4 text-yellow-500" />
+                                Edit
+                              </button>
+                              <button
+                                className="flex items-center gap-2 px-4 py-1.5 hover:bg-gray-50 text-sm text-gray-600"
+                                onClick={() => handleDelete(order._id)}
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </td>
                     </tr>
-                  )
-                }
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="11"
+                      className="px-4 py-3 text-center text-sm text-gray-500"
+                    >
+                      No categories found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination Controls - Aligned to the right */}
-          <div className="flex justify-end items-center gap-3">
-            <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-            <div className="flex gap-2">
-              {
-                Array.from({ length: totalPages }, (_, i) => (
-                  <button key={i + 1} onClick={() => paginate(i + 1)} className={`px-3 py-1 text-sm rounded-md ${currentPage === i + 1 ? "bg-yellow-200 text-yellow-800" : "bg-gray-200 text-gray-700 hover:bg-gray-300" }`}>{i + 1}</button>
-                ))
-              }
+          {/* Pagination */}
+          <div className="flex justify-end items-center gap-2 mt-4">
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => paginate(i + 1)}
+                  className={`px-3 py-1 text-sm rounded-md ${
+                    currentPage === i + 1
+                      ? "bg-yellow-200 text-yellow-800"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
             </div>
-            <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>

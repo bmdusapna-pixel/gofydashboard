@@ -15,6 +15,7 @@ import {
   faFileInvoiceDollar,
   faSignOutAlt,
   faUserCircle,
+  faLayerGroup,
 } from "@fortawesome/free-solid-svg-icons";
 import Logo from "../../../assets/images/logo.webp";
 
@@ -40,6 +41,17 @@ const navItems = [
     subItems: [
       { name: "All Categories", path: "/categories" },
       { name: "Add New", path: "/categories/add-new" },
+      { name: "Age Groups", path: "/age-groups" },
+    ],
+  },
+  {
+    name: "Collections",
+    icon: faLayerGroup,
+    type: "dropdown",
+    path: "/collections", // Base path for dropdown
+    subItems: [
+      { name: "All Collections", path: "/collections" },
+      { name: "Add Collection", path: "/collections/add-collection" },
     ],
   },
   {
@@ -84,6 +96,12 @@ const navItems = [
     path: "/invoices",
     type: "link",
   }, // Added Invoices
+  {
+    name: "Banners",
+    icon: faFileInvoiceDollar,
+    path: "/banners",
+    type: "link",
+  },
   { name: "Customers", icon: faUsers, path: "/customers", type: "link" },
 ];
 

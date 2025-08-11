@@ -24,7 +24,6 @@ const Index = () => {
           <span className="font-bubble text-blue-500">G</span>
           <span className="font-bubble text-orange-500">O</span>
           <span className="font-bubble text-green-500">F</span>
-          <span className="font-bubble text-purple-500">F</span>
           <span className="font-bubble text-pink-500">Y</span>
           {/* Kids */}
           <span className="font-bubble text-red-500 ml-2">K</span>
