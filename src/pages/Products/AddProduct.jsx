@@ -13,6 +13,7 @@ const AddProduct = () => {
     description: "",
     shippingPolicy: "",
     washCare: "",
+    status: "",
   });
 
   const categories = ["T-shirt", "Doll", "Shoes", "Pants", "Accessories"];
@@ -35,8 +36,11 @@ const AddProduct = () => {
       cutPrice: "",
       discount: "",
       specifications: [{ key: "", value: "" }],
+      stock: "",
     },
   ]);
+
+  const statuses = ["Active", "Inactive", "Out of Stock"];
 
   // Handle common product changes
   const handleProductChange = (field, value) => {
@@ -258,6 +262,25 @@ const AddProduct = () => {
                 </select>
               </div>
 
+              {/* Status */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Status</label>
+                <select
+                  value={product.status}
+                  onChange={(e) =>
+                    handleProductChange("status", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Status</option>
+                  {statuses.map((s, i) => (
+                    <option key={i} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Textareas */}
               {[
                 { label: "Description", field: "description" },
@@ -320,7 +343,7 @@ const AddProduct = () => {
                 </div>
 
                 {/* Price Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   {[
                     { label: "Price", field: "price" },
                     { label: "Cut Price", field: "cutPrice" },
@@ -348,6 +371,20 @@ const AddProduct = () => {
                       value={variant.discount}
                       readOnly
                       className="border border-gray-300 rounded p-2 w-full bg-gray-100"
+                    />
+                  </div>
+                  {/* Stock Number */}
+                  <div>
+                    <label className="block mb-2 whitespace-nowrap">
+                      Stock Number
+                    </label>
+                    <input
+                      type="number"
+                      value={variant.stock}
+                      onChange={(e) =>
+                        handleVariantChange(vIndex, "stock", e.target.value)
+                      }
+                      className="border border-gray-300 rounded p-2 w-full"
                     />
                   </div>
                 </div>

@@ -37,11 +37,11 @@ const App = () => {
           <Route element={<MainLayout />}>
             <Route element={<ContentLayout />}>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/products" element={<Products />} />
+              <Route path="/products/list" element={<Products />} />
               <Route path="/products/add-new" element={<AddProduct />} />
               <Route path="/products/view/:url" element={<ViewProduct />} />
               <Route path="/products/edit/:url" element={<EditProduct />} />
-              <Route path="/categories" element={<Categories />} />
+              <Route path="/categories/list" element={<Categories />} />
               <Route path="/categories/add-new" element={<AddCategory />} />
               <Route path="/inventory/warehouse" element={<Warehouse />} />
               <Route path="/orders" element={<Orders />} />
@@ -51,7 +51,7 @@ const App = () => {
               <Route path="/purchase/list" element={<PurchaseList />} />
               <Route path="/purchase/order" element={<PurchaseOrder />} />
               <Route path="/purchase/return" element={<PurchaseReturn />} />
-              <Route path="/collections" element={<Collections />} />
+              <Route path="/collections/list" element={<Collections />} />
               <Route path="/banners" element={<Banners />} />
               <Route
                 path="/collections/add-collection"

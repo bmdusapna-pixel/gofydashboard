@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import Chart from "chart.js/auto"; // Use 'chart.js/auto' for automatic registration of controllers, elements, etc.
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faDollarSign,
+  faIndianRupeeSign,
   faShoppingBag,
   faUserPlus,
   faChartPie,
@@ -63,7 +63,7 @@ const Index = () => {
               usePointStyle: true,
               callbacks: {
                 label: function (context) {
-                  return "$" + context.parsed.y.toLocaleString();
+                  return "₹" + context.parsed.y.toLocaleString();
                 },
               },
             },
@@ -85,7 +85,7 @@ const Index = () => {
               ticks: {
                 color: "#6B7280", // Tailwind's gray-500
                 callback: function (value) {
-                  return "$" + value.toLocaleString();
+                  return "₹" + value.toLocaleString();
                 },
               },
             },
@@ -111,13 +111,13 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-800 mt-1">$24,780</p>
+              <p className="text-2xl font-bold text-gray-800 mt-1">₹24,780</p>
               <p className="text-xs text-blue-600 mt-1">
                 <span className="font-semibold">+12.5%</span> from last month
               </p>
             </div>
             <div className="p-3 rounded-lg bg-blue-200 text-blue-700">
-              <FontAwesomeIcon icon={faDollarSign} />
+              <FontAwesomeIcon icon={faIndianRupeeSign} />
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ const Index = () => {
               <p className="text-sm font-medium text-gray-600">
                 Avg. Order Value
               </p>
-              <p className="text-2xl font-bold text-gray-800 mt-1">$45.67</p>
+              <p className="text-2xl font-bold text-gray-800 mt-1">₹45.67</p>
               <p className="text-xs text-green-600 mt-1">
                 <span className="font-semibold">+3.1%</span> from last month
               </p>
@@ -324,7 +324,7 @@ const Index = () => {
                   Jun 12, 2023
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                  $89.99
+                  ₹89.99
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
@@ -348,7 +348,7 @@ const Index = () => {
                   Jun 11, 2023
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                  $124.50
+                  ₹124.50
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
@@ -372,7 +372,7 @@ const Index = () => {
                   Jun 10, 2023
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                  $67.99
+                  ₹67.99
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
@@ -396,7 +396,7 @@ const Index = () => {
                   Jun 9, 2023
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                  $156.75
+                  ₹156.75
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
@@ -420,7 +420,7 @@ const Index = () => {
                   Jun 8, 2023
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                  $45.99
+                  ₹45.99
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">

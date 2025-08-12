@@ -28,7 +28,7 @@ const navItems = [
     type: "dropdown",
     path: "/products", // Base path for dropdown
     subItems: [
-      { name: "All Products", path: "/products" },
+      { name: "All Products", path: "/products/list" },
       { name: "Add New", path: "/products/add-new" },
       // Removed Inventory from here
     ],
@@ -39,7 +39,7 @@ const navItems = [
     type: "dropdown",
     path: "/categories", // Base path for dropdown
     subItems: [
-      { name: "All Categories", path: "/categories" },
+      { name: "All Categories", path: "/categories/list" },
       { name: "Add New", path: "/categories/add-new" },
       { name: "Age Groups", path: "/age-groups" },
     ],
@@ -50,7 +50,7 @@ const navItems = [
     type: "dropdown",
     path: "/collections", // Base path for dropdown
     subItems: [
-      { name: "All Collections", path: "/collections" },
+      { name: "All Collections", path: "/collections/list" },
       { name: "Add Collection", path: "/collections/add-collection" },
     ],
   },
