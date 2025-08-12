@@ -16,6 +16,7 @@ import {
   faUserCircle, // New: for profile link
   faSignOutAlt, // New: for logout link
   faLayerGroup,
+  faPalette,
 } from "@fortawesome/free-solid-svg-icons";
 import Logo from "../../../assets/images/logo.webp"; // Using the specified path
 
@@ -101,6 +102,15 @@ const navItems = [
     icon: faFileInvoiceDollar,
     path: "/banners",
     type: "link",
+  },
+  {
+    name: "Filter",
+    icon: faPalette,
+    subItems: [
+      { name: "Color", path: "/color" },
+      { name: "Material", path: "/material" },
+    ],
+    type: "dropdown",
   },
   { name: "Customers", icon: faUsers, path: "/customers", type: "link" },
 ];

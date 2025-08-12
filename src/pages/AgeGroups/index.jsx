@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Pencil } from "lucide-react"; // Only Pencil icon is needed
 
 // Import mock data for age groups
@@ -16,9 +17,12 @@ const AgeGroups = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Display 5 items per page for consistency, though all 8 would fit.
 
+  const navigate = useNavigate();
+
   const handleEdit = (ageGroupName) => {
     console.log(`Editing age group: ${ageGroupName}`);
     // Implement your edit logic here, e.g., open a modal, navigate to an edit page.
+    navigate("/age-groups/edit-age-group");
   };
 
   const currentAgeGroups = ageGroups; // No filtering needed for fixed age groups

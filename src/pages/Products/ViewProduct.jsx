@@ -4,92 +4,138 @@ import products from "../../assets/product.list.js";
 
 const ViewProduct = () => {
   const { url } = useParams();
-  const product = products.find((item) => item.url === url);
+  const product = products.find((p) => p.url === url);
 
   if (!product) {
-    return <p className="p-8 text-red-500">Product not found.</p>;
+    return (
+      <div className="bg-white p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
+            <p className="text-sm text-gray-500">Product not found</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full p-8 overflow-y-auto">
-      <div className="border shadow-md border-gray-200 p-6 rounded-2xl flex flex-col gap-6">
-        <div className="flex items-center gap-4">
-          <img
-            src={product.image_header}
-            alt={product.name}
-            className="w-12 h-12 rounded-md object-cover"
-          />
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold text-black">
-              {product.name}
-            </h1>
-            <p className="text-gray-500">{product.category}</p>
-            <span
-              className={`text-sm font-medium ${
-                product.status === "In Stock"
-                  ? "text-green-600"
-                  : "text-red-500"
-              }`}
-            >
-              {product.status}
-            </span>
+    <div className="bg-white p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300 space-y-6">
+          {/* Header */}
+          <div>
+            <h1 className="text-sm font-semibold">{product.name}</h1>
+            <p className="text-sm text-gray-500">{product.category}</p>
           </div>
-        </div>
-        <div className="flex gap-4 overflow-x-auto">
-          {product.images.map((img, index) => (
-            <img
-              key={index}
-              src={img}
-              alt={`Preview ${index + 1}`}
-              className="w-28 h-28 rounded-md object-cover border border-gray-200"
-            />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Detail label="Price" value={`$${product.price}`} />
-          <Detail label="Stock" value={product.stock} />
-          <Detail label="Category" value={product.product_type} />
-          <Detail label="Date Added" value={product.dateAdded} />
-          <Detail label="Rating" value={`${product.rating} / 5`} />
-          <Detail label="Reviews" value={`${product.review} reviews`} />
-        </div>
-        {product.tags?.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold text-gray-800">Tags</h2>
-            <div className="flex flex-wrap gap-2">
-              {product.tags.map((tag, idx) => (
-                <span
+
+          {/* Basic Info */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Stock</p>
+              <p className="text-sm font-semibold">{product.stock}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Price</p>
+              <p className="text-sm font-semibold">${product.price}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Status</p>
+              <p className="text-sm font-semibold">{product.status}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Date Added</p>
+              <p className="text-sm font-semibold">{product.dateAdded}</p>
+            </div>
+          </div>
+
+          {/* Images */}
+          <div>
+            <p className="text-sm font-semibold mb-2">Images</p>
+            <div className="flex gap-3">
+              {product.images.map((img, idx) => (
+                <img
                   key={idx}
-                  className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full"
-                >
-                  {tag}
-                </span>
+                  src={img}
+                  alt={`Product ${idx}`}
+                  className="w-20 h-20 object-cover rounded border border-gray-300"
+                />
               ))}
             </div>
           </div>
-        )}
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Product Description
-          </h2>
-          <p className="text-sm text-gray-600">{product.brief_description}</p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Detail Description
-          </h2>
-          <p className="text-sm text-gray-600">{product.detail_description}</p>
+
+          {/* Description */}
+          <div>
+            <p className="text-sm font-semibold mb-1">Description</p>
+            <p className="text-sm text-gray-700">{product.description}</p>
+          </div>
+
+          {/* Variants */}
+          {product.variants?.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold mb-2">Variants</p>
+              <div className="space-y-2">
+                {product.variants.map((variant, i) => (
+                  <div
+                    key={i}
+                    className="p-3 border border-gray-300 rounded-lg space-y-2"
+                  >
+                    {/* Basic Variant Info */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                      <div>
+                        <p className="text-sm text-gray-500">Age Group</p>
+                        <p className="text-sm font-semibold">
+                          {variant.ageGroup}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Price</p>
+                        <p className="text-sm font-semibold">
+                          ${variant.price}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Cut Price</p>
+                        <p className="text-sm font-semibold">
+                          ${variant.cutPrice}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Discount</p>
+                        <p className="text-sm font-semibold">
+                          {variant.discount}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Stock</p>
+                        <p className="text-sm font-semibold">{variant.stock}</p>
+                      </div>
+                    </div>
+
+                    {/* Specifications */}
+                    {variant.specifications?.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold mb-1">
+                          Specifications
+                        </p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {variant.specifications.map((spec, idx) => (
+                            <li key={idx} className="text-sm text-gray-700">
+                              <span className="font-semibold">{spec.key}:</span>{" "}
+                              {spec.value}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
-
-const Detail = ({ label, value }) => (
-  <div className="flex flex-col">
-    <span className="text-sm text-gray-500">{label}</span>
-    <span className="font-medium text-black">{value}</span>
-  </div>
-);
 
 export default ViewProduct;

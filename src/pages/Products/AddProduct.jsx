@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import ageGroups from "../../assets/ageGroups.list.js";
 
 const AddProduct = () => {
-  // Common product fields
   const [product, setProduct] = useState({
     images: [],
     name: "",
@@ -12,8 +11,10 @@ const AddProduct = () => {
     color: "",
     description: "",
     shippingPolicy: "",
-    washCare: "",
+    washCare: [""],
     status: "",
+    promotions: [],
+    dealHours: "",
   });
 
   const categories = ["T-shirt", "Doll", "Shoes", "Pants", "Accessories"];
@@ -27,8 +28,8 @@ const AddProduct = () => {
     "Metal",
   ];
   const colors = ["Red", "Blue", "Green", "Black", "White", "Pink", "Yellow"];
+  const statuses = ["Active", "Inactive", "Out of Stock"];
 
-  // Variants
   const [variants, setVariants] = useState([
     {
       ageGroup: "",
@@ -40,14 +41,10 @@ const AddProduct = () => {
     },
   ]);
 
-  const statuses = ["Active", "Inactive", "Out of Stock"];
-
-  // Handle common product changes
   const handleProductChange = (field, value) => {
     setProduct((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Image upload with 2–6 limit
   const handleImageUpload = (files) => {
     const fileArray = Array.from(files);
     setProduct((prev) => {
@@ -69,28 +66,16 @@ const AddProduct = () => {
     }));
   };
 
-  // Handle variant field change
   const handleVariantChange = (variantIndex, field, value) => {
     setVariants((prev) => {
       const updated = [...prev];
       updated[variantIndex][field] = value;
-
       if (field === "price" || field === "cutPrice") {
         const price = parseFloat(updated[variantIndex].price) || 0;
         const cutPrice = parseFloat(updated[variantIndex].cutPrice) || 0;
         updated[variantIndex].discount =
           cutPrice > 0 ? Math.round(((cutPrice - price) / cutPrice) * 100) : "";
       }
-
-      return updated;
-    });
-  };
-
-  // Specification changes
-  const handleSpecChange = (variantIndex, specIndex, key, value) => {
-    setVariants((prev) => {
-      const updated = [...prev];
-      updated[variantIndex].specifications[specIndex][key] = value;
       return updated;
     });
   };
@@ -98,12 +83,44 @@ const AddProduct = () => {
   const addSpec = (variantIndex) => {
     setVariants((prev) => {
       const updated = [...prev];
-      updated[variantIndex].specifications.push({ key: "", value: "" });
+      updated[variantIndex] = {
+        ...updated[variantIndex],
+        specifications: [
+          ...updated[variantIndex].specifications,
+          { key: "", value: "" },
+        ],
+      };
       return updated;
     });
   };
 
-  // Add/remove variant
+  const removeSpec = (variantIndex, specIndex) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      const specs = updated[variantIndex].specifications;
+      if (specs.length > 1) {
+        updated[variantIndex] = {
+          ...updated[variantIndex],
+          specifications: specs.filter((_, i) => i !== specIndex),
+        };
+      }
+      return updated;
+    });
+  };
+
+  const handleSpecChange = (variantIndex, specIndex, field, value) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[variantIndex] = {
+        ...updated[variantIndex],
+        specifications: updated[variantIndex].specifications.map((spec, i) =>
+          i === specIndex ? { ...spec, [field]: value } : spec
+        ),
+      };
+      return updated;
+    });
+  };
+
   const addVariant = () => {
     setVariants((prev) => [
       ...prev,
@@ -121,7 +138,26 @@ const AddProduct = () => {
     setVariants((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Submit
+  // --- Wash Care functions ---
+  const handleWashCareChange = (index, value) => {
+    setProduct((prev) => {
+      const updated = [...prev.washCare];
+      updated[index] = value;
+      return { ...prev, washCare: updated };
+    });
+  };
+
+  const addWashCareItem = () => {
+    setProduct((prev) => ({ ...prev, washCare: [...prev.washCare, ""] }));
+  };
+
+  const removeWashCareItem = (index) => {
+    setProduct((prev) => ({
+      ...prev,
+      washCare: prev.washCare.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (product.images.length < 2) {
@@ -140,6 +176,53 @@ const AddProduct = () => {
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-8 text-sm">
+            {/* Common Product Fields */}
+            <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
+              <label className="block font-medium text-gray-700">
+                Product Promotions
+              </label>
+
+              <div className="space-y-2">
+                {[
+                  { value: "super_deal", label: "Super Deal" },
+                  { value: "deal_product", label: "Deal Product" },
+                  { value: "trending", label: "Trending Product" },
+                  { value: "deal_of_the_day", label: "Deal of the Day" },
+                ].map((promo) => (
+                  <label key={promo.value} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      value={promo.value}
+                      checked={product.promotions.includes(promo.value)}
+                      onChange={(e) => {
+                        let newPromos = [...product.promotions];
+                        if (e.target.checked) {
+                          newPromos.push(promo.value);
+                        } else {
+                          newPromos = newPromos.filter(
+                            (p) => p !== promo.value
+                          );
+                        }
+                        setProduct({ ...product, promotions: newPromos });
+                      }}
+                    />
+                    <span>{promo.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              {product.promotions.includes("deal_of_the_day") && (
+                <input
+                  type="number"
+                  placeholder="Deal duration (hours)"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={product.dealHours || ""}
+                  onChange={(e) =>
+                    setProduct({ ...product, dealHours: e.target.value })
+                  }
+                />
+              )}
+            </div>
             {/* Common Product Fields */}
             <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
               {/* Images */}
@@ -281,23 +364,71 @@ const AddProduct = () => {
                 </select>
               </div>
 
-              {/* Textareas */}
-              {[
-                { label: "Description", field: "description" },
-                { label: "Shipping & Return Policy", field: "shippingPolicy" },
-                { label: "Wash Care", field: "washCare" },
-              ].map(({ label, field }) => (
-                <div key={field}>
-                  <label className="block mb-2 whitespace-nowrap">
-                    {label}
-                  </label>
-                  <textarea
-                    value={product[field]}
-                    onChange={(e) => handleProductChange(field, e.target.value)}
-                    className="border border-gray-300 rounded p-2 w-full"
-                  />
-                </div>
-              ))}
+              {/* Description */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">
+                  Description
+                </label>
+                <textarea
+                  value={product.description}
+                  onChange={(e) =>
+                    handleProductChange("description", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                />
+              </div>
+
+              {/* Shipping & Return Policy */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">
+                  Shipping & Return Policy
+                </label>
+                <textarea
+                  value={product.shippingPolicy}
+                  onChange={(e) =>
+                    handleProductChange("shippingPolicy", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                />
+              </div>
+
+              {/* Wash Care as List */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">
+                  Wash Care Instructions
+                </label>
+                <ul className="space-y-2">
+                  {product.washCare.map((item, index) => (
+                    <li key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(e) =>
+                          handleWashCareChange(index, e.target.value)
+                        }
+                        placeholder="Enter wash care instruction"
+                        className="border border-gray-300 rounded p-2 flex-1"
+                      />
+                      {product.washCare.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeWashCareItem(index)}
+                          className="bg-red-500 text-white px-2 rounded"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={addWashCareItem}
+                  className="text-blue-500 mt-2"
+                >
+                  + Add Instruction
+                </button>
+              </div>
             </div>
 
             {/* Variants */}
@@ -342,7 +473,7 @@ const AddProduct = () => {
                   </select>
                 </div>
 
-                {/* Price Fields */}
+                {/* Price, Cut Price, Discount, Stock */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   {[
                     { label: "Price", field: "price" },
@@ -373,7 +504,6 @@ const AddProduct = () => {
                       className="border border-gray-300 rounded p-2 w-full bg-gray-100"
                     />
                   </div>
-                  {/* Stock Number */}
                   <div>
                     <label className="block mb-2 whitespace-nowrap">
                       Stock Number
@@ -424,6 +554,15 @@ const AddProduct = () => {
                         }
                         className="border border-gray-300 rounded p-2 flex-1"
                       />
+                      {variant.specifications.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSpec(vIndex, sIndex)}
+                          className="text-red-500 whitespace-nowrap"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
                   ))}
                   <button

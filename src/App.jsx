@@ -27,6 +27,9 @@ import AddCollection from "./pages/Collection/AddCollection";
 import AgeGroups from "./pages/AgeGroups";
 import EditAgeGroup from "./pages/AgeGroups/EditAgeGroup";
 import Banners from "./pages/Banner";
+import Color from "./pages/Color";
+import Material from "./pages/Material";
+import AddEdit from "./pages/Banner/AddEdit";
 
 const App = () => {
   return (
@@ -53,6 +56,10 @@ const App = () => {
               <Route path="/purchase/return" element={<PurchaseReturn />} />
               <Route path="/collections/list" element={<Collections />} />
               <Route path="/banners" element={<Banners />} />
+              <Route path="/banner-add-edit" element={<AddEdit />} />
+              <Route path="/banner-add-edit/:bannerId" element={<AddEdit />} />
+              <Route path="/color" element={<Color />} />
+              <Route path="/material" element={<Material />} />
               <Route
                 path="/collections/add-collection"
                 element={<AddCollection />}

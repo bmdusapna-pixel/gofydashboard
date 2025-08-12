@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import dummyBanners from "../../assets/banners.list.js"; // Adjust path if necessary
+import { Link } from "react-router-dom";
 
 const bannerTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
@@ -51,10 +52,13 @@ const Banners = () => {
               Banners
             </h2>
             <div className="flex items-center gap-4">
-              <button className="cursor-pointer bg-red-100 flex items-center hover:bg-red-200 text-red-700 py-2 px-4 rounded-md shadow-sm transition-colors duration-200">
+              <Link
+                to="/banner-add-edit"
+                className="cursor-pointer bg-red-100 flex items-center hover:bg-red-200 text-red-700 py-2 px-4 rounded-md shadow-sm transition-colors duration-200"
+              >
                 <Plus className="w-5 h-5" />
                 <span className="text-sm font-medium">Add New Banner</span>
-              </button>
+              </Link>
             </div>
           </div>
 

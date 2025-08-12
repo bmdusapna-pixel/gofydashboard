@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { EllipsisVertical, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import categories from "../../assets/categories.list.js";
+import { Link } from "react-router-dom";
 
 const categoryTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
@@ -90,10 +91,13 @@ const Categories = () => {
             </h2>
             <div className="flex items-center gap-3 mt-3 sm:mt-0">
               {/* Add Category Button */}
-              <button className="cursor-pointer flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-md shadow-sm text-sm font-medium transition-colors duration-200">
+              <Link
+                to="/categories/add-new"
+                className="cursor-pointer flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-md shadow-sm text-sm font-medium transition-colors duration-200"
+              >
                 <Plus className="w-5 h-5" />
                 Add New Category
-              </button>
+              </Link>
               {/* Filter Dropdown */}
               <select
                 className="px-4 py-2 border border-gray-300 bg-white text-gray-600 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm rounded-md shadow-sm transition-colors duration-200"

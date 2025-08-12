@@ -20,6 +20,7 @@ const Products = () => {
   const [filterByDate, setFilterByDate] = useState("all");
   const itemsPerPage = 5;
   const [filterByCategory, setFilterByCategory] = useState("all");
+  const [filterByPromotion, setFilterByPromotion] = useState("all");
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -88,7 +89,12 @@ const Products = () => {
       }
       const matchesCategory =
         filterByCategory === "all" || product.category === filterByCategory;
-      return matchesDate && matchesCategory;
+      const matchesPromotion =
+        filterByPromotion === "all" ||
+        (Array.isArray(product.promotions)
+          ? product.promotions.includes(filterByPromotion)
+          : product.promotions === filterByPromotion);
+      return matchesDate && matchesCategory && matchesPromotion;
     });
   };
 
@@ -128,6 +134,28 @@ const Products = () => {
               >
                 Add New Toy
               </Link>
+              <select
+                className="cursor-pointer px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
+                value={filterByPromotion}
+                onChange={(e) => setFilterByPromotion(e.target.value)}
+              >
+                <option value="all">All Promotions</option>
+                {[
+                  ...new Set(
+                    products.flatMap((p) =>
+                      Array.isArray(p.promotions)
+                        ? p.promotions
+                        : [p.promotions]
+                    )
+                  ),
+                ]
+                  .filter(Boolean)
+                  .map((promo) => (
+                    <option key={promo} value={promo}>
+                      {promo}
+                    </option>
+                  ))}
+              </select>
               <select
                 className="px-4 py-2 border border-gray-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
                 value={filterByDate}
@@ -185,7 +213,7 @@ const Products = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 flex items-center">
                         <img
-                          src={product.image_header}
+                          src={product.images[0]}
                           alt={product.name}
                           className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
                           onError={(e) => {
