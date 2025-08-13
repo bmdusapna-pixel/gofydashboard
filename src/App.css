@@ -40,13 +40,13 @@ button {
   z-index: 40;
 }
 
-#mobile-sidebar > div:first-child {
+#mobile-sidebar>div:first-child {
   /* Overlay */
   opacity: 0;
   transition: opacity 300ms ease-in-out;
 }
 
-#mobile-sidebar > div:last-child {
+#mobile-sidebar>div:last-child {
   /* Sidebar panel */
   transform: translateX(-100%);
   transition: transform 300ms ease-in-out;
@@ -82,7 +82,7 @@ button {
 
 /* login page css */
 .bg-login {
-  background-image: url("https://images.pexels.com/photos/3662822/pexels-photo-3662822.jpeg");
+  background-image: url("./assets/images/login.jpeg");
   background-size: cover;
   background-position: center;
 }
@@ -93,9 +93,7 @@ button {
 }
 
 .admin-header {
-  background: linear-gradient(
-    135deg,
-    rgba(254, 242, 242, 0.9) 0%,
-    rgba(255, 255, 255, 0.9) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(254, 242, 242, 0.9) 0%,
+      rgba(255, 255, 255, 0.9) 100%);
 }
