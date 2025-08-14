@@ -8,22 +8,34 @@ const EditProduct = () => {
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
 
+  // Mock data for dropdowns
+  const categories = ["T-shirt", "Doll", "Shoes", "Pants", "Accessories"];
+  const genders = ["Unisex", "Boys", "Girls"];
+  const materials = [
+    "Cotton",
+    "Polyester",
+    "Wool",
+    "Plastic",
+    "Leather",
+    "Metal",
+  ];
+  const colors = ["Red", "Blue", "Green", "Black", "White", "Pink", "Yellow"];
+  const statuses = ["Active", "Inactive", "Out of Stock"];
+
   useEffect(() => {
     const productToEdit = products.find((p) => p.url === url);
     if (productToEdit) {
       setProduct({
-        images: productToEdit.images,
         name: productToEdit.name,
         category: productToEdit.category,
         material: productToEdit.material,
         gender: productToEdit.gender,
-        color: productToEdit.color,
         description: productToEdit.description,
         shippingPolicy: productToEdit.shippingPolicy,
         washCare: productToEdit.washCare,
         status: productToEdit.status,
         promotions: productToEdit.promotions,
-        dealHours: productToEdit.dealDuration,
+        dealHours: productToEdit.dealHours,
       });
       setVariants(productToEdit.variants);
     }
@@ -31,6 +43,36 @@ const EditProduct = () => {
 
   const handleProductChange = (field, value) => {
     setProduct((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = (variantIndex, files) => {
+    const fileArray = Array.from(files);
+
+    setVariants((prev) => {
+      const updated = [...prev];
+      const currentImages = updated[variantIndex].images || [];
+
+      // Filter out any newly selected files that are already in the state
+      const newImagesToAdd = fileArray.filter(
+        (file) => !currentImages.some((img) => img.name === file.name)
+      );
+
+      // Append the unique new files to the current list
+      const newImages = [...currentImages, ...newImagesToAdd].slice(0, 6);
+
+      updated[variantIndex].images = newImages;
+      return updated;
+    });
+  };
+
+  const removeImage = (variantIndex, imgIndex) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[variantIndex].images = updated[variantIndex].images.filter(
+        (_, i) => i !== imgIndex
+      );
+      return updated;
+    });
   };
 
   const handleVariantChange = (variantIndex, field, value) => {
@@ -94,6 +136,8 @@ const EditProduct = () => {
       ...prev,
       {
         ageGroup: "",
+        color: "",
+        images: [],
         price: "",
         cutPrice: "",
         discount: "",
@@ -109,6 +153,12 @@ const EditProduct = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    for (const variant of variants) {
+      if (variant.images.length < 2) {
+        alert("Please upload at least 2 images for each variant.");
+        return;
+      }
+    }
     const updatedProduct = {
       ...product,
       variants,
@@ -137,44 +187,7 @@ const EditProduct = () => {
             {/* Read-only Common Product Fields */}
             <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
               <label className="block mb-2 whitespace-nowrap font-medium text-gray-700">
-                Product Details (Read-only)
-              </label>
-              {/* Images */}
-              <div>
-                <label className="block mb-2 whitespace-nowrap">
-                  Product Images
-                </label>
-                <div className="flex gap-4 flex-wrap mt-3">
-                  {product.images.map((img, imgIndex) => (
-                    <div
-                      key={imgIndex}
-                      className="relative w-24 h-24 border border-gray-300 rounded overflow-hidden"
-                    >
-                      <img
-                        src={img}
-                        alt="product preview"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Other Read-only fields */}
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Name</label>
-                <input
-                  type="text"
-                  value={product.name}
-                  readOnly
-                  className="border border-gray-300 rounded p-2 w-full bg-gray-100"
-                />
-              </div>
-            </div>
-
-            {/* Editable Fields Section */}
-            <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
-              <label className="block mb-2 whitespace-nowrap font-medium text-gray-700">
-                Editable Product Fields
+                Product Details
               </label>
               {/* Product Promotions */}
               <div>
@@ -212,7 +225,6 @@ const EditProduct = () => {
                     </label>
                   ))}
                 </div>
-
                 {product.promotions.includes("deal_of_the_day") && (
                   <input
                     type="number"
@@ -225,7 +237,16 @@ const EditProduct = () => {
                   />
                 )}
               </div>
-              {/* Description */}
+              {/* Other Fields */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Name</label>
+                <input
+                  type="text"
+                  value={product.name}
+                  onChange={(e) => handleProductChange("name", e.target.value)}
+                  className="border border-gray-300 rounded p-2 w-full"
+                />
+              </div>
               <div>
                 <label className="block mb-2 whitespace-nowrap">
                   Description
@@ -238,7 +259,6 @@ const EditProduct = () => {
                   className="border border-gray-300 rounded p-2 w-full"
                 />
               </div>
-              {/* Shipping & Return Policy */}
               <div>
                 <label className="block mb-2 whitespace-nowrap">
                   Shipping & Return Policy
@@ -251,156 +271,281 @@ const EditProduct = () => {
                   className="border border-gray-300 rounded p-2 w-full"
                 />
               </div>
-              {/* Editable Variants Section */}
-              {variants.map((variant, vIndex) => (
-                <div
-                  key={vIndex}
-                  className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50"
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Category</label>
+                <select
+                  value={product.category}
+                  onChange={(e) =>
+                    handleProductChange("category", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
                 >
-                  <div className="flex justify-between items-center">
-                    <h2 className="font-medium whitespace-nowrap">
-                      Variant {vIndex + 1}
-                    </h2>
-                    {variants.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeVariant(vIndex)}
-                        className="text-red-500 whitespace-nowrap"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  {/* Age Group */}
-                  <div>
-                    <label className="block mb-2 whitespace-nowrap">
-                      Age Group
-                    </label>
-                    <select
-                      value={variant.ageGroup}
-                      onChange={(e) =>
-                        handleVariantChange(vIndex, "ageGroup", e.target.value)
-                      }
-                      className="border border-gray-300 rounded p-2 w-full"
+                  <option value="">Select Category</option>
+                  {categories.map((cat, i) => (
+                    <option key={i} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Material</label>
+                <select
+                  value={product.material}
+                  onChange={(e) =>
+                    handleProductChange("material", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Material</option>
+                  {materials.map((mat, i) => (
+                    <option key={i} value={mat}>
+                      {mat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Gender</label>
+                <select
+                  value={product.gender}
+                  onChange={(e) =>
+                    handleProductChange("gender", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Gender</option>
+                  {genders.map((g, i) => (
+                    <option key={i} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-2 whitespace-nowrap">Status</label>
+                <select
+                  value={product.status}
+                  onChange={(e) =>
+                    handleProductChange("status", e.target.value)
+                  }
+                  className="border border-gray-300 rounded p-2 w-full"
+                >
+                  <option value="">Select Status</option>
+                  {statuses.map((s, i) => (
+                    <option key={i} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Editable Variants Section */}
+            {variants.map((variant, vIndex) => (
+              <div
+                key={vIndex}
+                className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50"
+              >
+                <div className="flex justify-between items-center">
+                  <h2 className="font-medium whitespace-nowrap">
+                    Variant {vIndex + 1}
+                  </h2>
+                  {variants.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(vIndex)}
+                      className="text-red-500 whitespace-nowrap"
                     >
-                      <option value="">Select Age Group</option>
-                      {ageGroups.map((group) => (
-                        <option key={group.id} value={group.id}>
-                          {group.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {/* Price, Cut Price, Discount, Stock */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                    {[
-                      { label: "Price", field: "price" },
-                      { label: "Cut Price", field: "cutPrice" },
-                    ].map(({ label, field }) => (
-                      <div key={field}>
-                        <label className="block mb-2 whitespace-nowrap">
-                          {label}
-                        </label>
-                        <input
-                          type="number"
-                          value={variant[field]}
-                          onChange={(e) =>
-                            handleVariantChange(vIndex, field, e.target.value)
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {/* Images */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Variant Images (2–6)
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(vIndex, e.target.files)}
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                  <div className="flex gap-4 flex-wrap mt-3">
+                    {variant.images.map((img, imgIndex) => (
+                      <div
+                        key={imgIndex}
+                        className="relative w-24 h-24 border border-gray-300 rounded overflow-hidden"
+                      >
+                        <img
+                          src={
+                            typeof img === "string"
+                              ? img
+                              : URL.createObjectURL(img)
                           }
-                          className="border border-gray-300 rounded p-2 w-full"
+                          alt="preview"
+                          className="w-full h-full object-cover"
                         />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(vIndex, imgIndex)}
+                          className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded px-1"
+                        >
+                          ✕
+                        </button>
                       </div>
                     ))}
-                    <div>
+                  </div>
+                </div>
+                {/* Color */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Color</label>
+                  <select
+                    value={variant.color}
+                    onChange={(e) =>
+                      handleVariantChange(vIndex, "color", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Color</option>
+                    {colors.map((col, i) => (
+                      <option key={i} value={col}>
+                        {col}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {/* Age Group */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Age Group
+                  </label>
+                  <select
+                    value={variant.ageGroup}
+                    onChange={(e) =>
+                      handleVariantChange(vIndex, "ageGroup", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Age Group</option>
+                    {ageGroups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {/* Price, Cut Price, Discount, Stock */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  {[
+                    { label: "Price", field: "price" },
+                    { label: "Cut Price", field: "cutPrice" },
+                  ].map(({ label, field }) => (
+                    <div key={field}>
                       <label className="block mb-2 whitespace-nowrap">
-                        Discount %
+                        {label}
                       </label>
                       <input
                         type="number"
-                        value={variant.discount}
-                        readOnly
-                        className="border border-gray-300 rounded p-2 w-full bg-gray-100"
-                      />
-                    </div>
-                    <div>
-                      <label className="block mb-2 whitespace-nowrap">
-                        Stock Number
-                      </label>
-                      <input
-                        type="number"
-                        value={variant.stock}
+                        value={variant[field]}
                         onChange={(e) =>
-                          handleVariantChange(vIndex, "stock", e.target.value)
+                          handleVariantChange(vIndex, field, e.target.value)
                         }
                         className="border border-gray-300 rounded p-2 w-full"
                       />
                     </div>
-                  </div>
-                  {/* Specifications */}
+                  ))}
                   <div>
                     <label className="block mb-2 whitespace-nowrap">
-                      Specifications
+                      Discount %
                     </label>
-                    {variant.specifications.map((spec, sIndex) => (
-                      <div key={sIndex} className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          placeholder="Key"
-                          value={spec.key}
-                          onChange={(e) =>
-                            handleSpecChange(
-                              vIndex,
-                              sIndex,
-                              "key",
-                              e.target.value
-                            )
-                          }
-                          className="border border-gray-300 rounded p-2 flex-1"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Value"
-                          value={spec.value}
-                          onChange={(e) =>
-                            handleSpecChange(
-                              vIndex,
-                              sIndex,
-                              "value",
-                              e.target.value
-                            )
-                          }
-                          className="border border-gray-300 rounded p-2 flex-1"
-                        />
-                        {variant.specifications.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeSpec(vIndex, sIndex)}
-                            className="text-red-500 whitespace-nowrap"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => addSpec(vIndex)}
-                      className="text-blue-500 whitespace-nowrap"
-                    >
-                      + Add Specification
-                    </button>
+                    <input
+                      type="number"
+                      value={variant.discount}
+                      readOnly
+                      className="border border-gray-300 rounded p-2 w-full bg-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-2 whitespace-nowrap">
+                      Stock Number
+                    </label>
+                    <input
+                      type="number"
+                      value={variant.stock}
+                      onChange={(e) =>
+                        handleVariantChange(vIndex, "stock", e.target.value)
+                      }
+                      className="border border-gray-300 rounded p-2 w-full"
+                    />
                   </div>
                 </div>
-              ))}
-              {/* Add Variant */}
-              <button
-                type="button"
-                onClick={addVariant}
-                className="text-green-600 whitespace-nowrap"
-              >
-                + Add Variant
-              </button>
-            </div>
+                {/* Specifications */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Specifications
+                  </label>
+                  {variant.specifications.map((spec, sIndex) => (
+                    <div key={sIndex} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        placeholder="Key"
+                        value={spec.key}
+                        onChange={(e) =>
+                          handleSpecChange(
+                            vIndex,
+                            sIndex,
+                            "key",
+                            e.target.value
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2 flex-1"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={spec.value}
+                        onChange={(e) =>
+                          handleSpecChange(
+                            vIndex,
+                            sIndex,
+                            "value",
+                            e.target.value
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2 flex-1"
+                      />
+                      {variant.specifications.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSpec(vIndex, sIndex)}
+                          className="text-red-500 whitespace-nowrap"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addSpec(vIndex)}
+                    className="text-blue-500 whitespace-nowrap"
+                  >
+                    + Add Specification
+                  </button>
+                </div>
+              </div>
+            ))}
+            {/* Add Variant */}
+            <button
+              type="button"
+              onClick={addVariant}
+              className="text-green-600 whitespace-nowrap"
+            >
+              + Add Variant
+            </button>
             {/* Submit */}
             <div>
               <button

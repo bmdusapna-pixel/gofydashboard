@@ -213,7 +213,7 @@ const Products = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 flex items-center">
                         <img
-                          src={product.images[0]}
+                          src={product.variants[0].images[0]}
                           alt={product.name}
                           className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
                           onError={(e) => {
@@ -230,10 +230,10 @@ const Products = () => {
                         {product.category}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.stock}
+                        {product.variants[0].stock}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        ₹ {product.price.toFixed(2)}
+                        ₹ {parseFloat(product.variants[0].price).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span

@@ -3,12 +3,10 @@ import ageGroups from "../../assets/ageGroups.list.js";
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
-    images: [],
     name: "",
     category: "",
     material: "",
     gender: "",
-    color: "",
     description: "",
     shippingPolicy: "",
     washCare: [""],
@@ -33,6 +31,8 @@ const AddProduct = () => {
   const [variants, setVariants] = useState([
     {
       ageGroup: "",
+      color: "", // Moved to variants
+      images: [], // Moved to variants
       price: "",
       cutPrice: "",
       discount: "",
@@ -45,25 +45,35 @@ const AddProduct = () => {
     setProduct((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleImageUpload = (files) => {
+  // --- Variant-specific image functions ---
+  const handleImageUpload = (variantIndex, files) => {
     const fileArray = Array.from(files);
-    setProduct((prev) => {
-      const totalImages = prev.images.length + fileArray.length;
-      if (totalImages > 6) {
-        alert("You can upload a maximum of 6 images.");
-      }
-      return {
-        ...prev,
-        images: [...prev.images, ...fileArray].slice(0, 6),
-      };
+
+    setVariants((prev) => {
+      const updated = [...prev];
+      const currentImages = updated[variantIndex].images;
+
+      // Filter out any newly selected files that are already in the state
+      const newImagesToAdd = fileArray.filter(
+        (file) => !currentImages.some((img) => img.name === file.name)
+      );
+
+      // Append the unique new files to the current list
+      const newImages = [...currentImages, ...newImagesToAdd].slice(0, 6);
+
+      updated[variantIndex].images = newImages;
+      return updated;
     });
   };
 
-  const removeImage = (imgIndex) => {
-    setProduct((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== imgIndex),
-    }));
+  const removeImage = (variantIndex, imgIndex) => {
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[variantIndex].images = updated[variantIndex].images.filter(
+        (_, i) => i !== imgIndex
+      );
+      return updated;
+    });
   };
 
   const handleVariantChange = (variantIndex, field, value) => {
@@ -126,6 +136,8 @@ const AddProduct = () => {
       ...prev,
       {
         ageGroup: "",
+        color: "", // Added here
+        images: [], // Added here
         price: "",
         cutPrice: "",
         discount: "",
@@ -160,10 +172,15 @@ const AddProduct = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (product.images.length < 2) {
-      alert("Please upload at least 2 images.");
-      return;
+
+    // Validation for images in each variant
+    for (const variant of variants) {
+      if (variant.images.length < 2) {
+        alert("Please upload at least 2 images for each variant.");
+        return;
+      }
     }
+
     console.log("Final Product:", { ...product, variants });
   };
 
@@ -223,43 +240,8 @@ const AddProduct = () => {
                 />
               )}
             </div>
-            {/* Common Product Fields */}
-            <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
-              {/* Images */}
-              <div>
-                <label className="block mb-2 whitespace-nowrap">
-                  Product Images (2–6)
-                </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e.target.files)}
-                  className="border border-gray-300 rounded p-2 w-full"
-                />
-                <div className="flex gap-4 flex-wrap mt-3">
-                  {product.images.map((img, imgIndex) => (
-                    <div
-                      key={imgIndex}
-                      className="relative w-24 h-24 border border-gray-300 rounded overflow-hidden"
-                    >
-                      <img
-                        src={URL.createObjectURL(img)}
-                        alt="preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(imgIndex)}
-                        className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded px-1"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
+            <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
               {/* Name */}
               <div>
                 <label className="block mb-2 whitespace-nowrap">Name</label>
@@ -323,23 +305,6 @@ const AddProduct = () => {
                   {genders.map((g, i) => (
                     <option key={i} value={g}>
                       {g}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Color */}
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Color</label>
-                <select
-                  value={product.color}
-                  onChange={(e) => handleProductChange("color", e.target.value)}
-                  className="border border-gray-300 rounded p-2 w-full"
-                >
-                  <option value="">Select Color</option>
-                  {colors.map((col, i) => (
-                    <option key={i} value={col}>
-                      {col}
                     </option>
                   ))}
                 </select>
@@ -450,6 +415,60 @@ const AddProduct = () => {
                       Remove
                     </button>
                   )}
+                </div>
+
+                {/* Images */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Variant Images (2–6)
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(vIndex, e.target.files)}
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                  <div className="flex gap-4 flex-wrap mt-3">
+                    {variant.images.map((img, imgIndex) => (
+                      <div
+                        key={imgIndex}
+                        className="relative w-24 h-24 border border-gray-300 rounded overflow-hidden"
+                      >
+                        <img
+                          src={URL.createObjectURL(img)}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(vIndex, imgIndex)}
+                          className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded px-1"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Color</label>
+                  <select
+                    value={variant.color}
+                    onChange={(e) =>
+                      handleVariantChange(vIndex, "color", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Color</option>
+                    {colors.map((col, i) => (
+                      <option key={i} value={col}>
+                        {col}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Age Group */}
