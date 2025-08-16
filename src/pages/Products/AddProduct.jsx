@@ -31,8 +31,8 @@ const AddProduct = () => {
   const [variants, setVariants] = useState([
     {
       ageGroup: "",
-      color: "", // Moved to variants
-      images: [], // Moved to variants
+      color: "",
+      images: [],
       price: "",
       cutPrice: "",
       discount: "",
