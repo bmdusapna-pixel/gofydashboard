@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom"; // Import NavLink and useLocation
+import { NavLink, useLocation, useNavigate } from "react-router-dom"; // Import NavLink and useLocation
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes,
@@ -23,6 +23,18 @@ import Logo from "../../../assets/images/logo.webp"; // Using the specified path
 // Define your navigation items for this sidebar with updated paths
 const navItems = [
   { name: "Dashboard", icon: faHome, path: "/", type: "link" },
+  {
+    name: "Sales Dashboard",
+    icon: faHome,
+    path: "/sales-dashboard",
+    type: "link",
+  },
+  {
+    name: "Summary Dashboard",
+    icon: faHome,
+    path: "/summary-dashboard",
+    type: "link",
+  },
   {
     name: "Products",
     icon: faBoxOpen,
@@ -120,6 +132,7 @@ const navItems = [
 // from a parent component that controls its overall visibility.
 const App = ({ isMobileSidebarOpen, toggleMobileSidebar }) => {
   const location = useLocation(); // Get the current location object
+  const navigate = useNavigate();
   // State to manage which dropdown is currently open (e.g., "Products", "Categories", "Orders", or null)
   const [openDropdown, setOpenDropdown] = useState(null);
   // State to manage the user dropdown visibility
@@ -178,6 +191,8 @@ const App = ({ isMobileSidebarOpen, toggleMobileSidebar }) => {
     if (toggleMobileSidebar) {
       toggleMobileSidebar();
     }
+    localStorage.removeItem("token");
+    navigate("/login");
     // Implement actual logout logic here (e.g., redirect to login page)
   };
 

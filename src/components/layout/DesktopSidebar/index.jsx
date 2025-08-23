@@ -24,6 +24,18 @@ import Logo from "../../../assets/images/logo.webp";
 const navItems = [
   { name: "Dashboard", icon: faHome, path: "/", type: "link" },
   {
+    name: "Sales Dashboard",
+    icon: faHome,
+    path: "/sales-dashboard",
+    type: "link",
+  },
+  {
+    name: "Summary Dashboard",
+    icon: faHome,
+    path: "/summary-dashboard",
+    type: "link",
+  },
+  {
     name: "Products",
     icon: faBoxOpen,
     type: "dropdown",
@@ -161,6 +173,7 @@ const App = ({ isMobileSidebarOpen, toggleMobileSidebar }) => {
     // Perform logout logic here (e.g., clear tokens, session storage)
     console.log("User logged out");
     handleLinkClick();
+    localStorage.removeItem("token");
     navigate("/login");
   };
 

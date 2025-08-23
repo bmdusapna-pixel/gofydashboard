@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { EllipsisVertical, Eye, Pencil, Plus, Trash2 } from "lucide-react";
-import collections from "../../assets/collections.list.js"; // Adjust path if necessary
+import api from "../../api/axios";
+// import collections from "../../assets/collections.list.js";
 
 const collectionTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
@@ -11,6 +12,21 @@ const collectionTableHeaders = [
 ];
 
 const Collections = () => {
+  const [collections, setCollections] = useState([]);
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const result = await api.get("/collections");
+        setCollections(result.data.collections);
+        const cat = await api.get("/categories");
+        setCategories(cat.data.categories);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetch();
+  }, []);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
@@ -114,23 +130,29 @@ const Collections = () => {
                         {indexOfFirstItem + index + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {collection.id}
+                        {collection.collectionId}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {collection.name}
+                        {collection.collectionName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {collection.categoryCount}
+                        {
+                          categories.filter(
+                            (p) => p.collectionId._id === collection._id
+                          ).length
+                        }
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap relative">
                         <button
                           className="flex cursor-pointer items-center justify-center w-6 h-6 focus:outline-none focus:ring-1 focus:ring-gray-200 rounded-full"
-                          onClick={() => toggleDropdown(collection.id)}
+                          onClick={() =>
+                            toggleDropdown(collection.collectionId)
+                          }
                           title="More Actions"
                         >
                           <EllipsisVertical className="w-4 h-4 text-gray-500" />
                         </button>
-                        {openDropdownId === collection.id && (
+                        {openDropdownId === collection.collectionId && (
                           <div
                             ref={dropdownRef}
                             className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
@@ -143,21 +165,27 @@ const Collections = () => {
                             >
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-                                onClick={() => handleView(collection.name)}
+                                onClick={() =>
+                                  handleView(collection.collectionName)
+                                }
                               >
                                 <Eye className="w-4 h-4 text-blue-500" />
                                 <span>View</span>
                               </button>
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-                                onClick={() => handleEdit(collection.name)}
+                                onClick={() =>
+                                  handleEdit(collection.collectionName)
+                                }
                               >
                                 <Pencil className="w-4 h-4 text-yellow-500" />
                                 <span>Edit</span>
                               </button>
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-                                onClick={() => handleDelete(collection.name)}
+                                onClick={() =>
+                                  handleDelete(collection.collectionName)
+                                }
                               >
                                 <Trash2 className="w-4 h-4 text-red-500" />
                                 <span>Delete</span>

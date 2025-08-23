@@ -1,7 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import Logo from "../../assets/images/logo.png";
+import { loginApi } from "../../api/authApi";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const [form, setForm] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = await loginApi(form);
+      localStorage.setItem("token", data.token);
+      navigate("/");
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed");
+    }
+  };
   return (
     <div className="bg-login min-h-screen flex items-center justify-center p-4">
       <div className="max-w-md w-full login-container rounded-xl shadow-xl overflow-hidden border border-gray-200">
@@ -22,7 +36,7 @@ const Index = () => {
         </div>
         {/* Login Form */}
         <div className="p-6">
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="email"
@@ -34,6 +48,8 @@ const Index = () => {
                 id="email"
                 name="email"
                 type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
                 placeholder="admin@example.com"
@@ -50,6 +66,8 @@ const Index = () => {
                 id="password"
                 name="password"
                 type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
                 placeholder="••••••••"

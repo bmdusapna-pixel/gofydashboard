@@ -1,11 +1,10 @@
 import React, { useState } from "react";
+import api from "../../api/axios";
 
 const AddCollection = ({ onAdd, onCancel }) => {
   // State to hold the new collection's data
   const [newCollection, setNewCollection] = useState({
-    id: "",
-    name: "",
-    // categoryCount is removed as it comes from the backend
+    collectionName: "",
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
@@ -19,29 +18,17 @@ const AddCollection = ({ onAdd, onCancel }) => {
     }));
   };
 
-  const handleAddCollection = () => {
-    // Basic validation: ensure required fields are not empty
-    if (!newCollection.id || !newCollection.name) {
-      console.error("Please fill in all required fields (ID, Name).");
+  const handleAddCollection = async () => {
+    // Basic validation: ensure the required name field is not empty
+    if (!newCollection.collectionName) {
+      console.error("Please fill in the collection name.");
       // In a real app, you'd show a user-friendly error message
       return;
     }
-
-    const collectionToAdd = {
-      ...newCollection,
-      // categoryCount will be set by the backend
-      _id: `temp-${Date.now()}`, // Temporary ID for client-side representation
-    };
-
-    console.log("Adding New Collection:", collectionToAdd);
-    // In a real application, you would send this data to your backend API
-    if (onAdd) {
-      onAdd(collectionToAdd);
-    }
+    await api.post("/collections", newCollection);
     // Optionally, clear the form or navigate back to the Collections list
     setNewCollection({
-      id: "",
-      name: "",
+      collectionName: "",
       metaTitle: "",
       metaDescription: "",
       metaKeywords: "",
@@ -65,46 +52,24 @@ const AddCollection = ({ onAdd, onCancel }) => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Collection ID */}
-            <div>
-              <label
-                htmlFor="id"
-                className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
-              >
-                Collection ID
-              </label>
-              <input
-                type="text"
-                id="id"
-                name="id"
-                value={newCollection.id}
-                onChange={handleChange}
-                placeholder="e.g., C011"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-700"
-              />
-            </div>
-
             {/* Collection Name */}
-            <div>
+            <div className="col-span-1 md:col-span-2">
               <label
-                htmlFor="name"
+                htmlFor="collectionName"
                 className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
               >
                 Collection Name
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={newCollection.name}
+                id="collectionName"
+                name="collectionName"
+                value={newCollection.collectionName}
                 onChange={handleChange}
                 placeholder="e.g., Summer Essentials"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-700"
               />
             </div>
-
-            {/* Empty spacer for layout */}
-            <div className="col-span-1"></div>
 
             {/* --- Meta Details --- */}
             <h3 className="text-md font-semibold text-gray-700 mt-4 col-span-1 md:col-span-2 whitespace-nowrap">

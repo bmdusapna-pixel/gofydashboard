@@ -222,7 +222,7 @@ const App = () => {
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
       />
 
-      <div className="bg-white p-4 sm:p-6 lg:p-8 font-sans">
+      <div className="bg-white p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Main component styling consistent with previous tables */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">

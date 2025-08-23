@@ -247,6 +247,82 @@ const EditProduct = () => {
                   className="border border-gray-300 rounded p-2 w-full"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Category
+                  </label>
+                  <select
+                    value={product.category}
+                    onChange={(e) =>
+                      handleProductChange("category", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat, i) => (
+                      <option key={i} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Material
+                  </label>
+                  <select
+                    value={product.material}
+                    onChange={(e) =>
+                      handleProductChange("material", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Material</option>
+                    {materials.map((mat, i) => (
+                      <option key={i} value={mat}>
+                        {mat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Gender</label>
+                  <select
+                    value={product.gender}
+                    onChange={(e) =>
+                      handleProductChange("gender", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Gender</option>
+                    {genders.map((g, i) => (
+                      <option key={i} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Status</label>
+                  <select
+                    value={product.status}
+                    onChange={(e) =>
+                      handleProductChange("status", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  >
+                    <option value="">Select Status</option>
+                    {statuses.map((s, i) => (
+                      <option key={i} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div>
                 <label className="block mb-2 whitespace-nowrap">
                   Description
@@ -270,74 +346,6 @@ const EditProduct = () => {
                   }
                   className="border border-gray-300 rounded p-2 w-full"
                 />
-              </div>
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Category</label>
-                <select
-                  value={product.category}
-                  onChange={(e) =>
-                    handleProductChange("category", e.target.value)
-                  }
-                  className="border border-gray-300 rounded p-2 w-full"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat, i) => (
-                    <option key={i} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Material</label>
-                <select
-                  value={product.material}
-                  onChange={(e) =>
-                    handleProductChange("material", e.target.value)
-                  }
-                  className="border border-gray-300 rounded p-2 w-full"
-                >
-                  <option value="">Select Material</option>
-                  {materials.map((mat, i) => (
-                    <option key={i} value={mat}>
-                      {mat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Gender</label>
-                <select
-                  value={product.gender}
-                  onChange={(e) =>
-                    handleProductChange("gender", e.target.value)
-                  }
-                  className="border border-gray-300 rounded p-2 w-full"
-                >
-                  <option value="">Select Gender</option>
-                  {genders.map((g, i) => (
-                    <option key={i} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Status</label>
-                <select
-                  value={product.status}
-                  onChange={(e) =>
-                    handleProductChange("status", e.target.value)
-                  }
-                  className="border border-gray-300 rounded p-2 w-full"
-                >
-                  <option value="">Select Status</option>
-                  {statuses.map((s, i) => (
-                    <option key={i} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 
@@ -440,8 +448,8 @@ const EditProduct = () => {
                 {/* Price, Cut Price, Discount, Stock */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   {[
-                    { label: "Price", field: "price" },
-                    { label: "Cut Price", field: "cutPrice" },
+                    { label: "Sale Price", field: "price" },
+                    { label: "MRP", field: "cutPrice" },
                   ].map(({ label, field }) => (
                     <div key={field}>
                       <label className="block mb-2 whitespace-nowrap">

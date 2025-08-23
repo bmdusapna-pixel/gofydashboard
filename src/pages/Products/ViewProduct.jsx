@@ -115,17 +115,17 @@ const ViewProduct = () => {
                         <p className="text-sm font-semibold">{variant.color}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Stock</p>
+                        <p className="text-sm text-gray-500">Stock Quantity</p>
                         <p className="text-sm font-semibold">{variant.stock}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Price</p>
+                        <p className="text-sm text-gray-500">Sale Price</p>
                         <p className="text-sm font-semibold">
                           ₹ {parseFloat(variant.price).toFixed(2)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Cut Price</p>
+                        <p className="text-sm text-gray-500">MRP</p>
                         <p className="text-sm font-semibold">
                           ₹ {parseFloat(variant.cutPrice).toFixed(2)}
                         </p>
