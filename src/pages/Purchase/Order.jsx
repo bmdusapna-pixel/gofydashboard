@@ -170,8 +170,8 @@ const App = () => {
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
       />
 
-      <div className="bg-white p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
+        <div className="">
           {/* Main component styling consistent with previous tables */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
             {/* Header Section */}

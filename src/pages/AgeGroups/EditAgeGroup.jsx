@@ -53,7 +53,7 @@ const EditAgeGroup = ({ initialAgeGroup, onSave, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-4 sm:p-6 lg:p-8">
+    <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
       <div className="max-w-md">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300 flex flex-col gap-5">
           <h2 className="text-base sm:text-lg font-medium text-gray-700">

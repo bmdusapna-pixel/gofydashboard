@@ -3,134 +3,18 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom"; // Import 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes,
-  faHome,
-  faBoxOpen,
   faChevronDown,
   faChevronUp,
-  faTags,
-  faShoppingCart,
-  faUsers,
-  faClipboardList,
-  faFileInvoiceDollar, // Added for Invoices icon
   faEllipsisV, // New: for user dropdown toggle
   faUserCircle, // New: for profile link
   faSignOutAlt, // New: for logout link
-  faLayerGroup,
-  faPalette,
 } from "@fortawesome/free-solid-svg-icons";
 import Logo from "../../../assets/images/logo.webp"; // Using the specified path
-
-// Define your navigation items for this sidebar with updated paths
-const navItems = [
-  { name: "Dashboard", icon: faHome, path: "/", type: "link" },
-  {
-    name: "Sales Dashboard",
-    icon: faHome,
-    path: "/sales-dashboard",
-    type: "link",
-  },
-  {
-    name: "Summary Dashboard",
-    icon: faHome,
-    path: "/summary-dashboard",
-    type: "link",
-  },
-  {
-    name: "Products",
-    icon: faBoxOpen,
-    type: "dropdown",
-    path: "/products", // Base path for dropdown
-    subItems: [
-      { name: "All Products", path: "/products/list" },
-      { name: "Add New", path: "/products/add-new" },
-      // Removed Inventory from here
-    ],
-  },
-  {
-    name: "Categories",
-    icon: faTags,
-    type: "dropdown",
-    path: "/categories", // Base path for dropdown
-    subItems: [
-      { name: "All Categories", path: "/categories/list" },
-      { name: "Add New", path: "/categories/add-new" },
-      { name: "Age Groups", path: "/age-groups" },
-    ],
-  },
-  {
-    name: "Collections",
-    icon: faLayerGroup,
-    type: "dropdown",
-    path: "/collections", // Base path for dropdown
-    subItems: [
-      { name: "All Collections", path: "/collections/list" },
-      { name: "Add Collection", path: "/collections/add-collection" },
-    ],
-  },
-  {
-    name: "Inventory", // New top-level item
-    icon: faClipboardList, // Using a new icon for Inventory
-    type: "dropdown",
-    path: "/inventory", // Base path for Inventory dropdown
-    subItems: [
-      { name: "Received Orders", path: "/received" },
-      { name: "Warehouse", path: "/inventory/warehouse" }, // Warehouse as a sub-item
-    ],
-  },
-  {
-    name: "Orders",
-    icon: faShoppingCart,
-    type: "dropdown",
-    path: "/orders", // Base path for dropdown
-    subItems: [{ name: "All Orders", path: "/orders" }],
-  },
-  {
-    name: "Purchase",
-    icon: faClipboardList,
-    type: "dropdown",
-    subItems: [
-      {
-        name: "List",
-        path: "/purchase/list",
-      },
-      {
-        name: "Order",
-        path: "/purchase/order",
-      },
-      {
-        name: "Return",
-        path: "/purchase/return",
-      },
-    ],
-  },
-  {
-    name: "Invoices",
-    icon: faFileInvoiceDollar,
-    path: "/invoices",
-    type: "link",
-  }, // Added Invoices
-  {
-    name: "Banners",
-    icon: faFileInvoiceDollar,
-    path: "/banners",
-    type: "link",
-  },
-  {
-    name: "Filter",
-    icon: faPalette,
-    subItems: [
-      { name: "Color", path: "/color" },
-      { name: "Material", path: "/material" },
-    ],
-    type: "dropdown",
-  },
-  { name: "Customers", icon: faUsers, path: "/customers", type: "link" },
-];
 
 // This component is designed to be a standalone mobile sidebar.
 // It assumes `isMobileSidebarOpen` and `toggleMobileSidebar` are passed as props
 // from a parent component that controls its overall visibility.
-const App = ({ isMobileSidebarOpen, toggleMobileSidebar }) => {
+const App = ({ isMobileSidebarOpen, toggleMobileSidebar, navItems }) => {
   const location = useLocation(); // Get the current location object
   const navigate = useNavigate();
   // State to manage which dropdown is currently open (e.g., "Products", "Categories", "Orders", or null)
@@ -159,7 +43,7 @@ const App = ({ isMobileSidebarOpen, toggleMobileSidebar }) => {
       }
     }
     setOpenDropdown(foundDropdown);
-  }, [location.pathname]); // Re-run when the path changes
+  }, [location.pathname, navItems]); // Re-run when the path changes
 
   /**
    * Toggles the visibility of a dropdown menu.
@@ -354,7 +238,7 @@ const App = ({ isMobileSidebarOpen, toggleMobileSidebar }) => {
               ))}
             </nav>
             {/* User account section with dropdown */}
-            <div className="relative mt-auto mb-4">
+            <div className="relative mt-2 mb-4">
               {/* Parent div now handles the click */}
               <div
                 className="flex items-center p-3 bg-primary-500 rounded-lg cursor-pointer"

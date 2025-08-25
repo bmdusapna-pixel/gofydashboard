@@ -63,7 +63,7 @@ const AddCategory = ({ onAdd, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-4 sm:p-6 lg:p-8 overflow-y-scroll">
+    <div className="flex-1 overflow-y-auto p-4 bg-primary-50 overflow-y-scroll">
       <div className="max-w-4xl">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-700 whitespace-nowrap">

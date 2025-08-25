@@ -66,8 +66,8 @@ const WareHouse = () => {
   };
 
   return (
-    <div className="bg-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
+      <div className="">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">

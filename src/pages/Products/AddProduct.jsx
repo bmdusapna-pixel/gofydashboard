@@ -185,8 +185,8 @@ const AddProduct = () => {
   };
 
   return (
-    <div className="bg-white p-4 sm:p-6 lg:p-8 overflow-y-auto">
-      <div className="max-w-7xl mx-auto">
+    <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
+      <div className="">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300">
           <h1 className="text-lg font-medium mb-6 whitespace-nowrap">
             Add Product
