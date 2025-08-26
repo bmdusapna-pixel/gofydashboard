@@ -1,29 +1,62 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import products from "../../assets/product.list.js";
-import ageGroups from "../../assets/ageGroups.list.js";
+import api from "../../api/axios";
 
 const ViewProduct = () => {
   const { url } = useParams();
-  const product = products.find((p) => p.url === url);
+  const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!product) {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await api.get(`/products/${url}`);
+        const fetchedProduct = response.data.data;
+        console.log("Fetched Product:", fetchedProduct);
+        setProduct(fetchedProduct);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to fetch product data.");
+        setIsLoading(false);
+      }
+    };
+
+    if (url) {
+      fetchProduct();
+    }
+  }, [url]);
+
+  if (isLoading) {
     return (
       <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
-        <div className="">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
-            <p className="text-sm text-gray-500">Product not found</p>
-          </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
+          <p className="text-sm text-gray-500">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // Helper function to find age group name
-  const getAgeGroupName = (ageGroupId) => {
-    const ageGroup = ageGroups.find((group) => group.id === ageGroupId);
-    return ageGroup ? ageGroup.name : ageGroupId;
-  };
+  if (error) {
+    return (
+      <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
+          <p className="text-sm text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
+          <p className="text-sm text-gray-500">Product not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
@@ -32,14 +65,18 @@ const ViewProduct = () => {
           {/* Header */}
           <div>
             <h1 className="text-sm font-semibold">{product.name}</h1>
-            <p className="text-sm text-gray-500">{product.category}</p>
+            <p className="text-sm text-gray-500">
+              {product.category?.categoryName || "N/A"}
+            </p>
           </div>
 
           {/* Product-level details */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <div>
               <p className="text-sm text-gray-500">Material</p>
-              <p className="text-sm font-semibold">{product.material}</p>
+              <p className="text-sm font-semibold">
+                {product.material?.name || "N/A"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Gender</p>
@@ -51,7 +88,9 @@ const ViewProduct = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Date Added</p>
-              <p className="text-sm font-semibold">{product.dateAdded}</p>
+              <p className="text-sm font-semibold">
+                {new Date(product.dateAdded).toLocaleDateString()}
+              </p>
             </div>
           </div>
 
@@ -107,12 +146,14 @@ const ViewProduct = () => {
                       <div>
                         <p className="text-sm text-gray-500">Age Group</p>
                         <p className="text-sm font-semibold">
-                          {getAgeGroupName(variant.ageGroup)}
+                          {variant.ageGroup?.ageRange || variant.ageGroup}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Color</p>
-                        <p className="text-sm font-semibold">{variant.color}</p>
+                        <p className="text-sm font-semibold">
+                          {variant.color?.name || variant.color}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Stock Quantity</p>
@@ -144,12 +185,15 @@ const ViewProduct = () => {
                           Specifications
                         </p>
                         <ul className="list-disc list-inside space-y-1">
-                          {variant.specifications.map((spec, idx) => (
-                            <li key={idx} className="text-sm text-gray-700">
-                              <span className="font-semibold">{spec.key}:</span>{" "}
-                              {spec.value}
-                            </li>
-                          ))}
+                          {variant.specifications.map((spec, idx) => {
+                            const [key, value] = Object.entries(spec)[0];
+                            return (
+                              <li key={idx} className="text-sm text-gray-700">
+                                <span className="font-semibold">{key}:</span>{" "}
+                                {value}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     )}

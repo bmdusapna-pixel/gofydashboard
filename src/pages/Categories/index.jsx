@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { EllipsisVertical, Eye, Pencil, Plus, Trash2 } from "lucide-react";
-import categories from "../../assets/categories.list.js";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../../api/axios.js";
 
 const categoryTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
@@ -14,15 +14,40 @@ const categoryTableHeaders = [
 
 const Categories = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [categories, setCategories] = useState([]); // Initialize as an empty array
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
   const itemsPerPage = 5;
 
   const [filterByCollection, setFilterByCollection] = useState("all");
+  const [collections, setCollections] = useState([]);
+
+  const navigate = useNavigate();
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const result = await api.get("/categories");
+        const fetchedCategories = result.data.categories;
+        setCategories(fetchedCategories);
+
+        // Extract unique collection names for the filter dropdown
+        const uniqueCollections = [
+          ...new Set(
+            fetchedCategories.map((cat) => cat.collectionId.collectionName)
+          ),
+        ];
+        setCollections(uniqueCollections);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -41,8 +66,9 @@ const Categories = () => {
     setOpenDropdownId(null);
   };
 
-  const handleEdit = (categoryName) => {
-    console.log(`Editing category: ${categoryName}`);
+  const handleEdit = (id) => {
+    console.log(`Editing category: ${id}`);
+    navigate(`/categories/edit/${id}`);
     setOpenDropdownId(null);
   };
 
@@ -51,15 +77,16 @@ const Categories = () => {
     setOpenDropdownId(null);
   };
 
-  const getFilteredCategories = () => {
+  // Use useMemo to prevent re-calculating filteredCategories on every render
+  const filteredCategories = useMemo(() => {
     return categories.filter((category) => {
       const matchesCollection =
-        filterByCollection === "all" || category.segment === filterByCollection;
+        filterByCollection === "all" ||
+        (category.collectionId &&
+          category.collectionId.collectionName === filterByCollection);
       return matchesCollection;
     });
-  };
-
-  const filteredCategories = getFilteredCategories();
+  }, [categories, filterByCollection]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -105,8 +132,11 @@ const Categories = () => {
                 onChange={(e) => setFilterByCollection(e.target.value)}
               >
                 <option value="all">All Collections</option>
-                <option value="Clothes">Clothes</option>
-                <option value="Toys">Toys</option>
+                {collections.map((collectionName) => (
+                  <option key={collectionName} value={collectionName}>
+                    {collectionName}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -130,38 +160,38 @@ const Categories = () => {
                 {currentCategories.length > 0 ? (
                   currentCategories.map((category, index) => (
                     <tr
-                      key={category._id}
+                      key={category._id} // Use category._id as the unique key
                       className="hover:bg-gray-50 transition duration-150 ease-in-out"
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                         {indexOfFirstItem + index + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {category.id}
+                        {category.categoryId}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {category.name}
+                        {category.categoryName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {category.segment}
+                        {category.collectionId.collectionName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {category.productCount}
+                        0
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap relative">
                         {/* Dropdown Button */}
                         <button
                           className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition"
-                          onClick={() => toggleDropdown(category.id)}
+                          onClick={() => toggleDropdown(category._id)} // Use category._id for dropdown
                           title="More Actions"
                           aria-haspopup="true"
-                          aria-expanded={openDropdownId === category.id}
+                          aria-expanded={openDropdownId === category._id}
                         >
                           <EllipsisVertical className="w-5 h-5 text-gray-500" />
                         </button>
 
                         {/* Dropdown Menu */}
-                        {openDropdownId === category.id && (
+                        {openDropdownId === category._id && (
                           <div
                             ref={dropdownRef}
                             className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-primary-100 z-10"
@@ -169,20 +199,24 @@ const Categories = () => {
                             <div className="flex flex-col py-2" role="menu">
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition text-sm text-gray-700"
-                                onClick={() => handleView(category.name)}
+                                onClick={() =>
+                                  handleView(category.categoryName)
+                                }
                               >
                                 <Eye className="w-4 h-4 text-blue-500" /> View
                               </button>
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition text-sm text-gray-700"
-                                onClick={() => handleEdit(category.name)}
+                                onClick={() => handleEdit(category.categoryId)}
                               >
                                 <Pencil className="w-4 h-4 text-yellow-500" />{" "}
                                 Edit
                               </button>
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition text-sm text-gray-700"
-                                onClick={() => handleDelete(category.name)}
+                                onClick={() =>
+                                  handleDelete(category.categoryName)
+                                }
                               >
                                 <Trash2 className="w-4 h-4 text-red-500" />{" "}
                                 Delete

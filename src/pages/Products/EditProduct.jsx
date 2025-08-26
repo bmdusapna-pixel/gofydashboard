@@ -1,43 +1,81 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import ageGroups from "../../assets/ageGroups.list.js";
-import products from "../../assets/product.list.js";
+import api from "../../api/axios";
 
 const EditProduct = () => {
   const { url } = useParams();
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock data for dropdowns
-  const categories = ["T-shirt", "Doll", "Shoes", "Pants", "Accessories"];
+  const [ageGroupOptions, setAgeGroupOptions] = useState([]);
+  const [categories, setCategories] = useState([]);
   const genders = ["Unisex", "Boys", "Girls"];
-  const materials = [
-    "Cotton",
-    "Polyester",
-    "Wool",
-    "Plastic",
-    "Leather",
-    "Metal",
-  ];
-  const colors = ["Red", "Blue", "Green", "Black", "White", "Pink", "Yellow"];
-  const statuses = ["Active", "Inactive", "Out of Stock"];
+  const [materials, setMaterials] = useState([]);
+  const [colors, setColors] = useState([]);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const statuses = ["In Stock", "Out of Stock", "Discontinued"];
 
   useEffect(() => {
-    const productToEdit = products.find((p) => p.url === url);
-    if (productToEdit) {
-      setProduct({
-        name: productToEdit.name,
-        category: productToEdit.category,
-        material: productToEdit.material,
-        gender: productToEdit.gender,
-        description: productToEdit.description,
-        shippingPolicy: productToEdit.shippingPolicy,
-        washCare: productToEdit.washCare,
-        status: productToEdit.status,
-        promotions: productToEdit.promotions,
-        dealHours: productToEdit.dealHours,
-      });
-      setVariants(productToEdit.variants);
+    const fetchDropdowns = async () => {
+      try {
+        const [ageResponse, materialResponse, colorResponse, categoryResponse] =
+          await Promise.all([
+            api.get("/ages"),
+            api.get("/material"),
+            api.get("/color/colors"),
+            api.get("/categories"),
+          ]);
+        setAgeGroupOptions(ageResponse.data);
+        setMaterials(materialResponse.data.materials);
+        setColors(colorResponse.data);
+        setCategories(categoryResponse.data.categories);
+      } catch (err) {
+        console.error("Error fetching dropdown data:", err);
+      }
+    };
+
+    const fetchProduct = async () => {
+      try {
+        const response = await api.get(`/products/${url}`);
+        const fetchedProduct = response.data.data;
+        setProduct({
+          _id: fetchedProduct._id,
+          name: fetchedProduct.name,
+          brand: fetchedProduct.brand,
+          category: fetchedProduct.category?._id || "",
+          material: fetchedProduct.material?._id || "",
+          gender: fetchedProduct.gender,
+          description: fetchedProduct.description,
+          shippingPolicy: fetchedProduct.shippingPolicy,
+          washCare: fetchedProduct.washCare,
+          status: fetchedProduct.status,
+          promotions: fetchedProduct.promotions,
+          dealHours: fetchedProduct.dealHours,
+        });
+
+        const transformedVariants = fetchedProduct.variants.map((v) => ({
+          ...v,
+          specifications: v.specifications.map((spec) => {
+            const [key, value] = Object.entries(spec)[0];
+            return { key, value };
+          }),
+        }));
+        setVariants(transformedVariants);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to fetch product data.");
+        setIsLoading(false);
+      }
+    };
+
+    fetchDropdowns();
+    if (url) {
+      fetchProduct();
     }
   }, [url]);
 
@@ -47,19 +85,13 @@ const EditProduct = () => {
 
   const handleImageUpload = (variantIndex, files) => {
     const fileArray = Array.from(files);
-
     setVariants((prev) => {
       const updated = [...prev];
-      const currentImages = updated[variantIndex].images || [];
-
-      // Filter out any newly selected files that are already in the state
+      const currentImages = updated[variantIndex].images;
       const newImagesToAdd = fileArray.filter(
         (file) => !currentImages.some((img) => img.name === file.name)
       );
-
-      // Append the unique new files to the current list
       const newImages = [...currentImages, ...newImagesToAdd].slice(0, 6);
-
       updated[variantIndex].images = newImages;
       return updated;
     });
@@ -73,6 +105,24 @@ const EditProduct = () => {
       );
       return updated;
     });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e, variantIndex) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      handleImageUpload(variantIndex, files);
+    }
   };
 
   const handleVariantChange = (variantIndex, field, value) => {
@@ -151,7 +201,26 @@ const EditProduct = () => {
     setVariants((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+  const handleWashCareChange = (index, value) => {
+    setProduct((prev) => {
+      const updated = [...prev.washCare];
+      updated[index] = value;
+      return { ...prev, washCare: updated };
+    });
+  };
+
+  const addWashCareItem = () => {
+    setProduct((prev) => ({ ...prev, washCare: [...prev.washCare, ""] }));
+  };
+
+  const removeWashCareItem = (index) => {
+    setProduct((prev) => ({
+      ...prev,
+      washCare: prev.washCare.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     for (const variant of variants) {
       if (variant.images.length < 2) {
@@ -159,20 +228,65 @@ const EditProduct = () => {
         return;
       }
     }
-    const updatedProduct = {
-      ...product,
-      variants,
-    };
-    console.log("Updated Product:", updatedProduct);
-    alert("Product updated! Check the console for the new object.");
+
+    try {
+      const formData = new FormData();
+      const ranges = [];
+      let fileIndex = 1;
+      variants.forEach((variant) => {
+        const start = fileIndex;
+        variant.images.forEach((file) => {
+          if (file instanceof File) {
+            formData.append("image", file);
+          }
+        });
+        fileIndex += Array.from(variant.images).filter(
+          (img) => img instanceof File
+        ).length;
+        const end = fileIndex - 1;
+        ranges.push([start, end]);
+      });
+
+      const payload = {
+        ...product,
+        variants: variants.map((variant) => ({
+          ageGroup: variant.ageGroup._id || variant.ageGroup,
+          color: variant.color._id || variant.color,
+          price: Number(variant.price),
+          cutPrice: Number(variant.cutPrice),
+          discount: Number(variant.discount),
+          stock: Number(variant.stock),
+          specifications: variant.specifications
+            .filter((s) => s.key && s.value)
+            .map((s) => ({ [s.key]: s.value })),
+          images: variant.images.filter((img) => typeof img === "string"),
+        })),
+        images: ranges,
+      };
+
+      formData.append("payload", JSON.stringify(payload));
+      const response = await api.put(`/products/${product._id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("✅ Product updated successfully!");
+      // console.log("Payload:", payload);
+      console.log("Saved:", response.data);
+    } catch (error) {
+      console.error("Error submitting product:", error);
+      alert(
+        "❌ Failed to update product: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
   };
 
-  if (!product) {
-    return (
-      <div className="text-center p-8">
-        <h1 className="text-lg font-medium">Product not found.</h1>
-      </div>
-    );
+  if (isLoading) {
+    return <div className="text-center p-8">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center p-8 text-red-500">{error}</div>;
   }
 
   return (
@@ -184,70 +298,85 @@ const EditProduct = () => {
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-8 text-sm">
-            {/* Read-only Common Product Fields */}
-            <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
-              <label className="block mb-2 whitespace-nowrap font-medium text-gray-700">
-                Product Details
+            {/* Common Product Fields */}
+            <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
+              <label className="block font-medium text-gray-700">
+                Product Promotions
               </label>
-              {/* Product Promotions */}
-              <div>
-                <label className="block font-medium text-gray-700 mb-2">
-                  Product Promotions
-                </label>
-                <div className="space-y-2">
-                  {[
-                    { value: "super_deal", label: "Super Deal" },
-                    { value: "deal_product", label: "Deal Product" },
-                    { value: "trending", label: "Trending Product" },
-                    { value: "deal_of_the_day", label: "Deal of the Day" },
-                  ].map((promo) => (
-                    <label
-                      key={promo.value}
-                      className="flex items-center gap-2"
-                    >
-                      <input
-                        type="checkbox"
-                        value={promo.value}
-                        checked={product.promotions.includes(promo.value)}
-                        onChange={(e) => {
-                          let newPromos = [...product.promotions];
-                          if (e.target.checked) {
-                            newPromos.push(promo.value);
-                          } else {
-                            newPromos = newPromos.filter(
-                              (p) => p !== promo.value
-                            );
-                          }
-                          setProduct({ ...product, promotions: newPromos });
-                        }}
-                      />
-                      <span>{promo.label}</span>
-                    </label>
-                  ))}
-                </div>
-                {product.promotions.includes("deal_of_the_day") && (
-                  <input
-                    type="number"
-                    placeholder="Deal duration (hours)"
-                    className="w-full border border-gray-300 rounded-md p-2 mt-2"
-                    value={product.dealHours || ""}
-                    onChange={(e) =>
-                      setProduct({ ...product, dealHours: e.target.value })
-                    }
-                  />
-                )}
+
+              <div className="space-y-2">
+                {[
+                  { value: "super_deal", label: "Super Deal" },
+                  { value: "deal_product", label: "Deal Product" },
+                  { value: "trending", label: "Trending Product" },
+                  { value: "deal_of_the_day", label: "Deal of the Day" },
+                ].map((promo) => (
+                  <label key={promo.value} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      value={promo.value}
+                      checked={product.promotions.includes(promo.value)}
+                      onChange={(e) => {
+                        let newPromos = [...product.promotions];
+                        if (e.target.checked) {
+                          newPromos.push(promo.value);
+                        } else {
+                          newPromos = newPromos.filter(
+                            (p) => p !== promo.value
+                          );
+                        }
+                        setProduct({ ...product, promotions: newPromos });
+                      }}
+                    />
+                    <span>{promo.label}</span>
+                  </label>
+                ))}
               </div>
-              {/* Other Fields */}
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Name</label>
+
+              {product.promotions.includes("deal_of_the_day") && (
                 <input
-                  type="text"
-                  value={product.name}
-                  onChange={(e) => handleProductChange("name", e.target.value)}
-                  className="border border-gray-300 rounded p-2 w-full"
+                  type="number"
+                  placeholder="Deal duration (hours)"
+                  className="w-full border border-gray-300 rounded-md p-2"
+                  value={product.dealHours || ""}
+                  onChange={(e) =>
+                    setProduct({ ...product, dealHours: e.target.value })
+                  }
                 />
-              </div>
+              )}
+            </div>
+
+            <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
               <div className="grid grid-cols-2 gap-4">
+                {/* Name */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Name</label>
+                  <input
+                    type="text"
+                    value={product.name}
+                    onChange={(e) =>
+                      handleProductChange("name", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                </div>
+
+                {/* Brand */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Brand</label>
+                  <input
+                    type="text"
+                    value={product.brand}
+                    onChange={(e) =>
+                      handleProductChange("brand", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Category */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
                     Category
@@ -261,12 +390,14 @@ const EditProduct = () => {
                   >
                     <option value="">Select Category</option>
                     {categories.map((cat, i) => (
-                      <option key={i} value={cat}>
-                        {cat}
+                      <option key={i} value={cat._id}>
+                        {cat.categoryName}
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {/* Material */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
                     Material
@@ -280,14 +411,15 @@ const EditProduct = () => {
                   >
                     <option value="">Select Material</option>
                     {materials.map((mat, i) => (
-                      <option key={i} value={mat}>
-                        {mat}
+                      <option key={i} value={mat._id}>
+                        {mat.name}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
+                {/* Gender */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">Gender</label>
                   <select
@@ -305,6 +437,8 @@ const EditProduct = () => {
                     ))}
                   </select>
                 </div>
+
+                {/* Status */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">Status</label>
                   <select
@@ -323,6 +457,8 @@ const EditProduct = () => {
                   </select>
                 </div>
               </div>
+
+              {/* Description */}
               <div>
                 <label className="block mb-2 whitespace-nowrap">
                   Description
@@ -335,6 +471,8 @@ const EditProduct = () => {
                   className="border border-gray-300 rounded p-2 w-full"
                 />
               </div>
+
+              {/* Shipping & Return Policy */}
               <div>
                 <label className="block mb-2 whitespace-nowrap">
                   Shipping & Return Policy
@@ -347,9 +485,47 @@ const EditProduct = () => {
                   className="border border-gray-300 rounded p-2 w-full"
                 />
               </div>
+
+              {/* Wash Care as List */}
+              <div>
+                <label className="block mb-2 whitespace-nowrap">
+                  Wash Care Instructions
+                </label>
+                <ul className="space-y-2">
+                  {product.washCare.map((item, index) => (
+                    <li key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={item}
+                        onChange={(e) =>
+                          handleWashCareChange(index, e.target.value)
+                        }
+                        placeholder="Enter wash care instruction"
+                        className="border border-gray-300 rounded p-2 flex-1"
+                      />
+                      {product.washCare.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeWashCareItem(index)}
+                          className="bg-red-500 text-white px-2 rounded"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={addWashCareItem}
+                  className="text-blue-500 mt-2"
+                >
+                  + Add Instruction
+                </button>
+              </div>
             </div>
 
-            {/* Editable Variants Section */}
+            {/* Variants */}
             {variants.map((variant, vIndex) => (
               <div
                 key={vIndex}
@@ -369,18 +545,40 @@ const EditProduct = () => {
                     </button>
                   )}
                 </div>
-                {/* Images */}
+
+                {/* Images with Drag-and-Drop */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
                     Variant Images (2–6)
                   </label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(vIndex, e.target.files)}
-                    className="border border-gray-300 rounded p-2 w-full"
-                  />
+                  <div
+                    className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${
+                      isDragging
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300"
+                    }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, vIndex)}
+                  >
+                    <p>Drag & drop new images here, or</p>
+                    <label
+                      htmlFor={`file-upload-${vIndex}`}
+                      className="text-blue-500 underline cursor-pointer"
+                    >
+                      Click to browse
+                    </label>
+                    <input
+                      id={`file-upload-${vIndex}`}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleImageUpload(vIndex, e.target.files)
+                      }
+                      className="hidden"
+                    />
+                  </div>
                   <div className="flex gap-4 flex-wrap mt-3">
                     {variant.images.map((img, imgIndex) => (
                       <div
@@ -407,6 +605,7 @@ const EditProduct = () => {
                     ))}
                   </div>
                 </div>
+
                 {/* Color */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">Color</label>
@@ -419,12 +618,13 @@ const EditProduct = () => {
                   >
                     <option value="">Select Color</option>
                     {colors.map((col, i) => (
-                      <option key={i} value={col}>
-                        {col}
+                      <option key={i} value={col._id}>
+                        {col.name}
                       </option>
                     ))}
                   </select>
                 </div>
+
                 {/* Age Group */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
@@ -438,13 +638,14 @@ const EditProduct = () => {
                     className="border border-gray-300 rounded p-2 w-full"
                   >
                     <option value="">Select Age Group</option>
-                    {ageGroups.map((group) => (
-                      <option key={group.id} value={group.id}>
-                        {group.name}
+                    {ageGroupOptions.map((group) => (
+                      <option key={group._id} value={group._id}>
+                        {group.ageRange}
                       </option>
                     ))}
                   </select>
                 </div>
+
                 {/* Price, Cut Price, Discount, Stock */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   {[
@@ -478,7 +679,7 @@ const EditProduct = () => {
                   </div>
                   <div>
                     <label className="block mb-2 whitespace-nowrap">
-                      Stock Number
+                      Stock Quantity
                     </label>
                     <input
                       type="number"
@@ -490,6 +691,7 @@ const EditProduct = () => {
                     />
                   </div>
                 </div>
+
                 {/* Specifications */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
@@ -546,6 +748,7 @@ const EditProduct = () => {
                 </div>
               </div>
             ))}
+
             {/* Add Variant */}
             <button
               type="button"
@@ -554,6 +757,7 @@ const EditProduct = () => {
             >
               + Add Variant
             </button>
+
             {/* Submit */}
             <div>
               <button

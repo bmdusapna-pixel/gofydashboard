@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { EllipsisVertical, Eye, Pencil, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import products from "../../assets/product.list.js";
+import api from "../../api/axios.js";
 
 const heading_items = [
   { _id: 1, title: "Sr No." },
@@ -23,6 +23,20 @@ const Products = () => {
   const [filterByPromotion, setFilterByPromotion] = useState("all");
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const [productList, setProductList] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await api.get("/products");
+        setProductList(response.data.data);
+        console.log("Fetched products:", response.data.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const getStatusClasses = (status) => {
     switch (status) {
@@ -65,14 +79,15 @@ const Products = () => {
     setOpenDropdownId(null);
   };
 
-  const handleDelete = (productName) => {
+  const handleDelete = (productId) => {
+    console.log("Delete product with ID:", productId);
     setOpenDropdownId(null);
   };
 
   const getFilteredProducts = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return products.filter((product) => {
+    return productList.filter((product) => {
       const productDate = new Date(product.dateAdded);
       productDate.setHours(0, 0, 0, 0);
       let matchesDate = true;
@@ -88,7 +103,8 @@ const Products = () => {
         matchesDate = productDate.getFullYear() === today.getFullYear();
       }
       const matchesCategory =
-        filterByCategory === "all" || product.category === filterByCategory;
+        filterByCategory === "all" ||
+        product.category?.categoryName === filterByCategory;
       const matchesPromotion =
         filterByPromotion === "all" ||
         (Array.isArray(product.promotions)
@@ -109,7 +125,7 @@ const Products = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterByDate, filterByCategory]);
+  }, [filterByDate, filterByCategory, filterByPromotion]);
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -142,7 +158,7 @@ const Products = () => {
                 <option value="all">All Promotions</option>
                 {[
                   ...new Set(
-                    products.flatMap((p) =>
+                    productList.flatMap((p) =>
                       Array.isArray(p.promotions)
                         ? p.promotions
                         : [p.promotions]
@@ -172,13 +188,17 @@ const Products = () => {
                 onChange={(e) => setFilterByCategory(e.target.value)}
               >
                 <option value="all">All Categories</option>
-                {[...new Set(products.map((product) => product.category))].map(
-                  (category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  )
-                )}
+                {[
+                  ...new Set(
+                    productList
+                      .map((product) => product.category?.categoryName)
+                      .filter(Boolean)
+                  ),
+                ].map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -209,11 +229,11 @@ const Products = () => {
                         {indexOfFirstItem + index + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        {product._id}
+                        {product.productId}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 flex items-center">
                         <img
-                          src={product.variants[0].images[0]}
+                          src={product.variants[0]?.images[0]}
                           alt={product.name}
                           className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
                           onError={(e) => {
@@ -227,13 +247,13 @@ const Products = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.category}
+                        {product.category?.categoryName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.variants[0].stock}
+                        {product.variants[0]?.stock}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        ₹ {parseFloat(product.variants[0].price).toFixed(2)}
+                        ₹ {parseFloat(product.variants[0]?.price).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
@@ -274,7 +294,7 @@ const Products = () => {
                               </button>
                               <button
                                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-red-600"
-                                onClick={() => handleDelete(product.name)}
+                                onClick={() => handleDelete(product._id)}
                               >
                                 <Trash2 className="w-4 h-4 text-red-500" />
                                 Delete

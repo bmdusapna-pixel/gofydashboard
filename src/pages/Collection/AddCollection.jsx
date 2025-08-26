@@ -10,12 +10,22 @@ const AddCollection = ({ onAdd, onCancel }) => {
     metaKeywords: "",
   });
 
+  // State for the selected image file
+  const [selectedImage, setSelectedImage] = useState(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewCollection((prev) => ({
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleImageChange = (e) => {
+    // Update state with the selected file
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
   };
 
   const handleAddCollection = async () => {
@@ -25,14 +35,43 @@ const AddCollection = ({ onAdd, onCancel }) => {
       // In a real app, you'd show a user-friendly error message
       return;
     }
-    await api.post("/collections", newCollection);
-    // Optionally, clear the form or navigate back to the Collections list
-    setNewCollection({
-      collectionName: "",
-      metaTitle: "",
-      metaDescription: "",
-      metaKeywords: "",
-    });
+
+    const formData = new FormData();
+    formData.append("collectionName", newCollection.collectionName);
+    formData.append("metaTitle", newCollection.metaTitle);
+    formData.append("metaDescription", newCollection.metaDescription);
+    formData.append("metaKeywords", newCollection.metaKeywords);
+
+    // Append the image file if one is selected
+    if (selectedImage) {
+      formData.append("collectionImage", selectedImage);
+    }
+
+    try {
+      // Send the FormData object with the image and other data
+      await api.post("/collections", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Collection added successfully!");
+
+      // Optionally, clear the form or navigate back to the Collections list
+      setNewCollection({
+        collectionName: "",
+        metaTitle: "",
+        metaDescription: "",
+        metaKeywords: "",
+      });
+      setSelectedImage(null); // Clear the image state
+
+      if (onAdd) {
+        onAdd();
+      }
+    } catch (error) {
+      console.error("Error adding collection:", error);
+      // In a real app, show a user-friendly error message
+    }
   };
 
   const handleCancel = () => {
@@ -44,7 +83,7 @@ const AddCollection = ({ onAdd, onCancel }) => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-primary-50 overflow-y-scroll">
+    <div className="flex-1 overflow-auto p-4 bg-primary-50">
       <div className="max-w-4xl">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-700 whitespace-nowrap">
@@ -53,7 +92,7 @@ const AddCollection = ({ onAdd, onCancel }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Collection Name */}
-            <div className="col-span-1 md:col-span-2">
+            <div className="col-span-1">
               <label
                 htmlFor="collectionName"
                 className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
@@ -68,6 +107,24 @@ const AddCollection = ({ onAdd, onCancel }) => {
                 onChange={handleChange}
                 placeholder="e.g., Summer Essentials"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-700"
+              />
+            </div>
+
+            {/* Image Upload */}
+            <div className="col-span-1">
+              <label
+                htmlFor="collectionImage"
+                className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
+              >
+                Collection Image
+              </label>
+              <input
+                type="file"
+                id="collectionImage"
+                name="collectionImage"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full text-sm text-gray-700 font-normal file:cursor-pointer file:rounded-md file:border-0 file:bg-primary-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary-600 hover:file:bg-primary-100 whitespace-nowrap"
               />
             </div>
 

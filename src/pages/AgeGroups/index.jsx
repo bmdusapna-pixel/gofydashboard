@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Pencil } from "lucide-react"; // Only Pencil icon is needed
+import { Pencil } from "lucide-react";
+import api from "../../api/axios.js";
 
-// Import mock data for age groups
-import ageGroups from "../../assets/ageGroups.list.js"; // Adjust path if necessary
+// Import mock data is no longer needed
+// import ageGroups from "../../assets/ageGroups.list.js";
 
 const ageGroupTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
@@ -15,31 +16,50 @@ const ageGroupTableHeaders = [
 
 const AgeGroups = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Display 5 items per page for consistency, though all 8 would fit.
+  const [ageGroups, setAgeGroups] = useState([]); // State to store fetched data
+  const [loading, setLoading] = useState(true); // State to manage loading status
+  const itemsPerPage = 5;
 
   const navigate = useNavigate();
 
-  const handleEdit = (ageGroupName) => {
-    console.log(`Editing age group: ${ageGroupName}`);
-    // Implement your edit logic here, e.g., open a modal, navigate to an edit page.
-    navigate("/age-groups/edit-age-group");
-  };
+  useEffect(() => {
+    const fetchAgeGroups = async () => {
+      try {
+        const response = await api.get("/ages");
+        console.log("Fetched age groups:", response.data);
+        setAgeGroups(response.data); // Set the state with the fetched data
+      } catch (error) {
+        console.error("Error fetching age groups:", error);
+      } finally {
+        setLoading(false); // End loading regardless of success or failure
+      }
+    };
+    fetchAgeGroups();
+  }, []);
 
-  const currentAgeGroups = ageGroups; // No filtering needed for fixed age groups
+  const handleEdit = (ageGroupId) => {
+    console.log(`Editing age group: ${ageGroupId}`);
+    navigate("/age-groups/edit-age-group/" + ageGroupId);
+  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const paginatedAgeGroups = currentAgeGroups.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(currentAgeGroups.length / itemsPerPage);
+  const paginatedAgeGroups = ageGroups.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(ageGroups.length / itemsPerPage);
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl text-gray-500">Loading age groups...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
@@ -79,8 +99,8 @@ const AgeGroups = () => {
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <img
-                          src={group.imageUrl}
-                          alt={group.name}
+                          src={group.image} // Use group.image instead of group.imageUrl
+                          alt={group.ageRange} // Use group.ageRange
                           className="w-9 h-9 object-cover rounded-full shadow-sm border border-gray-200"
                           onError={(e) => {
                             e.target.onerror = null;
@@ -92,12 +112,12 @@ const AgeGroups = () => {
                         {group.id}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-600">
-                        {group.name}
+                        {group.ageRange} {/* Use group.ageRange */}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <button
                           className="flex items-center gap-1 text-blue-500 hover:text-yellow-500 transition-colors duration-150 ease-in-out text-sm"
-                          onClick={() => handleEdit(group.name)}
+                          onClick={() => handleEdit(group.id)}
                           title="Edit Age Group"
                         >
                           <Pencil className="w-4 h-4" />

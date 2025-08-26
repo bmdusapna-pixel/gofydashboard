@@ -6,6 +6,7 @@ import api from "../../api/axios";
 const collectionTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
   { title: "Collection ID", _id: "collectionId" },
+  { title: "Collection Image", _id: "collectionImage" },
   { title: "Collection Name", _id: "collectionName" },
   { title: "Number of Categories", _id: "numberOfCategories" },
   { title: "Action", _id: "action" },
@@ -131,6 +132,13 @@ const Collections = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
                         {collection.collectionId}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
+                        <img
+                          src={collection.imageUrl}
+                          alt=""
+                          className="h-20 w-20 object-cover rounded-md"
+                        />
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
                         {collection.collectionName}

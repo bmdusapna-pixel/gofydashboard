@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import ageGroups from "../../assets/ageGroups.list.js";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
     name: "",
+    brand: "",
     category: "",
     material: "",
     gender: "",
@@ -15,18 +16,53 @@ const AddProduct = () => {
     dealHours: "",
   });
 
-  const categories = ["T-shirt", "Doll", "Shoes", "Pants", "Accessories"];
+  const [ageGroupOptions, setAgeGroupOptions] = useState([]);
+  const [categories, setCategories] = useState([]);
   const genders = ["Unisex", "Boys", "Girls"];
-  const materials = [
-    "Cotton",
-    "Polyester",
-    "Wool",
-    "Plastic",
-    "Leather",
-    "Metal",
-  ];
-  const colors = ["Red", "Blue", "Green", "Black", "White", "Pink", "Yellow"];
-  const statuses = ["Active", "Inactive", "Out of Stock"];
+  const [materials, setMaterials] = useState([]);
+  const [colors, setColor] = useState([]);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    const fetchAgeGroups = async () => {
+      try {
+        const response = await api.get("/ages");
+        setAgeGroupOptions(response.data);
+      } catch (error) {
+        console.error("Error fetching age groups:", error);
+      }
+    };
+    const fetchMaterials = async () => {
+      try {
+        const response = await api.get("/material");
+        setMaterials(response.data.materials);
+      } catch (error) {
+        console.error("Error fetching materials:", error);
+      }
+    };
+    const fetchColors = async () => {
+      try {
+        const response = await api.get("/color/colors");
+        setColor(response.data);
+      } catch (error) {
+        console.error("Error fetching colors:", error);
+      }
+    };
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get("/categories");
+        setCategories(response.data.categories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+    fetchAgeGroups();
+    fetchMaterials();
+    fetchColors();
+  }, []);
+  const statuses = ["In Stock", "Out of Stock", "Discontinued"];
 
   const [variants, setVariants] = useState([
     {
@@ -45,22 +81,15 @@ const AddProduct = () => {
     setProduct((prev) => ({ ...prev, [field]: value }));
   };
 
-  // --- Variant-specific image functions ---
   const handleImageUpload = (variantIndex, files) => {
     const fileArray = Array.from(files);
-
     setVariants((prev) => {
       const updated = [...prev];
       const currentImages = updated[variantIndex].images;
-
-      // Filter out any newly selected files that are already in the state
       const newImagesToAdd = fileArray.filter(
         (file) => !currentImages.some((img) => img.name === file.name)
       );
-
-      // Append the unique new files to the current list
       const newImages = [...currentImages, ...newImagesToAdd].slice(0, 6);
-
       updated[variantIndex].images = newImages;
       return updated;
     });
@@ -74,6 +103,24 @@ const AddProduct = () => {
       );
       return updated;
     });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e, variantIndex) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length) {
+      handleImageUpload(variantIndex, files);
+    }
   };
 
   const handleVariantChange = (variantIndex, field, value) => {
@@ -136,8 +183,8 @@ const AddProduct = () => {
       ...prev,
       {
         ageGroup: "",
-        color: "", // Added here
-        images: [], // Added here
+        color: "",
+        images: [],
         price: "",
         cutPrice: "",
         discount: "",
@@ -150,7 +197,6 @@ const AddProduct = () => {
     setVariants((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- Wash Care functions ---
   const handleWashCareChange = (index, value) => {
     setProduct((prev) => {
       const updated = [...prev.washCare];
@@ -170,18 +216,67 @@ const AddProduct = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const generateSlug = (name) => {
+    const base = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return `${base}-${Date.now()}`;
+  };
 
-    // Validation for images in each variant
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     for (const variant of variants) {
       if (variant.images.length < 2) {
         alert("Please upload at least 2 images for each variant.");
         return;
       }
     }
+    try {
+      const formData = new FormData();
+      const ranges = [];
+      let fileIndex = 1;
+      variants.forEach((variant) => {
+        const start = fileIndex;
+        variant.images.forEach((file) => {
+          formData.append("image", file);
+        });
+        fileIndex += variant.images.length;
+        const end = fileIndex - 1;
+        ranges.push([start, end]);
+      });
+      const urlSlug = generateSlug(product.name);
+      const payload = {
+        ...product,
+        url: urlSlug,
+        variants: variants.map((variant) => ({
+          ageGroup: variant.ageGroup,
+          color: variant.color,
+          price: Number(variant.price),
+          cutPrice: Number(variant.cutPrice),
+          discount: Number(variant.discount),
+          stock: Number(variant.stock),
+          specifications: variant.specifications
+            .filter((s) => s.key && s.value)
+            .map((s) => ({ [s.key]: s.value })),
+        })),
+        images: ranges,
+      };
+      formData.append("payload", JSON.stringify(payload));
+      const response = await api.post("/products", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    console.log("Final Product:", { ...product, variants });
+      alert("✅ Product created successfully!");
+      console.log("Saved:", response.data);
+    } catch (error) {
+      console.error("Error submitting product:", error);
+      alert(
+        "❌ Failed to create product: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
   };
 
   return (
@@ -242,16 +337,34 @@ const AddProduct = () => {
             </div>
 
             <div className="p-4 border border-gray-300 rounded-lg space-y-6 bg-gray-50">
-              {/* Name */}
-              <div>
-                <label className="block mb-2 whitespace-nowrap">Name</label>
-                <input
-                  type="text"
-                  value={product.name}
-                  onChange={(e) => handleProductChange("name", e.target.value)}
-                  className="border border-gray-300 rounded p-2 w-full"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                {/* Name */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Name</label>
+                  <input
+                    type="text"
+                    value={product.name}
+                    onChange={(e) =>
+                      handleProductChange("name", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                </div>
+
+                {/* Brand */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">Brand</label>
+                  <input
+                    type="text"
+                    value={product.brand}
+                    onChange={(e) =>
+                      handleProductChange("brand", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                </div>
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 {/* Category */}
                 <div>
@@ -267,8 +380,8 @@ const AddProduct = () => {
                   >
                     <option value="">Select Category</option>
                     {categories.map((cat, i) => (
-                      <option key={i} value={cat}>
-                        {cat}
+                      <option key={i} value={cat._id}>
+                        {cat.categoryName}
                       </option>
                     ))}
                   </select>
@@ -288,8 +401,8 @@ const AddProduct = () => {
                   >
                     <option value="">Select Material</option>
                     {materials.map((mat, i) => (
-                      <option key={i} value={mat}>
-                        {mat}
+                      <option key={i} value={mat._id}>
+                        {mat.name}
                       </option>
                     ))}
                   </select>
@@ -423,18 +536,39 @@ const AddProduct = () => {
                   )}
                 </div>
 
-                {/* Images */}
+                {/* Images with Drag-and-Drop */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
                     Variant Images (2–6)
                   </label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(vIndex, e.target.files)}
-                    className="border border-gray-300 rounded p-2 w-full"
-                  />
+                  <div
+                    className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${
+                      isDragging
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300"
+                    }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, vIndex)}
+                  >
+                    <p>Drag & drop images here, or</p>
+                    <label
+                      htmlFor={`file-upload-${vIndex}`}
+                      className="text-blue-500 underline cursor-pointer"
+                    >
+                      Click to browse
+                    </label>
+                    <input
+                      id={`file-upload-${vIndex}`}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleImageUpload(vIndex, e.target.files)
+                      }
+                      className="hidden"
+                    />
+                  </div>
                   <div className="flex gap-4 flex-wrap mt-3">
                     {variant.images.map((img, imgIndex) => (
                       <div
@@ -470,8 +604,8 @@ const AddProduct = () => {
                   >
                     <option value="">Select Color</option>
                     {colors.map((col, i) => (
-                      <option key={i} value={col}>
-                        {col}
+                      <option key={i} value={col._id}>
+                        {col.name}
                       </option>
                     ))}
                   </select>
@@ -490,9 +624,9 @@ const AddProduct = () => {
                     className="border border-gray-300 rounded p-2 w-full"
                   >
                     <option value="">Select Age Group</option>
-                    {ageGroups.map((group) => (
-                      <option key={group._id} value={group.id}>
-                        {group.name}
+                    {ageGroupOptions.map((group) => (
+                      <option key={group._id} value={group._id}>
+                        {group.ageRange}
                       </option>
                     ))}
                   </select>

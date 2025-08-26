@@ -1,57 +1,93 @@
-import React, { useState } from "react";
-import collections from "../../assets/collections.list.js"; // Import collections data
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios.js";
 
 const AddCategory = ({ onAdd, onCancel }) => {
-  // State to hold the new category's data
+  const [collections, setCollections] = useState([]);
   const [newCategory, setNewCategory] = useState({
-    id: "",
     name: "",
-    // productCount is removed as it comes from the backend
-    collectionId: "", // Field to hold the selected collection ID
+    collectionId: "",
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
+    image: null,
   });
 
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const response = await api.get("/collections");
+        console.log("Fetched Collections:", response.data);
+        setCollections(response.data.collections);
+      } catch (error) {
+        console.error("Error fetching collections:", error);
+      }
+    };
+    fetchCollections();
+  }, []);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewCategory((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value, files } = e.target;
+    if (name === "image" && files && files.length > 0) {
+      setNewCategory((prev) => ({
+        ...prev,
+        [name]: files[0],
+      }));
+    } else {
+      setNewCategory((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
-  const handleAddCategory = () => {
-    // Basic validation: ensure required fields are not empty
-    if (!newCategory.id || !newCategory.name || !newCategory.collectionId) {
-      console.error(
-        "Please fill in all required fields (ID, Name, Collection)."
-      );
-      // In a real app, you'd show a user-friendly error message
+  const handleAddCategory = async () => {
+    // Basic validation
+    if (
+      !newCategory.name ||
+      !newCategory.collectionId ||
+      !newCategory.metaTitle ||
+      !newCategory.metaKeywords ||
+      !newCategory.metaDescription ||
+      !newCategory.image
+    ) {
+      console.error("Please fill in all required fields.");
       return;
     }
 
-    const categoryToAdd = {
-      ...newCategory,
-      // productCount will be set by the backend based on actual products linked
-      _id: `temp-${Date.now()}`, // Temporary ID for client-side representation
-    };
+    const formData = new FormData();
+    formData.append("categoryName", newCategory.name);
+    formData.append("collectionId", newCategory.collectionId);
+    formData.append("metaTitle", newCategory.metaTitle);
+    formData.append("metaKeywords", newCategory.metaKeywords);
+    formData.append("metaDescription", newCategory.metaDescription);
+    formData.append("categoryImage", newCategory.image);
 
-    console.log("Adding New Category:", categoryToAdd);
-    // In a real application, you would send this data to your backend API
-    if (onAdd) {
-      onAdd(categoryToAdd);
+    try {
+      const response = await api.post("/categories", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("Category added successfully:", response.data);
+      if (onAdd) {
+        onAdd(response.data);
+      }
+
+      setNewCategory({
+        name: "",
+        collectionId: "",
+        metaTitle: "",
+        metaDescription: "",
+        metaKeywords: "",
+        image: null,
+      });
+    } catch (error) {
+      console.error(
+        "Error adding category:",
+        error.response ? error.response.data : error.message
+      );
     }
-    // Optionally, clear the form or navigate back to the Categories list
-    setNewCategory({
-      id: "",
-      name: "",
-      // productCount reset, though not a user input
-      collectionId: "",
-      metaTitle: "",
-      metaDescription: "",
-      metaKeywords: "",
-    });
   };
 
   const handleCancel = () => {
@@ -59,11 +95,10 @@ const AddCategory = ({ onAdd, onCancel }) => {
     if (onCancel) {
       onCancel();
     }
-    // Optionally, navigate back to the Categories list
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-primary-50 overflow-y-scroll">
+    <div className="flex-1 p-4 bg-primary-50 overflow-y-scroll">
       <div className="max-w-4xl">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-700 whitespace-nowrap">
@@ -71,25 +106,6 @@ const AddCategory = ({ onAdd, onCancel }) => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Category ID */}
-            <div>
-              <label
-                htmlFor="id"
-                className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
-              >
-                Category ID
-              </label>
-              <input
-                type="text"
-                id="id"
-                name="id"
-                value={newCategory.id}
-                onChange={handleChange}
-                placeholder="e.g., CAT001"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-700 font-normal whitespace-nowrap"
-              />
-            </div>
-
             {/* Category Name */}
             <div>
               <label
@@ -126,11 +142,32 @@ const AddCategory = ({ onAdd, onCancel }) => {
               >
                 <option value="">-- Choose a Collection --</option>
                 {collections.map((collection) => (
-                  <option key={collection._id} value={collection.id}>
-                    {collection.name} ({collection.id})
+                  <option key={collection._id} value={collection._id}>
+                    {collection.collectionName} ({collection.collectionId})
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Category Image */}
+            <div>
+              <label
+                htmlFor="image"
+                className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
+              >
+                Category Image
+              </label>
+              <input
+                type="file"
+                id="image"
+                name="image"
+                accept="image/*"
+                onChange={handleChange}
+                className="w-full text-sm text-gray-700 font-normal file:cursor-pointer file:rounded-md file:border-0 file:bg-primary-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary-600 hover:file:bg-primary-100 whitespace-nowrap"
+              />
+              <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
+                Upload a representative image for the category.
+              </p>
             </div>
 
             {/* Meta Details */}

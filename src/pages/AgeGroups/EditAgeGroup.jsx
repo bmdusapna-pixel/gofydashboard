@@ -1,22 +1,41 @@
 import React, { useState, useEffect } from "react";
-import ageGroups from "../../assets/ageGroups.list.js";
+import { useParams } from "react-router-dom";
+import api from "../../api/axios.js";
+// import ageGroups from "../../assets/ageGroups.list.js";
 
 const EditAgeGroup = ({ initialAgeGroup, onSave, onCancel }) => {
   const [editedAgeGroup, setEditedAgeGroup] = useState(
-    initialAgeGroup ||
-      ageGroups[0] || {
-        _id: "",
-        id: "",
-        name: "",
-        imageUrl: "https://placehold.co/80x80/CCCCCC/666666?text=Image",
-      }
+    initialAgeGroup || {
+      _id: "",
+      id: "",
+      ageRange: "",
+      image: "https://placehold.co/80x80/CCCCCC/666666?text=Image",
+    }
   );
+  // State to hold the new image file
+  const [newImageFile, setNewImageFile] = useState(null);
+  const { ageGroupId } = useParams();
 
   useEffect(() => {
-    if (initialAgeGroup) {
-      setEditedAgeGroup(initialAgeGroup);
+    const fetchAgeGroup = async () => {
+      try {
+        const response = await api.get(`/ages/${ageGroupId}`);
+        console.log("Fetched age group:", response.data);
+        const fetchedData = response.data;
+        setEditedAgeGroup({
+          _id: fetchedData._id,
+          id: fetchedData.id,
+          ageRange: fetchedData.ageRange,
+          image: fetchedData.image,
+        });
+      } catch (error) {
+        console.error("Error fetching age group:", error);
+      }
+    };
+    if (ageGroupId) {
+      fetchAgeGroup();
     }
-  }, [initialAgeGroup]);
+  }, [ageGroupId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,20 +48,42 @@ const EditAgeGroup = ({ initialAgeGroup, onSave, onCancel }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Store the file itself to be sent with FormData
+      setNewImageFile(file);
+
+      // Create a local URL for instant image preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setEditedAgeGroup((prev) => ({
           ...prev,
-          imageUrl: reader.result,
+          image: reader.result,
         }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = () => {
-    if (onSave) {
-      onSave(editedAgeGroup);
+  const handleSave = async () => {
+    const formData = new FormData();
+    formData.append("ageRange", editedAgeGroup.ageRange);
+
+    // Only append the image file if a new one was selected
+    if (newImageFile) {
+      formData.append("image", newImageFile);
+    }
+
+    try {
+      const response = await api.put(`/ages/${ageGroupId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Age group updated:", response.data);
+      if (onSave) {
+        onSave(response.data);
+      }
+    } catch (error) {
+      console.error("Error updating age group:", error);
     }
   };
 
@@ -70,8 +111,8 @@ const EditAgeGroup = ({ initialAgeGroup, onSave, onCancel }) => {
                 Current Image
               </label>
               <img
-                src={editedAgeGroup.imageUrl}
-                alt={editedAgeGroup.name}
+                src={editedAgeGroup.image}
+                alt={editedAgeGroup.ageRange}
                 className="w-24 h-24 object-cover rounded-full shadow-sm border border-gray-300"
                 onError={(e) => {
                   e.target.onerror = null;
@@ -109,19 +150,19 @@ const EditAgeGroup = ({ initialAgeGroup, onSave, onCancel }) => {
               />
             </div>
 
-            {/* Age Group Name */}
+            {/* Age Group Range */}
             <div>
               <label
-                htmlFor="name"
+                htmlFor="ageRange"
                 className="block text-sm font-medium text-gray-600 mb-1"
               >
-                Age Group Name
+                Age Group Range
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={editedAgeGroup.name}
+                id="ageRange"
+                name="ageRange"
+                value={editedAgeGroup.ageRange}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm"
               />

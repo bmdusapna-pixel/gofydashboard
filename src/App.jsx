@@ -26,6 +26,7 @@ import AddProduct from "./pages/Products/AddProduct";
 import ViewProduct from "./pages/Products/ViewProduct";
 import EditProduct from "./pages/Products/EditProduct";
 import AddCategory from "./pages/Categories/AddCategory";
+import EditCategory from "./pages/Categories/EditCategory";
 import Collections from "./pages/Collection";
 import AddCollection from "./pages/Collection/AddCollection";
 import AgeGroups from "./pages/AgeGroups";
@@ -56,6 +57,10 @@ const App = () => {
                 <Route path="/products/edit/:url" element={<EditProduct />} />
                 <Route path="/categories/list" element={<Categories />} />
                 <Route path="/categories/add-new" element={<AddCategory />} />
+                <Route
+                  path="/categories/edit/:categoryId"
+                  element={<EditCategory />}
+                />
                 <Route path="/inventory/warehouse" element={<Warehouse />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/invoices" element={<Invoices />} />
@@ -80,7 +85,7 @@ const App = () => {
                 />
                 <Route path="/age-groups" element={<AgeGroups />} />
                 <Route
-                  path="/age-groups/edit-age-group"
+                  path="/age-groups/edit-age-group/:ageGroupId"
                   element={<EditAgeGroup />}
                 />
               </Route>
