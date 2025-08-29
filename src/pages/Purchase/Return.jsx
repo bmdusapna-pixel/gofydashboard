@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import ReturnListModal from "./ReturnListModal";
+import ActionsDropdown from "./ActionsDropdown"; // Import the new component
 
-// Main App component for Return List Table
 const App = () => {
-  // Sample return list data
   const returnList = [
     {
       id: "ret-001",
@@ -11,6 +11,12 @@ const App = () => {
       returnDate: "2025-07-17",
       total: 50.0,
       returnStatus: "Pending",
+      reason: "Item was not as described.",
+      media: [
+        "https://images.unsplash.com/photo-1621252033832-72013f9f30e7?q=80&w=1470&auto=format&fit=crop",
+        "https://www.w3schools.com/html/mov_bbb.mp4",
+        "https://images.unsplash.com/photo-1621252033832-72013f9f30e7?q=80&w=1470&auto=format&fit=crop",
+      ],
     },
     {
       id: "ret-002",
@@ -19,6 +25,10 @@ const App = () => {
       returnDate: "2025-07-16",
       total: 120.5,
       returnStatus: "Completed",
+      reason: "Changed my mind.",
+      media: [
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1470&auto=format&fit=crop",
+      ],
     },
     {
       id: "ret-003",
@@ -27,6 +37,8 @@ const App = () => {
       returnDate: "2025-07-15",
       total: 75.0,
       returnStatus: "Rejected",
+      reason: "Incorrect size ordered.",
+      media: [],
     },
     {
       id: "ret-004",
@@ -35,6 +47,11 @@ const App = () => {
       returnDate: "2025-07-14",
       total: 25.0,
       returnStatus: "Pending",
+      reason: "Damaged during shipping.",
+      media: [
+        "https://images.unsplash.com/photo-1621252033832-72013f9f30e7?q=80&w=1470&auto=format&fit=crop",
+        "https://www.w3schools.com/html/mov_bbb.mp4",
+      ],
     },
     {
       id: "ret-005",
@@ -43,6 +60,10 @@ const App = () => {
       returnDate: "2025-07-13",
       total: 300.0,
       returnStatus: "Completed",
+      reason: "Received the wrong item.",
+      media: [
+        "https://images.unsplash.com/photo-1579298245158-33e82554877c?q=80&w=1334&auto=format&fit=crop",
+      ],
     },
     {
       id: "ret-006",
@@ -51,6 +72,8 @@ const App = () => {
       returnDate: "2025-07-12",
       total: 88.99,
       returnStatus: "Pending",
+      reason: "Color was different from website.",
+      media: [],
     },
     {
       id: "ret-007",
@@ -59,6 +82,8 @@ const App = () => {
       returnDate: "2025-07-11",
       total: 45.0,
       returnStatus: "Completed",
+      reason: "No longer needed.",
+      media: [],
     },
     {
       id: "ret-008",
@@ -67,6 +92,8 @@ const App = () => {
       returnDate: "2025-07-10",
       total: 500.0,
       returnStatus: "Rejected",
+      reason: "Item was used.",
+      media: [],
     },
     {
       id: "ret-009",
@@ -75,6 +102,11 @@ const App = () => {
       returnDate: "2025-07-09",
       total: 150.0,
       returnStatus: "Pending",
+      reason: "Defective product.",
+      media: [
+        "https://images.unsplash.com/photo-1621252033832-72013f9f30e7?q=80&w=1470&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1470&auto=format&fit=crop",
+      ],
     },
     {
       id: "ret-010",
@@ -83,23 +115,22 @@ const App = () => {
       returnDate: "2025-07-08",
       total: 30.0,
       returnStatus: "Completed",
+      reason: "Order was a mistake.",
+      media: ["https://www.w3schools.com/html/mov_bbb.mp4"],
     },
   ];
 
-  // State to manage which dropdown is open (stores the return ID)
   const [openDropdownId, setOpenDropdownId] = useState(null);
-
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Number of items to display per page
+  const itemsPerPage = 5;
+  const [filterByReturnStatus, setFilterByReturnStatus] = useState("all");
 
-  // Filter state for return status
-  const [filterByReturnStatus, setFilterByReturnStatus] = useState("all"); // 'all', 'Pending', 'Completed', etc.
+  // Removed: const dropdownRef = useRef(null);
+  // Removed: the useEffect hook for click outside logic
 
-  // Ref to detect clicks outside the dropdown
-  const dropdownRef = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({ reason: "", media: [] });
 
-  // Function to determine status badge styling for Return Status
   const getReturnStatusClasses = (status) => {
     switch (status) {
       case "Pending":
@@ -113,42 +144,27 @@ const App = () => {
     }
   };
 
-  // Toggle dropdown visibility
-  const toggleDropdown = (id) => {
-    setOpenDropdownId(openDropdownId === id ? null : id);
-  };
+  // Centralized action handler
+  const handleAction = (action, returnId) => {
+    // Close the dropdown after any action
+    setOpenDropdownId(null);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownId(null);
+    if (action === "view") {
+      const returnItem = returnList.find((item) => item.id === returnId);
+      if (returnItem) {
+        setModalData({
+          reason: returnItem.reason,
+          media: returnItem.media,
+        });
+        setIsModalOpen(true);
       }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Placeholder functions for actions
-  const handleView = (returnId) => {
-    console.log(`Viewing details for return: ${returnId}`);
-    setOpenDropdownId(null); // Close dropdown after action
+    } else if (action === "edit") {
+      console.log(`Editing return: ${returnId}`);
+    } else if (action === "delete") {
+      console.log(`Deleting return: ${returnId}`);
+    }
   };
 
-  const handleEdit = (returnId) => {
-    console.log(`Editing return: ${returnId}`);
-    setOpenDropdownId(null); // Close dropdown after action
-  };
-
-  const handleDelete = (returnId) => {
-    console.log(`Deleting return: ${returnId}`);
-    setOpenDropdownId(null); // Close dropdown after action
-  };
-
-  // Filter logic for return list
   const getFilteredReturnList = () => {
     if (filterByReturnStatus === "all") {
       return returnList;
@@ -160,16 +176,14 @@ const App = () => {
 
   const filteredReturnList = getFilteredReturnList();
 
-  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentReturnList = filteredReturnList.slice(
     indexOfFirstItem,
     indexOfLastItem
-  ); // Use filteredReturnList
-  const totalPages = Math.ceil(filteredReturnList.length / itemsPerPage); // Use filteredReturnList
+  );
+  const totalPages = Math.ceil(filteredReturnList.length / itemsPerPage);
 
-  // Reset page to 1 when filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [filterByReturnStatus]);
@@ -177,8 +191,12 @@ const App = () => {
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      setOpenDropdownId(null); // Close any open dropdown when changing page
+      setOpenDropdownId(null);
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -190,16 +208,11 @@ const App = () => {
 
       <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
         <div className="">
-          {/* Main component styling consistent with previous tables */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
-            {/* Header Section */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-              {/* Left side: Return List Title */}
               <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4 sm:mb-0">
                 Return List
               </h2>
-
-              {/* Right side: Filter Dropdown */}
               <div className="flex items-center">
                 <select
                   className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md shadow-sm w-auto max-w-fit"
@@ -214,7 +227,6 @@ const App = () => {
               </div>
             </div>
 
-            {/* Table Section */}
             <div className="overflow-x-auto rounded-lg border border-primary-100">
               <table className="min-w-full divide-y divide-primary-100">
                 <thead className="bg-gray-50">
@@ -268,7 +280,7 @@ const App = () => {
                           {item.returnDate}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                          ${item.total.toFixed(2)}
+                          ₹{item.total.toFixed(2)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span
@@ -279,55 +291,12 @@ const App = () => {
                             {item.returnStatus}
                           </span>
                         </td>
-                        <td
-                          className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 relative"
-                          ref={dropdownRef}
-                        >
-                          <button
-                            className="flex items-center justify-center w-6 h-6 text-gray-600 hover:text-gray-800 transition duration-150 ease-in-out focus:outline-none focus:ring-1 focus:ring-gray-200 focus:ring-opacity-75 rounded-full"
-                            onClick={() => toggleDropdown(item.id)}
-                            title="More Actions"
-                          >
-                            <i className="fas fa-ellipsis-h"></i>
-                          </button>
-
-                          {/* Dropdown Menu */}
-                          {openDropdownId === item.id && (
-                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100">
-                              <div
-                                className="py-1"
-                                role="menu"
-                                aria-orientation="vertical"
-                                aria-labelledby="options-menu"
-                              >
-                                <button
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
-                                  role="menuitem"
-                                  onClick={() => handleView(item.id)}
-                                >
-                                  <i className="fas fa-eye mr-2 text-blue-500"></i>
-                                  View
-                                </button>
-                                <button
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
-                                  role="menuitem"
-                                  onClick={() => handleEdit(item.id)}
-                                >
-                                  <i className="fas fa-edit mr-2 text-yellow-500"></i>
-                                  Edit
-                                </button>
-                                <button
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-md"
-                                  role="menuitem"
-                                  onClick={() => handleDelete(item.id)}
-                                >
-                                  <i className="fas fa-trash-alt mr-2 text-red-500"></i>
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </td>
+                        <ActionsDropdown
+                          id={item.id}
+                          onToggle={setOpenDropdownId}
+                          onAction={handleAction}
+                          isOpen={openDropdownId === item.id}
+                        />
                       </tr>
                     ))
                   ) : (
@@ -344,7 +313,6 @@ const App = () => {
               </table>
             </div>
 
-            {/* Pagination Controls - Aligned to the right */}
             <div className="flex justify-end items-center mt-6 space-x-2">
               <button
                 onClick={() => paginate(currentPage - 1)}
@@ -379,6 +347,13 @@ const App = () => {
           </div>
         </div>
       </div>
+
+      <ReturnListModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        reason={modalData.reason}
+        media={modalData.media}
+      />
     </>
   );
 };

@@ -2,104 +2,76 @@ import React, { useState, useRef, useEffect } from "react";
 
 // Main App component for Invoice Table
 const App = () => {
-  // Sample invoice data
+  // Sample invoice data with a new 'customerAge' field
   const invoices = [
     {
       id: "inv-001",
-      billingName: "Acme Corp",
-      orderDate: "2025-07-16",
-      total: 125.5,
+      customerName: "Alex Johnson",
+      customerAge: 1, // Represents 1 year old
+      productName: "Crib Mobile",
+      orderDate: "2025-08-01",
+      total: 35.5,
       paymentMethod: "Credit Card",
       status: "Paid",
     },
     {
       id: "inv-002",
-      billingName: "Beta Solutions",
-      orderDate: "2025-07-15",
-      total: 240.0,
-      paymentMethod: "Bank Transfer",
-      status: "Pending",
-    },
-    {
-      id: "inv-003",
-      billingName: "Gamma Innovations",
-      orderDate: "2025-07-14",
-      total: 75.25,
+      customerName: "Sarah Davis",
+      customerAge: 4,
+      productName: "Dinosaur Toy Set",
+      orderDate: "2025-07-29",
+      total: 24.99,
       paymentMethod: "PayPal",
       status: "Paid",
     },
     {
+      id: "inv-003",
+      customerName: "Mark Wilson",
+      customerAge: 8,
+      productName: "Building Blocks Set",
+      orderDate: "2025-07-28",
+      total: 75.25,
+      paymentMethod: "Bank Transfer",
+      status: "Pending",
+    },
+    {
       id: "inv-004",
-      billingName: "Delta Systems",
-      orderDate: "2025-07-13",
-      total: 500.0,
+      customerName: "Emily White",
+      customerAge: 2,
+      productName: "Toddler T-shirt",
+      orderDate: "2025-07-25",
+      total: 15.0,
       paymentMethod: "Credit Card",
-      status: "Overdue",
+      status: "Paid",
     },
     {
       id: "inv-005",
-      billingName: "Epsilon Enterprises",
-      orderDate: "2025-07-12",
-      total: 99.99,
+      customerName: "David Lee",
+      customerAge: 0.5, // 6 months old
+      productName: "Plush Rattle",
+      orderDate: "2025-07-24",
+      total: 9.99,
       paymentMethod: "Bank Transfer",
       status: "Paid",
     },
     {
       id: "inv-006",
-      billingName: "Zeta Technologies",
-      orderDate: "2025-07-11",
-      total: 320.75,
+      customerName: "Jessica Chen",
+      customerAge: 6,
+      productName: "Children's Art Easel",
+      orderDate: "2025-07-22",
+      total: 52.75,
       paymentMethod: "PayPal",
-      status: "Pending",
-    },
-    {
-      id: "inv-007",
-      billingName: "Eta Dynamics",
-      orderDate: "2025-07-10",
-      total: 180.0,
-      paymentMethod: "Credit Card",
-      status: "Paid",
-    },
-    {
-      id: "inv-008",
-      billingName: "Theta Solutions",
-      orderDate: "2025-07-09",
-      total: 45.1,
-      paymentMethod: "Bank Transfer",
-      status: "Overdue",
-    },
-    {
-      id: "inv-009",
-      billingName: "Iota Corp",
-      orderDate: "2025-07-08",
-      total: 60.5,
-      paymentMethod: "PayPal",
-      status: "Paid",
-    },
-    {
-      id: "inv-010",
-      billingName: "Kappa Innovations",
-      orderDate: "2025-07-07",
-      total: 15.0,
-      paymentMethod: "Credit Card",
       status: "Pending",
     },
   ];
 
-  // State to manage which dropdown is open (stores the invoice ID)
   const [openDropdownId, setOpenDropdownId] = useState(null);
-
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Number of items to display per page
-
-  // Filter state for invoice status
-  const [filterByStatus, setFilterByStatus] = useState("all"); // 'all', 'Paid', 'Pending', etc.
-
-  // Ref to detect clicks outside the dropdown
+  const [filterByAgeGroup, setFilterByAgeGroup] = useState("all"); // New filter state for age
+  const itemsPerPage = 5;
   const dropdownRef = useRef(null);
 
-  // Function to determine status badge styling for Invoice Status
   const getStatusClasses = (status) => {
     switch (status) {
       case "Paid":
@@ -113,12 +85,10 @@ const App = () => {
     }
   };
 
-  // Toggle dropdown visibility
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -132,50 +102,95 @@ const App = () => {
     };
   }, []);
 
-  // Placeholder functions for actions
   const handleView = (invoiceId) => {
     console.log(`Viewing details for invoice: ${invoiceId}`);
-    setOpenDropdownId(null); // Close dropdown after action
+    setOpenDropdownId(null);
   };
 
   const handleEdit = (invoiceId) => {
     console.log(`Editing invoice: ${invoiceId}`);
-    setOpenDropdownId(null); // Close dropdown after action
+    setOpenDropdownId(null);
   };
 
   const handleDelete = (invoiceId) => {
     console.log(`Deleting invoice: ${invoiceId}`);
-    setOpenDropdownId(null); // Close dropdown after action
+    setOpenDropdownId(null);
   };
 
-  // Filter logic for invoices
+  // New filter logic for invoices based on age group
   const getFilteredInvoices = () => {
-    if (filterByStatus === "all") {
+    if (filterByAgeGroup === "all") {
       return invoices;
     }
-    return invoices.filter((invoice) => invoice.status === filterByStatus);
+    return invoices.filter((invoice) => {
+      const age = invoice.customerAge;
+      switch (filterByAgeGroup) {
+        case "infant":
+          return age >= 0 && age <= 1;
+        case "toddler":
+          return age > 1 && age <= 3;
+        case "preschool":
+          return age > 3 && age <= 5;
+        case "school-age":
+          return age > 5;
+        default:
+          return true;
+      }
+    });
   };
 
   const filteredInvoices = getFilteredInvoices();
 
-  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentInvoices = filteredInvoices.slice(
     indexOfFirstItem,
     indexOfLastItem
-  ); // Use filteredInvoices
-  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage); // Use filteredInvoices
+  );
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
 
-  // Reset page to 1 when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterByStatus]);
+  }, [filterByAgeGroup]); // Reset page when age group filter changes
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      setOpenDropdownId(null); // Close any open dropdown when changing page
+      setOpenDropdownId(null);
+    }
+  };
+
+  // Function to handle CSV export
+  const handleExportCSV = () => {
+    const headers = [
+      "Invoice ID",
+      "Customer Name",
+      "Customer Age",
+      "Product Name",
+      "Order Date",
+      "Total",
+      "Payment Method",
+      "Status",
+    ];
+    const csvContent = [
+      headers.join(","),
+      ...filteredInvoices.map((invoice) =>
+        Object.values(invoice)
+          .map((value) => `"${value}"`)
+          .join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "invoices.csv");
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -188,27 +203,34 @@ const App = () => {
 
       <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
         <div className="">
-          {/* Main component styling consistent with previous tables */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
-            {/* Header Section */}
+            {/* Header Section with Export Button and New Filter */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-              {/* Left side: Invoice List Title */}
               <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4 sm:mb-0">
-                Invoice List
+                Children's Products Invoices
               </h2>
-
-              {/* Right side: Filter Dropdown */}
-              <div className="flex items-center">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                {/* Age Group Filter Dropdown */}
                 <select
                   className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md shadow-sm w-auto max-w-fit"
-                  value={filterByStatus}
-                  onChange={(e) => setFilterByStatus(e.target.value)}
+                  value={filterByAgeGroup}
+                  onChange={(e) => setFilterByAgeGroup(e.target.value)}
                 >
-                  <option value="all">All Statuses</option>
-                  <option value="Paid">Paid</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Overdue">Overdue</option>
+                  <option value="all">All Ages</option>
+                  <option value="infant">Infant (0-1 yr)</option>
+                  <option value="toddler">Toddler (1-3 yrs)</option>
+                  <option value="preschool">Preschool (3-5 yrs)</option>
+                  <option value="school-age">School-Age (5+ yrs)</option>
                 </select>
+
+                {/* Export Button */}
+                <button
+                  onClick={handleExportCSV}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition duration-150 ease-in-out shadow-sm flex items-center"
+                >
+                  <i className="fas fa-file-csv mr-2"></i>
+                  Export to CSV
+                </button>
               </div>
             </div>
 
@@ -224,7 +246,10 @@ const App = () => {
                       Invoice ID
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Billing Name
+                      Customer Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product Name
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Order Date
@@ -257,13 +282,16 @@ const App = () => {
                           {invoice.id}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                          {invoice.billingName}
+                          {invoice.customerName}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {invoice.productName}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                           {invoice.orderDate}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                          ${invoice.total.toFixed(2)}
+                          ₹{invoice.total.toFixed(2)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                           {invoice.paymentMethod}
@@ -289,7 +317,6 @@ const App = () => {
                             <i className="fas fa-ellipsis-h"></i>
                           </button>
 
-                          {/* Dropdown Menu */}
                           {openDropdownId === invoice.id && (
                             <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100">
                               <div
@@ -331,7 +358,7 @@ const App = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan="8"
+                        colSpan="9"
                         className="px-4 py-3 text-center text-sm text-gray-500"
                       >
                         No invoices found.
@@ -342,7 +369,7 @@ const App = () => {
               </table>
             </div>
 
-            {/* Pagination Controls - Aligned to the right */}
+            {/* Pagination Controls */}
             <div className="flex justify-end items-center mt-6 space-x-2">
               <button
                 onClick={() => paginate(currentPage - 1)}

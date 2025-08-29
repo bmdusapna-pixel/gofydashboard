@@ -35,6 +35,15 @@ import Banners from "./pages/Banner";
 import Color from "./pages/Color";
 import Material from "./pages/Material";
 import AddEdit from "./pages/Banner/AddEdit";
+import Settings from "./pages/Settings";
+import Inventory from "./pages/Inventory";
+import SeoAnalytics from "./pages/SeoAnalytics";
+import AdminSettings from "./pages/Settings/AdminSettings";
+import Admin from "./pages/Admin";
+import ProductAnalytics from "./pages/Products/ProductAnalytics";
+import ReferralDashboard from "./pages/ReferralDashboard";
+import LoyaltyDashboard from "./pages/LoyaltyDashboard";
+import UserTransactions from "./pages/LoyaltyDashboard/UserTransactions";
 
 const App = () => {
   return (
@@ -87,6 +96,27 @@ const App = () => {
                 <Route
                   path="/age-groups/edit-age-group/:ageGroupId"
                   element={<EditAgeGroup />}
+                />
+                <Route path="/setting" element={<Settings />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/seo-analytics" element={<SeoAnalytics />} />
+                <Route path="/admin-settings" element={<AdminSettings />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route
+                  path="/product-analytics"
+                  element={<ProductAnalytics />}
+                />
+                <Route
+                  path="/referral-dashboard"
+                  element={<ReferralDashboard />}
+                />
+                <Route
+                  path="/loyalty-dashboard"
+                  element={<LoyaltyDashboard />}
+                />
+                <Route
+                  path="/loyalty-dashboard/:customerId"
+                  element={<UserTransactions />}
                 />
               </Route>
             </Route>

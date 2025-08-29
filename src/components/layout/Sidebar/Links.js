@@ -11,7 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export const navItems = [
-  { name: "Dashboard", icon: faHome, path: "/", type: "link" },
+  // { name: "Dashboard", icon: faHome, path: "/", type: "link" },
   {
     name: "Summary Dashboard",
     icon: faHome,
@@ -32,6 +32,7 @@ export const navItems = [
     subItems: [
       { name: "All Products", path: "/products/list" },
       { name: "Add New", path: "/products/add-new" },
+      { name: "Product Analytics", path: "/product-analytics" },
       // Removed Inventory from here
     ],
   },
@@ -57,14 +58,30 @@ export const navItems = [
     ],
   },
   {
+    name: "Filter",
+    icon: faPalette,
+    subItems: [
+      { name: "Color", path: "/color" },
+      { name: "Material", path: "/material" },
+    ],
+    type: "dropdown",
+  },
+  {
     name: "Inventory", // New top-level item
     icon: faClipboardList, // Using a new icon for Inventory
     type: "dropdown",
     path: "/inventory", // Base path for Inventory dropdown
     subItems: [
+      { name: "Inventory", path: "/inventory" },
       { name: "Received Orders", path: "/received" },
       { name: "Warehouse", path: "/inventory/warehouse" }, // Warehouse as a sub-item
     ],
+  },
+  {
+    name: "Loyalty Dashboard",
+    icon: faUsers,
+    path: "/loyalty-dashboard",
+    type: "link",
   },
   {
     name: "Orders",
@@ -105,13 +122,31 @@ export const navItems = [
     type: "link",
   },
   {
-    name: "Filter",
-    icon: faPalette,
-    subItems: [
-      { name: "Color", path: "/color" },
-      { name: "Material", path: "/material" },
-    ],
+    name: "Customers",
+    icon: faUsers,
+    path: "/customers",
     type: "dropdown",
+    subItems: [
+      { name: "All Customers", path: "/customers" },
+      { name: "Referral Dashboard", path: "/referral-dashboard" },
+    ],
   },
-  { name: "Customers", icon: faUsers, path: "/customers", type: "link" },
+  {
+    name: "SEO Analytics",
+    icon: faUsers,
+    path: "/seo-analytics",
+    type: "link",
+  },
+  {
+    name: "Admin",
+    icon: faUsers,
+    path: "/admin",
+    type: "link",
+  },
+  {
+    name: "Settings",
+    icon: faUsers,
+    path: "/admin-settings",
+    type: "link",
+  },
 ];
