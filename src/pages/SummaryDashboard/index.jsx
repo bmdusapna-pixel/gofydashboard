@@ -14,6 +14,7 @@ import {
   Cell,
   AreaChart,
   Area,
+  Legend,
 } from "recharts";
 import {
   TrendingUp,
@@ -24,17 +25,83 @@ import {
   X,
   MapPin,
   RefreshCw,
+  UserPlus,
+  Truck,
+  Package,
 } from "lucide-react";
 
 const dashboardData = {
   sales: [
-    { name: "Jan", sales: 4500, orders: 120, traffic: 2400, returns: 45 },
-    { name: "Feb", sales: 5200, orders: 145, traffic: 2800, returns: 52 },
-    { name: "Mar", sales: 4800, orders: 135, traffic: 2600, returns: 38 },
-    { name: "Apr", sales: 6200, orders: 168, traffic: 3200, returns: 62 },
-    { name: "May", sales: 7100, orders: 195, traffic: 3800, returns: 71 },
-    { name: "Jun", sales: 8300, orders: 220, traffic: 4200, returns: 83 },
-    { name: "Jul", sales: 7800, orders: 210, traffic: 4000, returns: 78 },
+    {
+      name: "Jan",
+      sales: 4500,
+      orders: 120,
+      traffic: 2400,
+      returns: 45,
+      signups: 75,
+      cod: 80,
+      prepaid: 40,
+    },
+    {
+      name: "Feb",
+      sales: 5200,
+      orders: 145,
+      traffic: 2800,
+      returns: 52,
+      signups: 82,
+      cod: 95,
+      prepaid: 50,
+    },
+    {
+      name: "Mar",
+      sales: 4800,
+      orders: 135,
+      traffic: 2600,
+      returns: 38,
+      signups: 91,
+      cod: 85,
+      prepaid: 50,
+    },
+    {
+      name: "Apr",
+      sales: 6200,
+      orders: 168,
+      traffic: 3200,
+      returns: 62,
+      signups: 105,
+      cod: 110,
+      prepaid: 58,
+    },
+    {
+      name: "May",
+      sales: 7100,
+      orders: 195,
+      traffic: 3800,
+      returns: 71,
+      signups: 120,
+      cod: 130,
+      prepaid: 65,
+    },
+    {
+      name: "Jun",
+      sales: 8300,
+      orders: 220,
+      traffic: 4200,
+      returns: 83,
+      signups: 145,
+      cod: 150,
+      prepaid: 70,
+    },
+    {
+      name: "Jul",
+      sales: 7800,
+      orders: 210,
+      traffic: 4000,
+      returns: 78,
+      signups: 132,
+      cod: 140,
+      prepaid: 70,
+    },
   ],
   stats: [
     {
@@ -196,6 +263,39 @@ const ChartCard = ({ title, children, className = "" }) => (
   </div>
 );
 
+const LineAndBarChart = ({
+  data,
+  title,
+  lineKey,
+  barKey,
+  lineColor,
+  barColor,
+}) => (
+  <ChartCard title={title}>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+        <XAxis dataKey="name" stroke="#64748b" />
+        <YAxis stroke="#64748b" />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: "8px",
+          }}
+        />
+        <Bar dataKey={barKey} fill={barColor} radius={4} />
+        <Line
+          type="monotone"
+          dataKey={lineKey}
+          stroke={lineColor}
+          strokeWidth={2}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  </ChartCard>
+);
+
 const SalesOverviewChart = ({ data }) => (
   <ResponsiveContainer width="100%" height={300}>
     <LineChart data={data}>
@@ -270,14 +370,66 @@ const OrdersReturnsChart = ({ data }) => (
           borderRadius: "8px",
         }}
       />
-      <Line type="monotone" dataKey="orders" stroke="#6366f1" strokeWidth={3} />
+      <Line
+        type="monotone"
+        dataKey="orders"
+        stroke="#6366f1"
+        strokeWidth={3}
+        name="Orders"
+      />
       <Line
         type="monotone"
         dataKey="returns"
         stroke="#f59e0b"
         strokeWidth={3}
+        name="Returns"
       />
+      <Legend />
     </LineChart>
+  </ResponsiveContainer>
+);
+
+const NewSignUpsChart = ({ data }) => (
+  <ResponsiveContainer width="100%" height={300}>
+    <AreaChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+      <XAxis dataKey="name" stroke="#64748b" />
+      <YAxis stroke="#64748b" />
+      <Tooltip
+        contentStyle={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: "8px",
+        }}
+      />
+      <Area
+        type="monotone"
+        dataKey="signups"
+        stroke="#8b5cf6"
+        fill="#8b5cf6"
+        fillOpacity={0.2}
+      />
+    </AreaChart>
+  </ResponsiveContainer>
+);
+
+const OrderTypeChart = ({ data }) => (
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+      <XAxis dataKey="name" stroke="#64748b" />
+      <YAxis stroke="#64748b" />
+      <Tooltip
+        contentStyle={{
+          backgroundColor: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: "8px",
+        }}
+      />
+      <Bar dataKey="cod" fill="#4f46e5" name="COD" radius={4} />
+      <Bar dataKey="prepaid" fill="#22c55e" name="Prepaid" radius={4} />
+      <Legend />
+    </BarChart>
   </ResponsiveContainer>
 );
 
@@ -446,17 +598,25 @@ const RecentOrdersTable = ({ orders }) => (
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("This Month");
-  const salesData = dashboardData.sales; // Using mock data for now, can be replaced with API calls
+  const salesData = dashboardData.sales;
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
+    <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <style jsx global>
+        {`
+          @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+          body {
+            font-family: "Inter", sans-serif;
+          }
+        `}
+      </style>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {dashboardData.stats.map((stat, index) => (
           <StatCard key={index} {...stat} />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <ChartCard title="Sales Overview">
+        <ChartCard title="Total Sales">
           <div className="flex space-x-4 mb-4">
             <button
               onClick={() => setActiveTab("This Month")}
@@ -487,12 +647,20 @@ const Dashboard = () => {
         <ChartCard title="Daily Traffic & Sales">
           <DailyTrafficChart data={salesData} />
         </ChartCard>
-        <ChartCard title="Orders vs Returns">
+        <ChartCard title="New Sign-Ups">
+          <NewSignUpsChart data={salesData} />
+        </ChartCard>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <ChartCard title="Total Orders (COD vs. Prepaid)">
+          <OrderTypeChart data={salesData} />
+        </ChartCard>
+        <ChartCard title="Order Count vs. Returns">
           <OrdersReturnsChart data={salesData} />
         </ChartCard>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ChartCard title="Top Selling Toys" className="lg:col-span-1">
+        <ChartCard title="Top-Selling Products" className="lg:col-span-1">
           <TopProductsList products={dashboardData.topProducts} />
         </ChartCard>
         <ChartCard title="Device Source Split">

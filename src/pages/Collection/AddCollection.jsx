@@ -10,8 +10,9 @@ const AddCollection = ({ onAdd, onCancel }) => {
     metaKeywords: "",
   });
 
-  // State for the selected image file
-  const [selectedImage, setSelectedImage] = useState(null);
+  // State for the selected image files
+  const [selectedCollectionImage, setSelectedCollectionImage] = useState(null);
+  const [selectedBannerImage, setSelectedBannerImage] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,10 +22,15 @@ const AddCollection = ({ onAdd, onCancel }) => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    // Update state with the selected file
+  const handleCollectionImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
+      setSelectedCollectionImage(e.target.files[0]);
+    }
+  };
+
+  const handleBannerImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedBannerImage(e.target.files[0]);
     }
   };
 
@@ -32,7 +38,6 @@ const AddCollection = ({ onAdd, onCancel }) => {
     // Basic validation: ensure the required name field is not empty
     if (!newCollection.collectionName) {
       console.error("Please fill in the collection name.");
-      // In a real app, you'd show a user-friendly error message
       return;
     }
 
@@ -42,13 +47,15 @@ const AddCollection = ({ onAdd, onCancel }) => {
     formData.append("metaDescription", newCollection.metaDescription);
     formData.append("metaKeywords", newCollection.metaKeywords);
 
-    // Append the image file if one is selected
-    if (selectedImage) {
-      formData.append("collectionImage", selectedImage);
+    // Append both image files if they are selected
+    if (selectedCollectionImage) {
+      formData.append("collectionImage", selectedCollectionImage);
+    }
+    if (selectedBannerImage) {
+      formData.append("collectionBannerImage", selectedBannerImage);
     }
 
     try {
-      // Send the FormData object with the image and other data
       await api.post("/collections", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -56,21 +63,21 @@ const AddCollection = ({ onAdd, onCancel }) => {
       });
       console.log("Collection added successfully!");
 
-      // Optionally, clear the form or navigate back to the Collections list
+      // Clear the form and image states
       setNewCollection({
         collectionName: "",
         metaTitle: "",
         metaDescription: "",
         metaKeywords: "",
       });
-      setSelectedImage(null); // Clear the image state
+      setSelectedCollectionImage(null);
+      setSelectedBannerImage(null);
 
       if (onAdd) {
         onAdd();
       }
     } catch (error) {
       console.error("Error adding collection:", error);
-      // In a real app, show a user-friendly error message
     }
   };
 
@@ -79,7 +86,6 @@ const AddCollection = ({ onAdd, onCancel }) => {
     if (onCancel) {
       onCancel();
     }
-    // Optionally, navigate back to the Collections list
   };
 
   return (
@@ -110,7 +116,7 @@ const AddCollection = ({ onAdd, onCancel }) => {
               />
             </div>
 
-            {/* Image Upload */}
+            {/* Collection Image Upload */}
             <div className="col-span-1">
               <label
                 htmlFor="collectionImage"
@@ -123,7 +129,25 @@ const AddCollection = ({ onAdd, onCancel }) => {
                 id="collectionImage"
                 name="collectionImage"
                 accept="image/*"
-                onChange={handleImageChange}
+                onChange={handleCollectionImageChange}
+                className="w-full text-sm text-gray-700 font-normal file:cursor-pointer file:rounded-md file:border-0 file:bg-primary-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary-600 hover:file:bg-primary-100 whitespace-nowrap"
+              />
+            </div>
+
+            {/* Collection Banner Image Upload */}
+            <div className="col-span-1">
+              <label
+                htmlFor="collectionBannerImage"
+                className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
+              >
+                Collection Banner Image
+              </label>
+              <input
+                type="file"
+                id="collectionBannerImage"
+                name="collectionBannerImage"
+                accept="image/*"
+                onChange={handleBannerImageChange}
                 className="w-full text-sm text-gray-700 font-normal file:cursor-pointer file:rounded-md file:border-0 file:bg-primary-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary-600 hover:file:bg-primary-100 whitespace-nowrap"
               />
             </div>

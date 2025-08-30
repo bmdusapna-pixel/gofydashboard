@@ -10,6 +10,7 @@ const AddCategory = ({ onAdd, onCancel }) => {
     metaDescription: "",
     metaKeywords: "",
     image: null,
+    bannerImage: null, // New state for the banner image
   });
 
   useEffect(() => {
@@ -27,10 +28,10 @@ const AddCategory = ({ onAdd, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "image" && files && files.length > 0) {
+    if (files && files.length > 0) {
       setNewCategory((prev) => ({
         ...prev,
-        [name]: files[0],
+        [name]: files[0], // The name attribute now correctly maps to either 'image' or 'bannerImage'
       }));
     } else {
       setNewCategory((prev) => ({
@@ -48,7 +49,8 @@ const AddCategory = ({ onAdd, onCancel }) => {
       !newCategory.metaTitle ||
       !newCategory.metaKeywords ||
       !newCategory.metaDescription ||
-      !newCategory.image
+      !newCategory.image ||
+      !newCategory.bannerImage // Add validation for the new banner image
     ) {
       console.error("Please fill in all required fields.");
       return;
@@ -61,6 +63,7 @@ const AddCategory = ({ onAdd, onCancel }) => {
     formData.append("metaKeywords", newCategory.metaKeywords);
     formData.append("metaDescription", newCategory.metaDescription);
     formData.append("categoryImage", newCategory.image);
+    formData.append("categoryBannerImage", newCategory.bannerImage); // Append the new banner image
 
     try {
       const response = await api.post("/categories", formData, {
@@ -81,6 +84,7 @@ const AddCategory = ({ onAdd, onCancel }) => {
         metaDescription: "",
         metaKeywords: "",
         image: null,
+        bannerImage: null,
       });
     } catch (error) {
       console.error(
@@ -160,13 +164,34 @@ const AddCategory = ({ onAdd, onCancel }) => {
               <input
                 type="file"
                 id="image"
-                name="image"
+                name="image" // Name is now unique for this input
                 accept="image/*"
                 onChange={handleChange}
                 className="w-full text-sm text-gray-700 font-normal file:cursor-pointer file:rounded-md file:border-0 file:bg-primary-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary-600 hover:file:bg-primary-100 whitespace-nowrap"
               />
               <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
                 Upload a representative image for the category.
+              </p>
+            </div>
+
+            {/* Category Banner Image */}
+            <div>
+              <label
+                htmlFor="bannerImage"
+                className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap"
+              >
+                Category Banner Image
+              </label>
+              <input
+                type="file"
+                id="bannerImage"
+                name="bannerImage" // Name is now unique for this input
+                accept="image/*"
+                onChange={handleChange}
+                className="w-full text-sm text-gray-700 font-normal file:cursor-pointer file:rounded-md file:border-0 file:bg-primary-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary-600 hover:file:bg-primary-100 whitespace-nowrap"
+              />
+              <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
+                Upload a representative image for the category banner.
               </p>
             </div>
 

@@ -15,6 +15,8 @@ const EditCategory = () => {
     metaKeywords: "",
     categoryImage: null, // This will hold the existing image URL
     newImage: null, // This will hold the new image file if a user uploads one
+    categoryBannerImage: null, // This will hold the existing banner image URL
+    newBannerImage: null, // This will hold the new banner image file
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -35,12 +37,14 @@ const EditCategory = () => {
         // Populate the state with fetched data
         setCategory({
           categoryName: categoryData.categoryName,
-          collectionId: categoryData.collectionId._id, // Assuming collectionId is populated with the object
+          collectionId: categoryData.collectionId._id,
           metaTitle: categoryData.metaTitle,
           metaDescription: categoryData.metaDescription,
           metaKeywords: categoryData.metaKeywords,
           categoryImage: categoryData.categoryImage,
+          categoryBannerImage: categoryData.categoryBannerImage, // Set the existing banner image URL
           newImage: null,
+          newBannerImage: null,
         });
 
         setIsLoading(false);
@@ -55,10 +59,11 @@ const EditCategory = () => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "newImage" && files && files.length > 0) {
+    // Handle both newImage and newBannerImage file inputs
+    if (files && files.length > 0) {
       setCategory((prev) => ({
         ...prev,
-        newImage: files[0],
+        [name]: files[0],
       }));
     } else {
       setCategory((prev) => ({
@@ -86,9 +91,13 @@ const EditCategory = () => {
     if (category.newImage) {
       formData.append("categoryImage", category.newImage);
     }
+    // Only append the new banner image if a new one was selected
+    if (category.newBannerImage) {
+      formData.append("categoryBannerImage", category.newBannerImage);
+    }
 
     try {
-      const response = await api.post(`/categories/${categoryId}`, formData, {
+      const response = await api.patch(`/categories/${categoryId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -186,6 +195,31 @@ const EditCategory = () => {
               />
               <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
                 Upload a new image to replace the existing one.
+              </p>
+            </div>
+
+            {/* Existing Banner Image & New Banner Image Upload */}
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-gray-600 mb-1 whitespace-nowrap">
+                Current Banner Image
+              </label>
+              {category.categoryBannerImage && (
+                <img
+                  src={category.categoryBannerImage}
+                  alt="Current Category Banner"
+                  className="w-full h-auto object-cover rounded-md border border-gray-300 mb-2"
+                />
+              )}
+              <input
+                type="file"
+                id="newBannerImage"
+                name="newBannerImage"
+                accept="image/*"
+                onChange={handleChange}
+                className="w-full text-sm text-gray-700 font-normal file:cursor-pointer file:rounded-md file:border-0 file:bg-primary-50 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-primary-600 hover:file:bg-primary-100 whitespace-nowrap"
+              />
+              <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">
+                Upload a new banner image to replace the existing one.
               </p>
             </div>
 
