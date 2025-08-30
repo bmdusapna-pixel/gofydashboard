@@ -15,7 +15,7 @@ export const navItems = [
   {
     name: "Summary Dashboard",
     icon: faHome,
-    path: "/summary-dashboard",
+    path: "/",
     type: "link",
   },
   {
@@ -138,6 +138,12 @@ export const navItems = [
     type: "link",
   },
   {
+    name: "Review",
+    icon: faUsers,
+    path: "/review",
+    type: "link",
+  },
+  {
     name: "Admin",
     icon: faUsers,
     path: "/admin",
@@ -147,6 +153,12 @@ export const navItems = [
     name: "Settings",
     icon: faUsers,
     path: "/admin-settings",
+    type: "link",
+  },
+  {
+    name: "Logs",
+    icon: faUsers,
+    path: "/activities",
     type: "link",
   },
 ];

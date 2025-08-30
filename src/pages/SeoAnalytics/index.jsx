@@ -192,7 +192,7 @@ gtag('js', new Date()); gtag('config', 'AW-XXXXXXX');</script>`;
 
   return (
     <div className="p-6 bg-primary-50 flex-1 overflow-y-auto">
-      <div className="max-w-[1100px] mx-auto space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-lg sm:text-xl font-semibold">
             SEO & Analytics Tools (Demo)

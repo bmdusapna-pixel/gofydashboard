@@ -44,6 +44,8 @@ import ProductAnalytics from "./pages/Products/ProductAnalytics";
 import ReferralDashboard from "./pages/ReferralDashboard";
 import LoyaltyDashboard from "./pages/LoyaltyDashboard";
 import UserTransactions from "./pages/LoyaltyDashboard/UserTransactions";
+import Review from "./pages/Review";
+import Activities from "./pages/Activities";
 
 const App = () => {
   return (
@@ -54,12 +56,9 @@ const App = () => {
           <Route element={<MainLayout />}>
             <Route element={<PrivateRoute />}>
               <Route element={<ContentLayout />}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/sales-dashboard" element={<SalesDashboard />} />
-                <Route
-                  path="/summary-dashboard"
-                  element={<SummaryDashboard />}
-                />
+                <Route path="/" element={<SummaryDashboard />} />
                 <Route path="/products/list" element={<Products />} />
                 <Route path="/products/add-new" element={<AddProduct />} />
                 <Route path="/products/view/:url" element={<ViewProduct />} />
@@ -118,6 +117,8 @@ const App = () => {
                   path="/loyalty-dashboard/:customerId"
                   element={<UserTransactions />}
                 />
+                <Route path="/review" element={<Review />} />
+                <Route path="/activities" element={<Activities />} />
               </Route>
             </Route>
           </Route>

@@ -181,7 +181,7 @@ const AdminSettings = () => {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
-      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-xl p-8 space-y-8">
+      <div className="bg-white rounded-lg shadow-xl p-8 space-y-8">
         <h1 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center">
           <Settings className="mr-4 text-blue-600" size={26} /> Admin Dashboard
           Settings
