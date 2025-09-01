@@ -66,7 +66,7 @@ const ViewProduct = () => {
           <div>
             <h1 className="text-sm font-semibold">{product.name}</h1>
             <p className="text-sm text-gray-500">
-              {product.category?.categoryName || "N/A"}
+              {product.categories?.[0]?.categoryName || "N/A"}
             </p>
           </div>
 
@@ -89,7 +89,7 @@ const ViewProduct = () => {
             <div>
               <p className="text-sm text-gray-500">Date Added</p>
               <p className="text-sm font-semibold">
-                {new Date(product.dateAdded).toLocaleDateString()}
+                {new Date(product.createdAt).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -108,6 +108,38 @@ const ViewProduct = () => {
                 {product.washCare.map((item, idx) => (
                   <li key={idx} className="text-sm text-gray-700">
                     {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Product-level Specifications */}
+          {product.specifications?.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold mb-1">
+                Product Specifications
+              </p>
+              <ul className="list-disc list-inside space-y-1">
+                {product.specifications.map((spec, idx) => (
+                  <li key={idx} className="text-sm text-gray-700">
+                    <span className="font-semibold">{spec.key}:</span>{" "}
+                    {spec.value}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Product-level Key Features */}
+          {product.keyFeatures?.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold mb-1">Key Features</p>
+              <ul className="list-disc list-inside space-y-1">
+                {product.keyFeatures.map((feature, idx) => (
+                  <li key={idx} className="text-sm text-gray-700">
+                    <span className="font-semibold">{feature.key}:</span>{" "}
+                    {feature.value}
                   </li>
                 ))}
               </ul>
@@ -144,45 +176,67 @@ const ViewProduct = () => {
                     {/* Basic Variant Info */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500">Age Group</p>
-                        <p className="text-sm font-semibold">
-                          {variant.ageGroup?.ageRange || variant.ageGroup}
-                        </p>
-                      </div>
-                      <div>
                         <p className="text-sm text-gray-500">Color</p>
                         <p className="text-sm font-semibold">
                           {variant.color?.name || variant.color}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Stock Quantity</p>
-                        <p className="text-sm font-semibold">{variant.stock}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Sale Price</p>
-                        <p className="text-sm font-semibold">
-                          ₹ {parseFloat(variant.price).toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">MRP</p>
-                        <p className="text-sm font-semibold">
-                          ₹ {parseFloat(variant.cutPrice).toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Discount</p>
-                        <p className="text-sm font-semibold">
-                          {variant.discount}%
-                        </p>
-                      </div>
                     </div>
-                    {/* Specifications */}
+
+                    {/* Correctly iterating over ageGroups */}
+                    {variant.ageGroups?.length > 0 && (
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-semibold pt-2">
+                          Age Groups
+                        </h4>
+                        {variant.ageGroups.map((ageGroup, j) => (
+                          <div
+                            key={j}
+                            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                          >
+                            <div>
+                              <p className="text-sm text-gray-500">Age Group</p>
+                              <p className="text-sm font-semibold">
+                                {ageGroup.ageGroup?.ageRange || "N/A"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Stock Quantity
+                              </p>
+                              <p className="text-sm font-semibold">
+                                {ageGroup.stock}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">
+                                Sale Price
+                              </p>
+                              <p className="text-sm font-semibold">
+                                ₹ {parseFloat(ageGroup.price).toFixed(2)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">MRP</p>
+                              <p className="text-sm font-semibold">
+                                ₹ {parseFloat(ageGroup.cutPrice).toFixed(2)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Discount</p>
+                              <p className="text-sm font-semibold">
+                                {ageGroup.discount}%
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Variant-level Specifications */}
                     {variant.specifications?.length > 0 && (
                       <div>
                         <p className="text-sm font-semibold mb-1">
-                          Specifications
+                          Variant Specifications
                         </p>
                         <ul className="list-disc list-inside space-y-1">
                           {variant.specifications.map((spec, idx) => {
@@ -202,6 +256,63 @@ const ViewProduct = () => {
               </div>
             </div>
           )}
+
+          {/* --- New Section: Metadata and Display --- */}
+          <div>
+            <h2 className="text-sm font-bold mb-2">Additional Details</h2>
+            <div className="space-y-4">
+              {/* Display on */}
+              {product.displayOn?.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-500">Display On</p>
+                  <div className="flex flex-wrap gap-2">
+                    {product.displayOn.map((platform, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full"
+                      >
+                        {platform}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Promotions */}
+              {product.promotions?.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-500">Promotions</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {product.promotions.map((promo, idx) => (
+                      <li key={idx} className="text-sm text-gray-700">
+                        {promo}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Meta Data */}
+              <div>
+                <p className="text-sm text-gray-500">Meta Title</p>
+                <p className="text-sm font-semibold">
+                  {product.metaTitle || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Meta Description</p>
+                <p className="text-sm font-semibold">
+                  {product.metaDescription || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Meta Keywords</p>
+                <p className="text-sm font-semibold">
+                  {product.metaKeywords || "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

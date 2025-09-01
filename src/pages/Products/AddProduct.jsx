@@ -5,9 +5,9 @@ import Select from "react-select"; // Import react-select
 const AddProduct = () => {
   const [product, setProduct] = useState({
     name: "",
-    url: "", // Auto-generated URL slug
+    url: "",
     brand: "",
-    category: "",
+    categories: [],
     material: "",
     gender: "",
     description: "",
@@ -15,7 +15,7 @@ const AddProduct = () => {
       "Shipping and return policies will be automatically applied.",
     washCare: [""],
     status: "",
-    redirectUrl: "", // New redirect URL field
+    redirectUrl: "",
     promotions: [],
     dealHours: "",
     images: [],
@@ -23,10 +23,10 @@ const AddProduct = () => {
     specifications: [{ key: "", value: "" }],
     keyFeatures: [{ key: "", value: "" }],
     displayOn: [],
-    metaTitle: "", // New meta data fields
+    metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
-    relatedCategories: [], // Updated to handle multiple values
+    relatedCategories: [],
   });
 
   const [ageGroupOptions, setAgeGroupOptions] = useState([]);
@@ -313,13 +313,12 @@ const AddProduct = () => {
   const removeSpec = (variantIndex, specIndex) => {
     setVariants((prev) => {
       const updated = [...prev];
-      const specs = updated[variantIndex].specifications;
-      if (specs.length > 1) {
-        updated[variantIndex] = {
-          ...updated[variantIndex],
-          specifications: specs.filter((_, i) => i !== specIndex),
-        };
-      }
+      updated[variantIndex] = {
+        ...updated[variantIndex],
+        specifications: updated[variantIndex].specifications.filter(
+          (_, i) => i !== specIndex
+        ),
+      };
       return updated;
     });
   };
@@ -339,12 +338,14 @@ const AddProduct = () => {
 
   const copySpecsFromAbove = (variantIndex) => {
     if (variantIndex > 0) {
-      const prevSpecs = variants[variantIndex - 1].specifications;
       setVariants((prev) => {
         const updated = [...prev];
         updated[variantIndex] = {
           ...updated[variantIndex],
-          specifications: prevSpecs.map((spec) => ({ ...spec })),
+          specifications: prev[variantIndex - 1].specifications.map((spec) => ({
+            key: spec.key,
+            value: spec.value,
+          })),
         };
         return updated;
       });
@@ -416,6 +417,15 @@ const AddProduct = () => {
     });
   };
 
+  const handleCategoriesChange = (selectedOptions) => {
+    setProduct((prev) => ({
+      ...prev,
+      categories: selectedOptions
+        ? selectedOptions.map((option) => option.value)
+        : [],
+    }));
+  };
+
   const handleRelatedCategoriesChange = (selectedOptions) => {
     setProduct((prev) => ({
       ...prev,
@@ -436,7 +446,7 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!product.name || !product.url || !product.category) {
+    if (!product.name || !product.url || !product.categories) {
       alert("Please fill in all mandatory fields (Name, URL Slug, Category).");
       return;
     }
@@ -477,24 +487,24 @@ const AddProduct = () => {
           })),
           specifications: variant.specifications
             .filter((s) => s.key && s.value)
-            .map((s) => ({ [s.key]: s.value })),
+            .map((s) => ({ key: s.key, value: s.value })),
         })),
         images: null,
         video: null,
         keyFeatures: product.keyFeatures
           .filter((f) => f.key && f.value)
-          .map((f) => ({ [f.key]: f.value })),
+          .map((f) => ({ key: f.key, value: f.value })),
       };
       formData.append("payload", JSON.stringify(payload));
-      // const response = await api.post("/products", formData, {
-      //   headers: { "Content-Type": "multipart/form-data" },
-      // });
+      const response = await api.post("/products", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       alert("✅ Product created successfully!");
-      // console.log("Saved:", response.data);
-      console.log("FormData entries:");
-      for (const [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
+      console.log("Saved:", response.data);
+      // console.log("FormData entries:");
+      // for (const [key, value] of formData.entries()) {
+      //   console.log(`${key}: ${value}`);
+      // }
     } catch (error) {
       console.error("Error submitting product:", error);
       alert(
@@ -514,6 +524,10 @@ const AddProduct = () => {
 
   const selectedRelatedCategories = categoryOptions.filter((option) =>
     product.relatedCategories.includes(option.value)
+  );
+
+  const selectedCategories = categoryOptions.filter((option) =>
+    product.categories.includes(option.value)
   );
 
   return (
@@ -571,6 +585,7 @@ const AddProduct = () => {
               </label>
               <div className="space-y-2">
                 {[
+                  { value: "new_arrival", label: "New Arrivals" },
                   { value: "super_deal", label: "Super Deal" },
                   { value: "offers", label: "Offers" },
                   { value: "trending", label: "Trending Product" },
@@ -747,21 +762,15 @@ const AddProduct = () => {
                   <label className="block mb-2 whitespace-nowrap font-medium">
                     Category<span className="text-red-500">*</span>
                   </label>
-                  <select
-                    value={product.category}
-                    onChange={(e) =>
-                      handleProductChange("category", e.target.value)
-                    }
-                    className="border border-gray-300 rounded p-2 w-full"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((cat, i) => (
-                      <option key={i} value={cat._id}>
-                        {cat.categoryName}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    isMulti
+                    name="relatedCategories"
+                    options={categoryOptions}
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    value={selectedCategories}
+                    onChange={handleCategoriesChange}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

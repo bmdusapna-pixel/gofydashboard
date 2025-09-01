@@ -138,6 +138,12 @@ export const navItems = [
     type: "link",
   },
   {
+    name: "Notifications",
+    icon: faUsers,
+    path: "/notifications",
+    type: "link",
+  },
+  {
     name: "Review",
     icon: faUsers,
     path: "/review",

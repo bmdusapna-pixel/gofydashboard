@@ -1,7 +1,14 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-
-import { Activity, Unlock, Lock, Trash2, RefreshCw } from "lucide-react";
+import {
+  Activity,
+  Unlock,
+  Lock,
+  Trash2,
+  RefreshCw,
+  Wallet,
+  MapPin,
+} from "lucide-react";
 
 const users = [
   {
@@ -9,14 +16,27 @@ const users = [
     name: "Alice Wonderland",
     email: "alice@example.com",
     mobile: "987-654-3210",
+    source: "Web", // New: User source
     totalSpent: 1250.75,
-    walletBalance: 350.5,
+    walletDetails: {
+      // New: Wallet details object
+      balance: 350.5,
+      lastUpdated: "2025-08-25",
+    },
     totalOrders: 15,
     cartItems: 2,
     country: "USA",
     state: "California",
     city: "San Francisco",
     pincode: "94103",
+    savedAddresses: [
+      // New: Saved addresses array
+      {
+        address: "123 Main Street, Apt 4B, San Francisco, CA 94103",
+        isDefault: true,
+      },
+      { address: "456 Oak Avenue, San Francisco, CA 94103", isDefault: false },
+    ],
     loginActivity: [
       { date: "2025-08-20", time: "10:30 AM", device: "Chrome on Mac" },
       { date: "2025-08-19", time: "09:15 AM", device: "Firefox on Windows" },
@@ -29,14 +49,23 @@ const users = [
     name: "Bob Builder",
     email: "bob@example.com",
     mobile: "123-456-7890",
+    source: "App", // New: User source
     totalSpent: 250.0,
-    walletBalance: 50.0,
+    walletDetails: {
+      // New: Wallet details object
+      balance: 50.0,
+      lastUpdated: "2025-08-26",
+    },
     totalOrders: 3,
     cartItems: 0,
     country: "USA",
     state: "Texas",
     city: "Austin",
     pincode: "73301",
+    savedAddresses: [
+      // New: Saved addresses array
+      { address: "789 Pine Street, Austin, TX 73301", isDefault: true },
+    ],
     loginActivity: [
       { date: "2025-08-21", time: "02:00 PM", device: "Safari on iPhone" },
       { date: "2025-08-18", time: "05:45 PM", device: "Chrome on Android" },
@@ -49,14 +78,20 @@ const users = [
     name: "Charlie Chaplin",
     email: "charlie@example.com",
     mobile: "555-123-4567",
+    source: "Web", // New: User source
     totalSpent: 89.99,
-    walletBalance: 0.0,
+    walletDetails: {
+      // New: Wallet details object
+      balance: 0.0,
+      lastUpdated: "2025-08-27",
+    },
     totalOrders: 1,
     cartItems: 5,
     country: "UK",
     state: "London",
     city: "London",
     pincode: "SW1A 0AA",
+    savedAddresses: [], // New: Empty addresses array
     loginActivity: [
       { date: "2025-08-23", time: "11:00 AM", device: "Edge on Windows" },
     ],
@@ -114,7 +149,7 @@ const CustomerDetailsPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-gray-600 mb-1">
                   Total Spent
@@ -128,7 +163,7 @@ const CustomerDetailsPage = () => {
                   Wallet Balance
                 </h3>
                 <p className="text-2xl font-bold text-green-600">
-                  ₹{user.walletBalance.toFixed(2)}
+                  ₹{user.walletDetails.balance.toFixed(2)}
                 </p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
@@ -145,6 +180,14 @@ const CustomerDetailsPage = () => {
                 </h3>
                 <p className="text-2xl font-bold text-orange-600">
                   {user.cartItems}
+                </p>
+              </div>
+              <div className="bg-indigo-50 p-4 rounded-lg md:col-span-1">
+                <h3 className="text-sm font-medium text-gray-600 mb-1">
+                  Customer Source
+                </h3>
+                <p className="text-2xl font-bold text-indigo-600">
+                  {user.source}
                 </p>
               </div>
             </div>
@@ -253,6 +296,34 @@ const CustomerDetailsPage = () => {
               </div>
 
               <div>
+                <h3 className="text-lg font-medium mb-3">Saved Addresses</h3>
+                <div className="space-y-4">
+                  {user.savedAddresses && user.savedAddresses.length > 0 ? (
+                    user.savedAddresses.map((address, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 p-4 rounded-lg flex items-start gap-4"
+                      >
+                        <MapPin className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-gray-800">{address.address}</p>
+                          {address.isDefault && (
+                            <span className="mt-1 inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
+                      No saved addresses found.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
                 <h3 className="text-lg font-medium mb-3">Login Activity</h3>
                 <div className="space-y-2">
                   {user.loginActivity.map((activity, index) => (
@@ -308,6 +379,19 @@ const CustomerDetailsPage = () => {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-gray-600" />
+                  Wallet Activity
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Last updated:{" "}
+                  <span className="font-medium">
+                    {user.walletDetails.lastUpdated}
+                  </span>
+                </p>
               </div>
 
               <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm">

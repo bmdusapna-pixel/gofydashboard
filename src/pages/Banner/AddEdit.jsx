@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import dummyBannersData from "../../assets/banners.list.js"; // Import dummy data
+import dummyBannersData from "../../assets/banners.list.js";
 
 const BannerForm = ({ onSaveBanner }) => {
-  const { bannerId } = useParams(); // Get bannerId from URL params
+  const { bannerId } = useParams();
   const navigate = useNavigate();
 
   // State for the banner form fields
   const [banner, setBanner] = useState({
-    id: null, // null for new banners, ID for editing
+    id: null,
     title: "",
     description: "",
-    imageUrl: "",
+    imageUrl: "", // This will now be a URL from the server after upload
     displayOn: "web",
   });
+  // State to hold the selected image file
+  const [imageFile, setImageFile] = useState(null);
   // State for message display
   const [message, setMessage] = useState({ text: "", type: "" });
+  // State for the preview URL of the selected image
+  const [previewUrl, setPreviewUrl] = useState("");
 
   // Effect to load banner data if in edit mode
   useEffect(() => {
     if (bannerId) {
-      // Find the banner from the dummy data using the ID from params
       const bannerToEdit = dummyBannersData.find((b) => b.id === bannerId);
       if (bannerToEdit) {
         setBanner(bannerToEdit);
+        setPreviewUrl(bannerToEdit.imageUrl);
         setMessage({
           text: `Editing banner: ${bannerToEdit.title}`,
           type: "info",
@@ -33,10 +37,9 @@ const BannerForm = ({ onSaveBanner }) => {
           text: "Banner not found. Redirecting to Add Banner...",
           type: "error",
         });
-        setTimeout(() => navigate("/banner-add-edit"), 2000); // Redirect if ID not found
+        setTimeout(() => navigate("/banner-add-edit"), 2000);
       }
     } else {
-      // Reset form for adding a new banner
       setBanner({
         id: null,
         title: "",
@@ -44,38 +47,57 @@ const BannerForm = ({ onSaveBanner }) => {
         imageUrl: "",
         displayOn: "web",
       });
+      setPreviewUrl("");
     }
-    // Clear message after component mounts or ID changes for a moment
     setTimeout(() => setMessage({ text: "", type: "" }), 3000);
-  }, [bannerId, navigate]); // Re-run effect if bannerId or navigate changes
+  }, [bannerId, navigate]);
 
-  // Handles input changes for the form fields
+  // Handles input changes for text fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setBanner((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handles file input change
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
+    if (file) {
+      // Create a URL for the file to show a local preview
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl("");
+    }
+  };
+
   // Handles submitting the form (add or update)
   const handleSubmit = () => {
     // Basic validation
-    if (
-      !banner.title.trim() ||
-      !banner.description.trim() ||
-      !banner.imageUrl.trim()
-    ) {
-      setMessage({ text: "Please fill in all banner fields.", type: "error" });
+    if (!banner.title.trim() || !banner.description.trim()) {
+      setMessage({
+        text: "Please fill in all required fields.",
+        type: "error",
+      });
       return;
     }
 
-    let bannerToSave = { ...banner };
+    // In a real app, you would upload the 'imageFile' here
+    // and receive a new `imageUrl` from the server.
+    // For this example, we'll simulate the update.
 
+    let bannerToSave = { ...banner };
     if (!banner.id) {
-      // If no ID, it's a new banner, so generate one
+      // New banner, create an ID and assume a new image URL
       bannerToSave.id =
         Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+      // This is a placeholder for the URL you'd get from a real upload
+      bannerToSave.imageUrl = previewUrl;
+    } else if (imageFile) {
+      // If a new file was selected during edit, update the imageUrl
+      // Placeholder for a new URL from a real upload
+      bannerToSave.imageUrl = previewUrl;
     }
 
-    // Call the prop function to save/update the banner in the parent's state
     onSaveBanner(bannerToSave);
 
     setMessage({
@@ -85,7 +107,6 @@ const BannerForm = ({ onSaveBanner }) => {
       type: "success",
     });
 
-    // Clear the form after adding, or stay on edit for further changes
     if (!banner.id) {
       setBanner({
         id: null,
@@ -94,11 +115,13 @@ const BannerForm = ({ onSaveBanner }) => {
         imageUrl: "",
         displayOn: "web",
       });
+      setImageFile(null);
+      setPreviewUrl("");
     }
 
     setTimeout(() => {
       setMessage({ text: "", type: "" });
-      navigate("/"); // Navigate back to the list page after save
+      navigate("/");
     }, 1500);
   };
 
@@ -111,7 +134,6 @@ const BannerForm = ({ onSaveBanner }) => {
           </h1>
 
           <div className="space-y-6 text-sm p-4 border border-gray-300 rounded-lg bg-gray-50 mb-8">
-            {/* Message Box */}
             {message.text && (
               <div
                 className={`p-3 rounded-md text-white text-center 
@@ -127,7 +149,6 @@ const BannerForm = ({ onSaveBanner }) => {
               </div>
             )}
 
-            {/* Banner ID (visible in edit mode) */}
             {banner.id && (
               <div>
                 <label className="block mb-2 whitespace-nowrap">
@@ -176,27 +197,32 @@ const BannerForm = ({ onSaveBanner }) => {
               />
             </div>
 
-            {/* Image URL */}
+            {/* Image File Input */}
             <div>
               <label
-                htmlFor="imageUrl"
+                htmlFor="imageFile"
                 className="block mb-2 whitespace-nowrap"
               >
-                Image URL
+                Image File
               </label>
               <input
-                type="text"
-                id="imageUrl"
-                name="imageUrl"
-                value={banner.imageUrl}
-                onChange={handleInputChange}
-                placeholder="e.g., https://example.com/banner.jpg"
-                className="border border-gray-300 rounded-md p-2 w-full focus:ring-blue-500 focus:border-blue-500"
+                type="file"
+                id="imageFile"
+                name="imageFile"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
               />
-              {banner.imageUrl && (
+              {/* Image Preview */}
+              {(previewUrl || banner.imageUrl) && (
                 <div className="mt-2 w-full h-32 border border-gray-300 rounded-md overflow-hidden flex items-center justify-center bg-gray-100">
                   <img
-                    src={banner.imageUrl}
+                    src={previewUrl || banner.imageUrl}
                     alt="Banner Preview"
                     className="object-cover w-full h-full"
                     onError={(e) => {
@@ -208,9 +234,9 @@ const BannerForm = ({ onSaveBanner }) => {
                   />
                 </div>
               )}
-              {!banner.imageUrl && (
+              {!previewUrl && !banner.imageUrl && (
                 <div className="mt-2 w-full h-32 border border-gray-300 rounded-md overflow-hidden flex items-center justify-center bg-gray-100 text-gray-500">
-                  No image URL provided.
+                  No image selected.
                 </div>
               )}
             </div>

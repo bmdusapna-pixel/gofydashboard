@@ -14,6 +14,7 @@ const App = () => {
       registrationDate: "2024-01-15",
       totalOrders: 15,
       lastActive: "2025-07-18",
+      source: "Web",
     },
     {
       id: "cust-002",
@@ -24,6 +25,7 @@ const App = () => {
       registrationDate: "2023-11-01",
       totalOrders: 8,
       lastActive: "2025-07-10",
+      source: "App",
     },
     {
       id: "cust-003",
@@ -34,6 +36,7 @@ const App = () => {
       registrationDate: "2024-03-20",
       totalOrders: 22,
       lastActive: "2025-07-19",
+      source: "Web",
     },
     {
       id: "cust-004",
@@ -44,6 +47,7 @@ const App = () => {
       registrationDate: "2023-09-05",
       totalOrders: 10,
       lastActive: "2025-07-15",
+      source: "App",
     },
     {
       id: "cust-005",
@@ -54,6 +58,7 @@ const App = () => {
       registrationDate: "2024-06-10",
       totalOrders: 5,
       lastActive: "2025-07-01",
+      source: "Web",
     },
     {
       id: "cust-006",
@@ -64,6 +69,7 @@ const App = () => {
       registrationDate: "2023-04-22",
       totalOrders: 30,
       lastActive: "2025-07-18",
+      source: "Web",
     },
     {
       id: "cust-007",
@@ -74,6 +80,7 @@ const App = () => {
       registrationDate: "2024-02-14",
       totalOrders: 18,
       lastActive: "2025-07-05",
+      source: "App",
     },
     {
       id: "cust-008",
@@ -84,6 +91,7 @@ const App = () => {
       registrationDate: "2023-07-30",
       totalOrders: 12,
       lastActive: "2025-07-12",
+      source: "Web",
     },
     {
       id: "cust-009",
@@ -94,6 +102,7 @@ const App = () => {
       registrationDate: "2024-05-01",
       totalOrders: 7,
       lastActive: "2025-07-17",
+      source: "App",
     },
     {
       id: "cust-010",
@@ -104,6 +113,7 @@ const App = () => {
       registrationDate: "2023-10-10",
       totalOrders: 25,
       lastActive: "2025-07-16",
+      source: "Web",
     },
   ];
 
@@ -200,6 +210,9 @@ const App = () => {
                       Customer ID
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Source
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Customer Name
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -231,6 +244,9 @@ const App = () => {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
                           {customer.customerId}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
+                          {customer.source}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800 flex items-center">
                           <img

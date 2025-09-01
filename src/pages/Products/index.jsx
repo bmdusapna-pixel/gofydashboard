@@ -148,7 +148,7 @@ const Products = () => {
                 to="/products/add-new"
                 className="cursor-pointer bg-red-200 hover:bg-red-300 text-red-800 text-sm font-medium py-2 px-4 rounded-md shadow-sm transition-colors"
               >
-                Add New Toy
+                Add New Product
               </Link>
               <select
                 className="cursor-pointer px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
@@ -247,13 +247,16 @@ const Products = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.category?.categoryName}
+                        {product.categories?.[0]?.categoryName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.variants[0]?.stock}
+                        {product.variants[0]?.ageGroups?.[0]?.stock}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        ₹ {parseFloat(product.variants[0]?.price).toFixed(2)}
+                        ₹{" "}
+                        {parseFloat(
+                          product.variants[0]?.ageGroups?.[0]?.price
+                        ).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
