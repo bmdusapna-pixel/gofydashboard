@@ -68,7 +68,7 @@ const Index = () => {
     const csvContent =
       "data:text/csv;charset=utf-8," +
       "Metric,Value\n" +
-      "Total Revenue,₹247800\n" +
+      "Total Sales,₹247800\n" +
       "Total Orders,1245\n" +
       "COD Orders,745\n" +
       "Prepaid Orders,500\n" +
@@ -143,11 +143,11 @@ const Index = () => {
   ];
 
   const stateOrdersData = [
-    { state: "Maharashtra", orders: 1847, revenue: "₹2,77,050" },
-    { state: "Karnataka", orders: 1523, revenue: "₹2,28,450" },
-    { state: "Tamil Nadu", orders: 1234, revenue: "₹1,85,100" },
-    { state: "Gujarat", orders: 1098, revenue: "₹1,64,700" },
-    { state: "Delhi", orders: 987, revenue: "₹1,48,050" },
+    { state: "Maharashtra", orders: 1847, Sales: "₹2,77,050" },
+    { state: "Karnataka", orders: 1523, Sales: "₹2,28,450" },
+    { state: "Tamil Nadu", orders: 1234, Sales: "₹1,85,100" },
+    { state: "Gujarat", orders: 1098, Sales: "₹1,64,700" },
+    { state: "Delhi", orders: 987, Sales: "₹1,48,050" },
   ];
 
   const topBuyers = [
@@ -246,7 +246,7 @@ const Index = () => {
       {/* Main Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
-          title="Total Revenue"
+          title="Total Sales"
           value="₹24,780"
           change="+12.5%"
           icon={faIndianRupeeSign}
@@ -546,7 +546,7 @@ const Index = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm text-indigo-600">
-                    {state.revenue}
+                    {state.Sales}
                   </p>
                 </div>
               </div>

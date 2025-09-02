@@ -39,7 +39,9 @@ const EditProduct = () => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [newImages, setNewImages] = useState([]);
   const [videoPreview, setVideoPreview] = useState(null);
+  const [newVideo, setNewVideo] = useState(null);
 
   useEffect(() => {
     const fetchAgeGroups = async () => {
@@ -109,6 +111,7 @@ const EditProduct = () => {
 
         // 🟢 Map API data into your form state
         setProduct({
+          _id: data._id,
           name: data.name || "",
           url: data.url || "",
           brand: data.brand || "",
@@ -133,6 +136,8 @@ const EditProduct = () => {
           metaTitle: data.metaTitle || "",
           metaDescription: data.metaDescription || "",
           metaKeywords: data.metaKeywords || "",
+          images: data.images || [],
+          video: data.video || null,
         });
 
         // 🟢 Preload media previews
@@ -175,6 +180,9 @@ const EditProduct = () => {
               : [{ key: "", value: "" }],
           })) || []
         );
+        // 🟢 Reset new images and video states
+        setNewImages([]);
+        setNewVideo(null);
       } catch (err) {
         console.error("Error fetching product:", err);
       }
@@ -253,36 +261,60 @@ const EditProduct = () => {
 
   const handleImageUpload = (files) => {
     const fileArray = Array.from(files);
-    const newImages = [...product.images, ...fileArray];
-    setProduct((prev) => ({ ...prev, images: newImages }));
-
-    const newImagePreviews = fileArray.map((file) => URL.createObjectURL(file));
-    setImagePreviews((prev) => [...prev, ...newImagePreviews]);
+    setNewImages((prev) => [...prev, ...fileArray]);
+    const newImageUrls = fileArray.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...newImageUrls]);
   };
 
   const handleVideoUpload = (file) => {
-    setProduct((prev) => ({ ...prev, video: file }));
+    setNewVideo(file);
     setVideoPreview(URL.createObjectURL(file));
   };
 
   const removeMedia = (index, type) => {
     if (type === "image") {
-      setProduct((prev) => ({
-        ...prev,
-        images: prev.images.filter((_, i) => i !== index),
-      }));
+      // Determine if the item to remove is an old image (URL) or a new one (File)
+      const isNewImage = index >= product.images.length;
+      let newImageIndex = -1;
+      if (isNewImage) {
+        newImageIndex = index - product.images.length;
+      }
+
+      // 1. Update the state for new and old images
+      if (isNewImage) {
+        setNewImages((prev) => prev.filter((_, i) => i !== newImageIndex));
+      } else {
+        setProduct((prev) => ({
+          ...prev,
+          images: prev.images.filter((_, i) => i !== index),
+        }));
+      }
+
+      // 2. Update the previews
       setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+
+      // 3. Update the variants' image indices
       setVariants((prev) =>
         prev.map((variant) => {
-          const updatedSelectedImages = variant.selectedImages
+          let updatedMainImageIndex = variant.mainImageIndex;
+          let updatedSelectedImages = [...variant.selectedImages];
+
+          // Adjust indices if the removed image was before them
+          if (
+            variant.mainImageIndex !== null &&
+            variant.mainImageIndex > index
+          ) {
+            updatedMainImageIndex -= 1;
+          }
+          updatedSelectedImages = updatedSelectedImages
             .filter((imgIndex) => imgIndex !== index)
             .map((imgIndex) => (imgIndex > index ? imgIndex - 1 : imgIndex));
-          const updatedMainImageIndex =
-            variant.mainImageIndex === index
-              ? null
-              : variant.mainImageIndex > index
-              ? variant.mainImageIndex - 1
-              : variant.mainImageIndex;
+
+          // If the removed image was the main one, reset it
+          if (variant.mainImageIndex === index) {
+            updatedMainImageIndex = null;
+          }
+
           return {
             ...variant,
             mainImageIndex: updatedMainImageIndex,
@@ -292,6 +324,7 @@ const EditProduct = () => {
       );
     } else if (type === "video") {
       setProduct((prev) => ({ ...prev, video: null }));
+      setNewVideo(null);
       setVideoPreview(null);
     }
   };
@@ -556,24 +589,39 @@ const EditProduct = () => {
     try {
       const formData = new FormData();
 
-      imagePreviews.forEach((file) => {
-        if (file instanceof File) {
-          formData.append("images", file);
-        }
+      newImages.forEach((file) => {
+        formData.append("images", file);
       });
 
-      if (videoPreview && videoPreview instanceof File) {
-        formData.append("video", videoPreview);
+      if (newVideo) {
+        formData.append("video", newVideo);
       }
 
-      const payload = {
-        ...product,
-        variants: variants.map((variant) => ({
-          color: variant.color,
-          images: [
-            imagePreviews[variant.mainImageIndex],
-            ...variant.selectedImages.map((i) => imagePreviews[i]),
-          ],
+      const persistentImageUrls = imagePreviews.filter(
+        (url) => !url.startsWith("blob:")
+      );
+
+      const variantsWithPersistentImages = variants.map((variant) => {
+        const variantImages = [
+          imagePreviews[variant.mainImageIndex],
+          ...variant.selectedImages.map((i) => imagePreviews[i]),
+        ];
+
+        const updatedImages = variantImages
+          .map((url) => {
+            if (url.startsWith("blob:")) {
+              const newImageIndex = newImages.findIndex(
+                (file) => URL.createObjectURL(file) === url
+              );
+              return `new-image-${newImageIndex}`;
+            }
+            return url;
+          })
+          .filter(Boolean);
+
+        return {
+          ...variant,
+          images: updatedImages,
           ageGroups: variant.ageGroups.map((ageGroup) => ({
             ageGroup: ageGroup.ageGroup,
             price: Number(ageGroup.price),
@@ -582,15 +630,17 @@ const EditProduct = () => {
             stock: Number(ageGroup.stock),
             tax: Number(ageGroup.tax),
           })),
-          specifications: variant.specifications
-            .filter((s) => s.key && s.value)
-            .map((s) => ({ key: s.key, value: s.value })),
-        })),
-        images: imagePreviews,
-        video: videoPreview || null,
-        keyFeatures: product.keyFeatures
-          .filter((f) => f.key && f.value)
-          .map((f) => ({ key: f.key, value: f.value })),
+          specifications: variant.specifications.filter(
+            (s) => s.key && s.value
+          ),
+        };
+      });
+      const payload = {
+        ...product,
+        images: persistentImageUrls,
+        video: videoPreview && !newVideo ? product.video : null,
+        variants: variantsWithPersistentImages,
+        keyFeatures: product.keyFeatures.filter((f) => f.key && f.value),
       };
 
       formData.append("payload", JSON.stringify(payload));

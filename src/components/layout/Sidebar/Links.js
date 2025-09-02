@@ -13,7 +13,7 @@ import {
 export const navItems = [
   // { name: "Dashboard", icon: faHome, path: "/", type: "link" },
   {
-    name: "Summary Dashboard",
+    name: "Dashboard",
     icon: faHome,
     path: "/",
     type: "link",
