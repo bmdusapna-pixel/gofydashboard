@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import Select from "react-select"; // Import react-select
+import { SquarePen } from "lucide-react";
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
@@ -573,7 +574,7 @@ const AddProduct = () => {
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
                 >
-                  {isBothSelected ? "Clear Both" : "Select Both"}
+                  {isBothSelected ? "Unselect Both" : "Select Both"}
                 </button>
               </div>
             </div>
@@ -586,7 +587,7 @@ const AddProduct = () => {
               <div className="space-y-2">
                 {[
                   { value: "new_arrival", label: "New Arrivals" },
-                  { value: "super_deal", label: "Super Deal" },
+                  // { value: "super_deal", label: "Super Deal" },
                   { value: "offers", label: "Offers" },
                   { value: "trending", label: "Trending Product" },
                   { value: "deal_of_the_day", label: "Deal of the Day" },
@@ -747,7 +748,9 @@ const AddProduct = () => {
               <div className="grid grid-cols-2 gap-4">
                 {/* Brand */}
                 <div>
-                  <label className="block mb-2 whitespace-nowrap">Brand</label>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Brand (optional)
+                  </label>
                   <input
                     type="text"
                     value={product.brand}
@@ -777,7 +780,7 @@ const AddProduct = () => {
                 {/* Material */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
-                    Material
+                    Material (optional)
                   </label>
                   <select
                     value={product.material}
@@ -796,7 +799,9 @@ const AddProduct = () => {
                 </div>
                 {/* Gender */}
                 <div>
-                  <label className="block mb-2 whitespace-nowrap">Gender</label>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Gender<span className="text-red-500">*</span>
+                  </label>
                   <select
                     value={product.gender}
                     onChange={(e) =>
@@ -969,31 +974,44 @@ const AddProduct = () => {
                   + Add Top-Level Specification
                 </button>
               </div>
-              {/* Key Features (Dynamic Key-Value) */}
+              {/* Additional Tabs (Dynamic Key-Value) */}
               <div>
                 <label className="block mb-2 whitespace-nowrap">
-                  Key Features
+                  Additional Tabs
                 </label>
                 {product.keyFeatures.map((feature, fIndex) => (
                   <div key={fIndex} className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      placeholder="Key"
-                      value={feature.key}
-                      onChange={(e) =>
-                        handleKeyFeatureChange(fIndex, "key", e.target.value)
-                      }
-                      className="border border-gray-300 rounded p-2 flex-1"
-                    />
-                    <textarea
-                      placeholder="Value"
-                      value={feature.value}
-                      onChange={(e) =>
-                        handleKeyFeatureChange(fIndex, "value", e.target.value)
-                      }
-                      className="border border-gray-300 rounded p-2 flex-1"
-                      rows="1"
-                    />
+                    <div className="flex-1 flex-col flex">
+                      <div className="flex items-center">
+                        <SquarePen className="h-4 w-4 text-red-500" />
+                        <input
+                          type="text"
+                          placeholder="Key"
+                          value={feature.key}
+                          onChange={(e) =>
+                            handleKeyFeatureChange(
+                              fIndex,
+                              "key",
+                              e.target.value
+                            )
+                          }
+                          className="p-2 border-none outline-none focus:ring-0 focus:outline-none"
+                        />
+                      </div>
+                      <textarea
+                        placeholder="Value"
+                        value={feature.value}
+                        onChange={(e) =>
+                          handleKeyFeatureChange(
+                            fIndex,
+                            "value",
+                            e.target.value
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2"
+                        rows="1"
+                      />
+                    </div>
                     {product.keyFeatures.length > 1 && (
                       <button
                         type="button"
@@ -1015,7 +1033,9 @@ const AddProduct = () => {
               </div>
               {/* Meta Data Section */}
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-700">Meta Data for SEO</h3>
+                <h3 className="font-medium text-gray-700">
+                  Meta Data for SEO (optional)
+                </h3>
                 {/* Meta Title */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
@@ -1082,7 +1102,9 @@ const AddProduct = () => {
                 </div>
                 {/* Variant Color */}
                 <div>
-                  <label className="block mb-2 whitespace-nowrap">Color</label>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Color<span className="text-red-500">*</span>
+                  </label>
                   <select
                     value={variant.color}
                     onChange={(e) =>
@@ -1226,7 +1248,7 @@ const AddProduct = () => {
                         {/* Age Group */}
                         <div>
                           <label className="block mb-2 whitespace-nowrap">
-                            Age Group
+                            Age Group<span className="text-red-500">*</span>
                           </label>
                           <select
                             value={ageGroup.ageGroup}
@@ -1250,8 +1272,8 @@ const AddProduct = () => {
                         </div>
                         {/* Price, Cut Price, Discount, Stock */}
                         {[
-                          { label: "Sale Price", field: "price" },
-                          { label: "MRP", field: "cutPrice" },
+                          { label: "Sale Price*", field: "price" },
+                          { label: "MRP*", field: "cutPrice" },
                         ].map(({ label, field }) => (
                           <div key={field}>
                             <label className="block mb-2 whitespace-nowrap">
@@ -1286,6 +1308,7 @@ const AddProduct = () => {
                         <div>
                           <label className="block mb-2 whitespace-nowrap">
                             Stock Quantity
+                            <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="number"
