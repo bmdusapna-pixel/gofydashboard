@@ -24,6 +24,7 @@ const Products = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const [productList, setProductList] = useState([]);
+  const [deleted, setDeleted] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -36,7 +37,7 @@ const Products = () => {
       }
     };
     fetchProducts();
-  }, []);
+  }, [deleted]);
 
   const getStatusClasses = (status) => {
     switch (status) {
@@ -79,8 +80,13 @@ const Products = () => {
     setOpenDropdownId(null);
   };
 
-  const handleDelete = (productId) => {
+  const handleDelete = async (productId) => {
     console.log("Delete product with ID:", productId);
+    await api.delete(`/products/${productId}`);
+    setDeleted(true);
+    setTimeout(() => {
+      setDeleted(false);
+    }, 300);
     setOpenDropdownId(null);
   };
 

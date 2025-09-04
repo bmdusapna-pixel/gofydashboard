@@ -9,13 +9,13 @@ const AddProduct = () => {
     url: "",
     brand: "",
     categories: [],
-    material: "",
+    material: null,
     gender: "",
     description: "",
     shippingPolicy:
       "Shipping and return policies will be automatically applied.",
     washCare: [""],
-    status: "",
+    status: null,
     redirectUrl: "",
     promotions: [],
     dealHours: "",
@@ -531,6 +531,16 @@ const AddProduct = () => {
     product.categories.includes(option.value)
   );
 
+  const getAllUsedImageIndexes = () => {
+    const used = new Set();
+    variants.forEach((variant) => {
+      if (variant.mainImageIndex !== null) used.add(variant.mainImageIndex);
+      variant.selectedImages.forEach((i) => used.add(i));
+    });
+    return used;
+  };
+  const allUsedIndexes = getAllUsedImageIndexes();
+
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
       <div className="">
@@ -870,7 +880,7 @@ const AddProduct = () => {
               {/* Description */}
               <div>
                 <label className="block mb-2 whitespace-nowrap">
-                  Description
+                  Description<span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={product.description}
@@ -1133,38 +1143,62 @@ const AddProduct = () => {
                           Main Image (required)
                         </label>
                         <div className="flex gap-2 flex-wrap">
-                          {imagePreviews.map((src, index) => (
-                            <div
-                              key={index}
-                              onClick={() => {
-                                handleVariantChange(
-                                  vIndex,
-                                  "mainImageIndex",
-                                  index
-                                );
-                                const updatedSelected =
-                                  variant.selectedImages.filter(
-                                    (imgIndex) => imgIndex !== index
+                          {imagePreviews.map((src, index) => {
+                            const isUsedInOtherVariant =
+                              allUsedIndexes.has(index) &&
+                              !(
+                                variant.mainImageIndex === index ||
+                                variant.selectedImages.includes(index)
+                              );
+
+                            return (
+                              <div
+                                key={index}
+                                onClick={() => {
+                                  if (isUsedInOtherVariant) return;
+                                  handleVariantChange(
+                                    vIndex,
+                                    "mainImageIndex",
+                                    index
                                   );
-                                handleVariantChange(
-                                  vIndex,
-                                  "selectedImages",
-                                  updatedSelected
-                                );
-                              }}
-                              className={`relative w-24 h-24 border-2 rounded overflow-hidden cursor-pointer ${
-                                variant.mainImageIndex === index
-                                  ? "border-blue-500 ring-2 ring-blue-500"
-                                  : "border-gray-300"
-                              }`}
-                            >
-                              <img
-                                src={src}
-                                alt={`image ${index}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ))}
+
+                                  const updatedSelected =
+                                    variant.selectedImages.filter(
+                                      (imgIndex) => imgIndex !== index
+                                    );
+                                  handleVariantChange(
+                                    vIndex,
+                                    "selectedImages",
+                                    updatedSelected
+                                  );
+                                }}
+                                className={`relative w-24 h-24 border-2 rounded overflow-hidden cursor-pointer
+                                ${
+                                  variant.mainImageIndex === index
+                                    ? "border-blue-500 ring-2 ring-blue-500"
+                                    : "border-gray-300"
+                                }
+                                ${
+                                  isUsedInOtherVariant
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }
+                              `}
+                              >
+                                <img
+                                  src={src}
+                                  alt={`image ${index}`}
+                                  className="w-full h-full object-cover"
+                                />
+
+                                {variant.mainImageIndex === index && (
+                                  <span className="absolute top-1 left-1 bg-blue-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                    1
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                       {/* Additional Images */}
@@ -1173,44 +1207,76 @@ const AddProduct = () => {
                           Additional Images (select up to 3)
                         </label>
                         <div className="flex gap-2 flex-wrap">
-                          {imagePreviews.map((src, index) => (
-                            <div
-                              key={index}
-                              onClick={() => {
-                                if (variant.mainImageIndex === index) return;
-                                const isSelected =
-                                  variant.selectedImages.includes(index);
-                                let newSelected = [...variant.selectedImages];
-                                if (isSelected) {
-                                  newSelected = newSelected.filter(
-                                    (i) => i !== index
-                                  );
-                                } else if (newSelected.length < 3) {
-                                  newSelected.push(index);
-                                }
-                                handleVariantChange(
-                                  vIndex,
-                                  "selectedImages",
-                                  newSelected
-                                );
-                              }}
-                              className={`relative w-24 h-24 border-2 rounded overflow-hidden cursor-pointer ${
+                          {imagePreviews.map((src, index) => {
+                            const isUsedInOtherVariant =
+                              allUsedIndexes.has(index) &&
+                              !(
+                                variant.mainImageIndex === index ||
                                 variant.selectedImages.includes(index)
-                                  ? "border-green-500 ring-2 ring-green-500"
-                                  : "border-gray-300"
-                              } ${
-                                variant.mainImageIndex === index
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : ""
-                              }`}
-                            >
-                              <img
-                                src={src}
-                                alt={`image ${index}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ))}
+                              );
+
+                            return (
+                              <div
+                                key={index}
+                                onClick={() => {
+                                  if (isUsedInOtherVariant) return; // 🚫 block if used elsewhere
+                                  if (variant.mainImageIndex === index) return; // skip if main
+
+                                  const isSelected =
+                                    variant.selectedImages.includes(index);
+                                  let newSelected = [...variant.selectedImages];
+
+                                  if (isSelected) {
+                                    newSelected = newSelected.filter(
+                                      (i) => i !== index
+                                    );
+                                  } else if (newSelected.length < 3) {
+                                    newSelected.push(index);
+                                  }
+
+                                  handleVariantChange(
+                                    vIndex,
+                                    "selectedImages",
+                                    newSelected
+                                  );
+                                }}
+                                className={`relative w-24 h-24 border-2 rounded overflow-hidden cursor-pointer
+                                ${
+                                  variant.selectedImages.includes(index)
+                                    ? "border-green-500 ring-2 ring-green-500"
+                                    : "border-gray-300"
+                                }
+                                ${
+                                  variant.mainImageIndex === index
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }
+                                ${
+                                  isUsedInOtherVariant
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }
+                              `}
+                              >
+                                <img
+                                  src={src}
+                                  alt={`image ${index}`}
+                                  className="w-full h-full object-cover"
+                                />
+
+                                {/* 🔹 Show order number if selected */}
+                                {(variant.mainImageIndex === index ||
+                                  variant.selectedImages.includes(index)) && (
+                                  <span className="absolute top-1 left-1 bg-blue-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                    {variant.mainImageIndex === index
+                                      ? 1
+                                      : variant.selectedImages.indexOf(index) +
+                                        2}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
