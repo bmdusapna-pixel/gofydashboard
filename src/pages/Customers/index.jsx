@@ -1,131 +1,82 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-// Main App component for Customer User Profile Table
-const App = () => {
-  // Sample customer user profile data
-  const customerProfiles = [
-    {
-      id: "cust-001",
-      customerId: "CUST-001",
-      customerName: "Alice Wonderland",
-      customerImage: "https://placehold.co/40x40/FFD700/000?text=AW",
-      phone: "123-456-7890",
-      registrationDate: "2024-01-15",
-      totalOrders: 15,
-      lastActive: "2025-07-18",
-      source: "Web",
-    },
-    {
-      id: "cust-002",
-      customerId: "CUST-002",
-      customerName: "Bob The Builder",
-      customerImage: "https://placehold.co/40x40/87CEEB/000?text=BB",
-      phone: "987-654-3210",
-      registrationDate: "2023-11-01",
-      totalOrders: 8,
-      lastActive: "2025-07-10",
-      source: "App",
-    },
-    {
-      id: "cust-003",
-      customerId: "CUST-003",
-      customerName: "Charlie Chaplin",
-      customerImage: "https://placehold.co/40x40/FF6347/000?text=CC",
-      phone: "111-222-3333",
-      registrationDate: "2024-03-20",
-      totalOrders: 22,
-      lastActive: "2025-07-19",
-      source: "Web",
-    },
-    {
-      id: "cust-004",
-      customerId: "CUST-004",
-      customerName: "Diana Prince",
-      customerImage: "https://placehold.co/40x40/9ACD32/000?text=DP",
-      phone: "444-555-6666",
-      registrationDate: "2023-09-05",
-      totalOrders: 10,
-      lastActive: "2025-07-15",
-      source: "App",
-    },
-    {
-      id: "cust-005",
-      customerId: "CUST-005",
-      customerName: "Eve Harrington",
-      customerImage: "https://placehold.co/40x40/DDA0DD/000?text=EH",
-      phone: "777-888-9999",
-      registrationDate: "2024-06-10",
-      totalOrders: 5,
-      lastActive: "2025-07-01",
-      source: "Web",
-    },
-    {
-      id: "cust-006",
-      customerId: "CUST-006",
-      customerName: "Frank Sinatra",
-      customerImage: "https://placehold.co/40x40/C0C0C0/000?text=FS",
-      phone: "321-654-9870",
-      registrationDate: "2023-04-22",
-      totalOrders: 30,
-      lastActive: "2025-07-18",
-      source: "Web",
-    },
-    {
-      id: "cust-007",
-      customerId: "CUST-007",
-      customerName: "Grace Kelly",
-      customerImage: "https://placehold.co/40x40/ADD8E6/000?text=GK",
-      phone: "654-321-0987",
-      registrationDate: "2024-02-14",
-      totalOrders: 18,
-      lastActive: "2025-07-05",
-      source: "App",
-    },
-    {
-      id: "cust-008",
-      customerId: "CUST-008",
-      customerName: "Harry Potter",
-      customerImage: "https://placehold.co/40x40/FFB6C1/000?text=HP",
-      phone: "999-888-7777",
-      registrationDate: "2023-07-30",
-      totalOrders: 12,
-      lastActive: "2025-07-12",
-      source: "Web",
-    },
-    {
-      id: "cust-009",
-      customerId: "CUST-009",
-      customerName: "Ivy Queen",
-      customerImage: "https://placehold.co/40x40/90EE90/000?text=IQ",
-      phone: "123-987-4560",
-      registrationDate: "2024-05-01",
-      totalOrders: 7,
-      lastActive: "2025-07-17",
-      source: "App",
-    },
-    {
-      id: "cust-010",
-      customerId: "CUST-010",
-      customerName: "Jack Sparrow",
-      customerImage: "https://placehold.co/40x40/DDA0DD/000?text=JS",
-      phone: "098-765-4321",
-      registrationDate: "2023-10-10",
-      totalOrders: 25,
-      lastActive: "2025-07-16",
-      source: "Web",
-    },
-  ];
 
-  // State to manage which dropdown is open (stores the customer ID)
+import api from "../../api/axios";
+
+const App = () => {
+  const [customerProfiles, setCustomerProfiles] = useState([]);
+
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Number of items to display per page
+  const itemsPerPage = 5;
 
-  // Ref to store dropdown elements for click-outside detection
   const dropdownRefs = useRef({});
+
+  const navigate = useNavigate();
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get("/user/auth/all");
+      const fetchedUsers = response.data.users;
+
+      const formattedProfiles = fetchedUsers.map((user, index) => {
+        const registrationDate = user.createdAt
+          ? new Date(user.createdAt).toISOString().split("T")[0]
+          : "N/A";
+        const customerId = `CUST-${user._id.slice(-4).toUpperCase()}`;
+        const nameInitials = user.name
+          ? user.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+          : "N/A";
+        const imageColor =
+          "#" +
+          Math.floor(Math.random() * 16777215)
+            .toString(16)
+            .padStart(6, "0");
+        const customerImage = `https://placehold.co/40x40/${imageColor.substring(
+          1
+        )}/000?text=${nameInitials}`;
+
+        return {
+          id: user._id,
+          customerId: customerId,
+          customerName: user.name || "N/A",
+          customerImage: customerImage,
+          phone: user.phone || "N/A",
+          registrationDate: registrationDate,
+          totalOrders: 15,
+          lastActive: "2025-07-18",
+          source: "Web",
+        };
+      });
+
+      setCustomerProfiles(formattedProfiles);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setCustomerProfiles([
+        {
+          id: "cust-001",
+          customerId: "CUST-001",
+          customerName: "Alice Wonderland",
+          customerImage: "https://placehold.co/40x40/FFD700/000?text=AW",
+          phone: "123-456-7890",
+          registrationDate: "2024-01-15",
+          totalOrders: 15,
+          lastActive: "2025-07-18",
+          source: "Web",
+        },
+      ]);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   // Toggle dropdown visibility
   const toggleDropdown = (id) => {
@@ -135,7 +86,6 @@ const App = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Iterate through all dropdowns to check for a click outside
       if (
         openDropdownId &&
         dropdownRefs.current[openDropdownId] &&
@@ -148,9 +98,7 @@ const App = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [openDropdownId]); // Dependency array to re-run effect when openDropdownId changes
-
-  const navigate = useNavigate();
+  }, [openDropdownId]);
 
   const handleView = (customerId) => {
     navigate(`/customers/${customerId}`);
@@ -281,7 +229,6 @@ const App = () => {
                           >
                             <i className="fas fa-ellipsis-h"></i>
                           </button>
-
                           {openDropdownId === customer.id && (
                             <div
                               className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
@@ -334,7 +281,7 @@ const App = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan="8"
+                        colSpan="9"
                         className="px-4 py-3 text-center text-sm text-gray-500"
                       >
                         No customer profiles found.
@@ -344,7 +291,6 @@ const App = () => {
                 </tbody>
               </table>
             </div>
-
             <div className="flex justify-end items-center mt-6 space-x-2">
               <button
                 onClick={() => paginate(currentPage - 1)}
@@ -382,4 +328,5 @@ const App = () => {
     </>
   );
 };
+
 export default App;

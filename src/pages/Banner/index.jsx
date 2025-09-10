@@ -1,39 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import dummyBanners from "../../assets/banners.list.js"; // Adjust path if necessary
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../../api/axios.js";
 
 const bannerTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
   { title: "Image", _id: "image" },
-  { title: "Banner Title", _id: "bannerTitle" },
-  { title: "Description", _id: "description" },
-  { title: "Display On", _id: "displayOn" },
+  { title: "Banner Group", _id: "bannerGroup" },
+  { title: "Titles", _id: "titles" },
   { title: "Action", _id: "action" },
 ];
 
 const Banners = () => {
+  const [groupedBanners, setGroupedBanners] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const navigate = useNavigate();
 
-  const getBanners = () => {
-    // No filtering is implemented, so we return the raw data.
-    return dummyBanners;
-  };
-
-  const banners = getBanners();
+  // ✅ Fetch grouped banners from API
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const res = await api.get("/banners/grouped");
+        setGroupedBanners(res.data);
+      } catch (err) {
+        console.error("Error fetching banners:", err);
+      }
+    };
+    fetchBanners();
+  }, []);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentBanners = banners.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(banners.length / itemsPerPage);
+  const currentGroups = groupedBanners.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(groupedBanners.length / itemsPerPage);
 
   const handleEdit = (bannerId) => {
-    console.log(`Editing banner with ID: ${bannerId}`);
+    navigate(`/banner-add-edit/${bannerId}`);
   };
 
-  const handleDelete = (bannerId) => {
-    console.log(`Deleting banner with ID: ${bannerId}`);
+  const handleDelete = async (bannerId) => {
+    if (!window.confirm("Are you sure you want to delete this banner?")) return;
+
+    try {
+      await api.delete(`/banners/${bannerId}`);
+      setGroupedBanners((prev) =>
+        prev
+          .map((group) => ({
+            ...group,
+            banners: group.banners.filter((b) => b._id !== bannerId),
+          }))
+          .filter((group) => group.banners.length > 0)
+      );
+    } catch (err) {
+      console.error("Error deleting banner:", err);
+    }
   };
 
   const paginate = (pageNumber) => {
@@ -78,63 +99,95 @@ const Banners = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-primary-100">
-                {currentBanners.length > 0 ? (
-                  currentBanners.map((banner, index) => (
-                    <tr
-                      key={banner.id}
-                      className="hover:bg-gray-50 transition duration-150 ease-in-out"
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {indexOfFirstItem + index + 1}
-                      </td>
-                      <td className="px-4 py-3">
-                        <img
-                          src={banner.imageUrl}
-                          alt={banner.title}
-                          className="w-16 h-16 object-cover rounded-md border border-primary-100"
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-800">
-                        {banner.title}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                        {banner.description}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            banner.displayOn === "web"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
+                {currentGroups.length > 0 ? (
+                  currentGroups.map((group) => (
+                    <React.Fragment key={group._id}>
+                      {/* Group Header Row */}
+                      <tr className="bg-gray-100">
+                        <td
+                          colSpan="7"
+                          className="px-4 py-2 font-semibold text-gray-700"
                         >
-                          {banner.displayOn}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="text-yellow-600 hover:text-yellow-800 transition-colors duration-200"
-                            onClick={() => handleEdit(banner.id)}
-                            title="Edit"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            className="text-red-600 hover:text-red-800 transition-colors duration-200"
-                            onClick={() => handleDelete(banner.id)}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                          {group._id} ({group.banners.length})
+                        </td>
+                      </tr>
+
+                      {/* Each Banner in Group */}
+                      {group.banners.map((banner, index) => (
+                        <tr
+                          key={banner._id}
+                          className="hover:bg-gray-50 transition duration-150 ease-in-out"
+                        >
+                          <td className="px-4 py-3 text-sm text-gray-600">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-3 flex gap-2">
+                            {/* Web Image */}
+                            <div className="flex flex-col items-center">
+                              <img
+                                src={banner.webImageUrl}
+                                alt={`${banner.title} - Web`}
+                                className="w-16 h-16 object-cover rounded-md border border-primary-100"
+                              />
+                              <span className="text-xs text-gray-500 mt-1">
+                                Web
+                              </span>
+                            </div>
+                            {/* Mobile Image */}
+                            <div className="flex flex-col items-center">
+                              <img
+                                src={banner.appImageUrl}
+                                alt={`${banner.title} - Mobile`}
+                                className="w-16 h-16 object-cover rounded-md border border-primary-100"
+                              />
+                              <span className="text-xs text-gray-500 mt-1">
+                                Mobile
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-800">
+                            {banner.title}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600 max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                            {banner.description}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">
+                            {banner.isActive ? (
+                              <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Active
+                              </span>
+                            ) : (
+                              <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium">
+                                Inactive
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <button
+                                className="text-yellow-600 hover:text-yellow-800 transition-colors duration-200"
+                                onClick={() => handleEdit(banner._id)}
+                                title="Edit"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                className="text-red-600 hover:text-red-800 transition-colors duration-200"
+                                onClick={() => handleDelete(banner._id)}
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       className="px-4 py-3 text-center text-sm text-gray-600"
                     >
                       No banners found

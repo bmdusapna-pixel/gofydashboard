@@ -47,6 +47,7 @@ import UserTransactions from "./pages/LoyaltyDashboard/UserTransactions";
 import Review from "./pages/Review";
 import Activities from "./pages/Activities";
 import NotificationDashboard from "./pages/NotificationDashboard";
+import CartList from "./pages/Customers/CartList";
 
 const App = () => {
   return (
@@ -124,6 +125,7 @@ const App = () => {
                   path="/notifications"
                   element={<NotificationDashboard />}
                 />
+                <Route path="/cart-list" element={<CartList />} />
               </Route>
             </Route>
           </Route>
