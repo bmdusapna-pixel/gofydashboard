@@ -1,22 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
-import { orders } from "../../assets/orders.list";
 import { EllipsisVertical, Eye, Pencil, Trash2 } from "lucide-react";
+import api from "../../api/axios.js";
 
 const table_header = [
   { _id: 1, title: "Sr No." },
   { _id: 2, title: "Order ID" },
   { _id: 3, title: "Created at" },
   { _id: 4, title: "Customer" },
-  { _id: 5, title: "Priority" },
-  { _id: 6, title: "Total" },
-  { _id: 7, title: "Payment Status" },
-  { _id: 8, title: "Items" },
-  { _id: 9, title: "Delivery Number" },
-  { _id: 10, title: "Order Status" },
-  { _id: 11, title: "Action" },
+  { _id: 5, title: "Total" },
+  { _id: 6, title: "Order Status" },
+  { _id: 7, title: "Action" },
 ];
 
 const AllOrders = () => {
+  const [orders, setOrders] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
@@ -25,29 +22,16 @@ const AllOrders = () => {
   const [filterByStatus, setFilterByStatus] = useState("all");
 
   const getOrderStatusClasses = (status) => {
-    switch (status) {
-      case "Processing":
+    switch (status?.toLowerCase()) {
+      case "processing":
         return "bg-blue-100 text-blue-800";
-      case "Shipped":
+      case "shipped":
         return "bg-indigo-100 text-indigo-800";
-      case "Delivered":
+      case "delivered":
         return "bg-green-100 text-green-800";
-      case "Pending":
+      case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "Cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getPaymentStatusClasses = (status) => {
-    switch (status) {
-      case "Paid":
-        return "bg-green-100 text-green-800";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "Refunded":
+      case "cancelled":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -57,6 +41,18 @@ const AllOrders = () => {
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const result = await api.get("/user/order");
+        setOrders(result.data);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -89,7 +85,9 @@ const AllOrders = () => {
     if (filterByStatus === "all") {
       return orders;
     }
-    return orders.filter((order) => order.orderStatus === filterByStatus);
+    return orders.filter(
+      (order) => order.status.toLowerCase() === filterByStatus.toLowerCase()
+    );
   };
 
   const filteredOrders = getFilteredOrders();
@@ -160,42 +158,24 @@ const AllOrders = () => {
                         {indexOfFirstItem + index + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        {order._id}
+                        {order.orderId}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {order.createdAt}
+                        {new Date(order.createdAt).toLocaleString()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        {order.customer}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {order.priority}
+                        {order.userId?.name}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        ₹ {order.total.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusClasses(
-                            order.paymentStatus
-                          )}`}
-                        >
-                          {order.paymentStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {order.items}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {order.deliveryNumber}
+                        ₹ {order.discountedPrice.toFixed(2)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${getOrderStatusClasses(
-                            order.orderStatus
+                            order.status
                           )}`}
                         >
-                          {order.orderStatus}
+                          {order.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap relative">
@@ -245,10 +225,10 @@ const AllOrders = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan="11"
+                      colSpan="7"
                       className="px-4 py-3 text-center text-sm text-gray-500"
                     >
-                      No categories found
+                      No orders found
                     </td>
                   </tr>
                 )}

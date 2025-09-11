@@ -88,7 +88,10 @@ export const navItems = [
     icon: faShoppingCart,
     type: "dropdown",
     path: "/orders", // Base path for dropdown
-    subItems: [{ name: "All Orders", path: "/orders" }],
+    subItems: [
+      { name: "All Orders", path: "/orders" },
+      { name: "Cart List", path: "/cart-list" },
+    ],
   },
   {
     name: "Purchase",
@@ -120,6 +123,16 @@ export const navItems = [
     icon: faFileInvoiceDollar,
     path: "/banners",
     type: "link",
+  },
+  {
+    name: "Coupons",
+    icon: faClipboardList,
+    type: "dropdown",
+    path: "/orders",
+    subItems: [
+      { name: "All Coupons", path: "/coupons" },
+      { name: "Add Coupon", path: "/coupon-form" },
+    ],
   },
   {
     name: "Customers",

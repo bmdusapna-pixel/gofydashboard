@@ -48,6 +48,8 @@ import Review from "./pages/Review";
 import Activities from "./pages/Activities";
 import NotificationDashboard from "./pages/NotificationDashboard";
 import CartList from "./pages/Customers/CartList";
+import CouponForm from "./pages/Coupon/CouponForm";
+import Coupons from "./pages/Coupon";
 
 const App = () => {
   return (
@@ -126,6 +128,8 @@ const App = () => {
                   element={<NotificationDashboard />}
                 />
                 <Route path="/cart-list" element={<CartList />} />
+                <Route path="/coupon-form" element={<CouponForm />} />
+                <Route path="/coupons" element={<Coupons />} />
               </Route>
             </Route>
           </Route>
