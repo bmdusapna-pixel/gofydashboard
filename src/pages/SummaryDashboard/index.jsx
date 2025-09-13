@@ -105,7 +105,7 @@ const dashboardData = {
   ],
   stats: [
     {
-      title: "Total Revenue",
+      title: "Total Sales",
       value: "₹24,780",
       change: "+12.5%",
       changeType: "positive",

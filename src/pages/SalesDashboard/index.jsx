@@ -25,7 +25,12 @@ import {
   faStar,
   faTruck,
   faDownload,
+  faFileExcel,
+  faEnvelope,
+  faCity,
 } from "@fortawesome/free-solid-svg-icons";
+import * as XLSX from "xlsx";
+import FilterForm from "./FilterForm";
 
 const Index = () => {
   const [timeFilter, setTimeFilter] = useState("This Month");
@@ -82,6 +87,24 @@ const Index = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  const exportExcel = () => {
+    const data = [
+      ["Metric", "Value"],
+      ["Total Sales", "₹247800"],
+      ["Total Orders", 1245],
+      ["COD Orders", 745],
+      ["Prepaid Orders", 500],
+      ["New Customers", 342],
+      ["Average Order Value", "₹456.67"],
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dashboard Data");
+
+    XLSX.writeFile(workbook, "gofy_kids_dashboard_data.xlsx");
   };
 
   const salesData = [
@@ -148,6 +171,22 @@ const Index = () => {
     { state: "Tamil Nadu", orders: 1234, Sales: "₹1,85,100" },
     { state: "Gujarat", orders: 1098, Sales: "₹1,64,700" },
     { state: "Delhi", orders: 987, Sales: "₹1,48,050" },
+  ];
+
+  const cityOrdersData = [
+    { city: "Mumbai", orders: 1200, Sales: "₹1,80,500" },
+    { city: "Bengaluru", orders: 950, Sales: "₹1,42,750" },
+    { city: "Chennai", orders: 780, Sales: "₹1,15,200" },
+    { city: "Ahmedabad", orders: 640, Sales: "₹98,600" },
+    { city: "Delhi", orders: 590, Sales: "₹87,400" },
+  ];
+
+  const postalOrdersData = [
+    { code: "400001 (Mumbai)", orders: 450, Sales: "₹67,800" },
+    { code: "560001 (Bengaluru)", orders: 380, Sales: "₹55,200" },
+    { code: "600001 (Chennai)", orders: 320, Sales: "₹47,900" },
+    { code: "380001 (Ahmedabad)", orders: 280, Sales: "₹41,600" },
+    { code: "110001 (Delhi)", orders: 260, Sales: "₹39,200" },
   ];
 
   const topBuyers = [
@@ -240,9 +279,18 @@ const Index = () => {
             <FontAwesomeIcon icon={faDownload} className="h-4 w-4" />
             <span>Export Data</span>
           </button>
+          <button
+            onClick={exportExcel}
+            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+          >
+            <FontAwesomeIcon icon={faFileExcel} className="h-4 w-4" />
+            <span>Export Excel</span>
+          </button>
         </div>
       </div>
-
+      <div className="mb-6">
+        <FilterForm />
+      </div>
       {/* Main Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
@@ -589,6 +637,79 @@ const Index = () => {
                 <div className="text-right">
                   <p className="font-bold text-sm text-green-600">
                     {buyer.spent}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Top Cities */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Top Cities
+          </h2>
+          <div className="space-y-3">
+            {cityOrdersData.map((city, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 rounded-xl border border-gray-200"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-50">
+                    <FontAwesomeIcon icon={faCity} className="text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">
+                      {city.city}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {city.orders} orders
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-sm text-indigo-600">
+                    {city.Sales}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Postal Codes */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Top Postal Codes
+          </h2>
+          <div className="space-y-3">
+            {postalOrdersData.map((postal, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 rounded-xl border border-gray-200"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-50">
+                    <FontAwesomeIcon
+                      icon={faEnvelope}
+                      className="text-green-500"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">
+                      {postal.code}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {postal.orders} orders
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-sm text-indigo-600">
+                    {postal.Sales}
                   </p>
                 </div>
               </div>

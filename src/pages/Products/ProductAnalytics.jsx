@@ -81,6 +81,16 @@ const DEMO_PRODUCTS = [
       { month: "2025-07", views: 220, sales: 70 },
       { month: "2025-08", views: 240, sales: 80 },
     ],
+    dailyStats: [
+      { date: "2025-07-01", views: 10, sales: 5 },
+      { date: "2025-07-02", views: 12, sales: 6 },
+      { date: "2025-07-03", views: 15, sales: 7 },
+    ],
+    stateStats: [
+      { state: "Delhi", views: 50, sales: 20 },
+      { state: "Noida", views: 30, sales: 15 },
+      { state: "Mumbai", views: 40, sales: 10 },
+    ],
   },
   {
     id: 2,
@@ -96,6 +106,16 @@ const DEMO_PRODUCTS = [
       { month: "2025-06", views: 300, sales: 110 },
       { month: "2025-07", views: 400, sales: 150 },
       { month: "2025-08", views: 360, sales: 130 },
+    ],
+    dailyStats: [
+      { date: "2025-07-01", views: 25, sales: 8 },
+      { date: "2025-07-02", views: 30, sales: 10 },
+      { date: "2025-07-03", views: 35, sales: 12 },
+    ],
+    stateStats: [
+      { state: "Delhi", views: 120, sales: 40 },
+      { state: "Bangalore", views: 90, sales: 35 },
+      { state: "Chennai", views: 80, sales: 25 },
     ],
   },
   {
@@ -113,6 +133,16 @@ const DEMO_PRODUCTS = [
       { month: "2025-07", views: 170, sales: 55 },
       { month: "2025-08", views: 140, sales: 42 },
     ],
+    dailyStats: [
+      { date: "2025-07-01", views: 8, sales: 3 },
+      { date: "2025-07-02", views: 12, sales: 4 },
+      { date: "2025-07-03", views: 15, sales: 6 },
+    ],
+    stateStats: [
+      { state: "Kolkata", views: 40, sales: 12 },
+      { state: "Delhi", views: 50, sales: 20 },
+      { state: "Lucknow", views: 30, sales: 10 },
+    ],
   },
   {
     id: 4,
@@ -128,6 +158,16 @@ const DEMO_PRODUCTS = [
       { month: "2025-06", views: 90, sales: 25 },
       { month: "2025-07", views: 120, sales: 40 },
       { month: "2025-08", views: 110, sales: 35 },
+    ],
+    dailyStats: [
+      { date: "2025-07-01", views: 5, sales: 2 },
+      { date: "2025-07-02", views: 7, sales: 3 },
+      { date: "2025-07-03", views: 10, sales: 4 },
+    ],
+    stateStats: [
+      { state: "Hyderabad", views: 35, sales: 12 },
+      { state: "Pune", views: 40, sales: 15 },
+      { state: "Ahmedabad", views: 25, sales: 8 },
     ],
   },
 ];
@@ -505,6 +545,54 @@ export default function ProductAnalyticsAdvanced() {
                     <YAxis />
                     <Tooltip />
                     <Bar dataKey="sales" fill="#34d399" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Daily stats */}
+            <div className="p-3 border border-gray-300 rounded-lg">
+              <div className="text-sm font-medium mb-2">
+                Daily Views & Sales
+              </div>
+              <div style={{ height: 200 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={selectedProduct.dailyStats || []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="views" fill="#60a5fa" />
+                    <Bar dataKey="sales" fill="#34d399" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* State-wise stats */}
+            <div className="p-3 border border-gray-300 rounded-lg">
+              <div className="text-sm font-medium mb-2">
+                State-wise Distribution
+              </div>
+              <div style={{ height: 200 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={selectedProduct.stateStats || []}
+                    layout="vertical"
+                    margin={{ top: 10, right: 30, left: 40, bottom: 10 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis
+                      dataKey="state"
+                      type="category"
+                      tick={{ fontSize: 11 }}
+                    />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="views" fill="#f59e0b" />
+                    <Bar dataKey="sales" fill="#10b981" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

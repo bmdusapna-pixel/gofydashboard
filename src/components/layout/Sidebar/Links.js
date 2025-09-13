@@ -91,6 +91,7 @@ export const navItems = [
     subItems: [
       { name: "All Orders", path: "/orders" },
       { name: "Cart List", path: "/cart-list" },
+      { name: "Bulk Orders", path: "/bulk-orders" },
     ],
   },
   {
@@ -132,6 +133,7 @@ export const navItems = [
     subItems: [
       { name: "All Coupons", path: "/coupons" },
       { name: "Add Coupon", path: "/coupon-form" },
+      { name: "Coupon Analytics", path: "/coupon-analytics" },
     ],
   },
   {

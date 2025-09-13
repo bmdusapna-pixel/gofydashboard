@@ -39,8 +39,8 @@ const Coupons = () => {
   const currentCoupons = coupons.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(coupons.length / itemsPerPage);
 
-  const handleEdit = (couponId) => {
-    navigate(`/coupon-add-edit/${couponId}`);
+  const handleEdit = (couponCode) => {
+    navigate(`/coupon-form/${couponCode}`);
   };
 
   const handleDelete = async (couponId) => {
@@ -71,7 +71,7 @@ const Coupons = () => {
             </h2>
             <div className="flex items-center gap-4">
               <Link
-                to="/coupon-add-edit"
+                to="/coupon-form"
                 className="cursor-pointer bg-green-100 flex items-center hover:bg-green-200 text-green-700 py-2 px-4 rounded-md shadow-sm transition-colors duration-200"
               >
                 <Plus className="w-5 h-5" />
@@ -142,7 +142,7 @@ const Coupons = () => {
                         <div className="flex items-center gap-2">
                           <button
                             className="text-yellow-600 hover:text-yellow-800 transition-colors duration-200"
-                            onClick={() => handleEdit(coupon._id)}
+                            onClick={() => handleEdit(coupon.code)}
                             title="Edit"
                           >
                             <Pencil className="w-4 h-4" />

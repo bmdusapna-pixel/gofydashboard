@@ -11,12 +11,56 @@ import {
   Eye,
   Smartphone,
   Globe,
+  MessageCircle,
 } from "lucide-react";
 
 const NotificationDashboard = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [activeTab, setActiveTab] = useState("templates");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateNotification, setShowCreateNotification] = useState(false);
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: "Welcome Offer",
+      message: "Get 20% off on your first order!",
+      platform: "Web",
+      status: "Sent",
+      sentAt: "2025-09-10",
+      webImage: "https://via.placeholder.com/150",
+      appImage: "",
+      webUrl: "https://example.com/welcome-offer",
+      appUrl: "",
+      whatsappUrl: "",
+    },
+    {
+      id: 2,
+      title: "App Update",
+      message: "A new version of the app is available. Update now!",
+      platform: "App",
+      status: "Sent",
+      sentAt: "2025-09-11",
+      webImage: "",
+      appImage: "https://via.placeholder.com/150",
+      webUrl: "",
+      appUrl: "https://example.com/app-update",
+      whatsappUrl: "",
+    },
+    {
+      id: 3,
+      title: "WhatsApp Alert",
+      message: "Your delivery is arriving today!",
+      platform: "WhatsApp",
+      status: "Pending",
+      sentAt: "2025-09-12",
+      webImage: "",
+      appImage: "",
+      webUrl: "",
+      appUrl: "",
+      whatsappUrl: "https://wa.me/911234567890",
+    },
+  ]);
+
   const [templates, setTemplates] = useState([
     {
       id: 1,
@@ -25,7 +69,8 @@ const NotificationDashboard = () => {
       platform: "Both",
       status: "Active",
       created: "2025-01-15",
-      imageUrl: "https://via.placeholder.com/50", // Added image URL
+      webImage: "https://via.placeholder.com/50", // Added image URL
+      appImage: "https://via.placeholder.com/50", // Added image URL
     },
     {
       id: 2,
@@ -34,7 +79,7 @@ const NotificationDashboard = () => {
       platform: "App",
       status: "Active",
       created: "2025-01-14",
-      imageUrl: "https://via.placeholder.com/50/FF0000/FFFFFF?text=Sale", // Added image URL
+      appImage: "https://via.placeholder.com/50/FF0000/FFFFFF?text=Sale", // Added image URL
     },
     {
       id: 3,
@@ -95,8 +140,10 @@ const NotificationDashboard = () => {
       id: 1,
       name: "Weekend Sale Campaign",
       type: "Scheduled",
-      date: "2025-01-18",
-      time: "10:00",
+      schedules: [
+        { date: "2025-01-18", time: "10:00" },
+        { date: "2025-01-19", time: "15:30" },
+      ],
       platform: "Both",
       status: "Pending",
     },
@@ -109,6 +156,7 @@ const NotificationDashboard = () => {
       status: "Active",
     },
   ]);
+
   const [analytics] = useState({
     totalSent: 15420,
     delivered: 14876,
@@ -132,6 +180,7 @@ const NotificationDashboard = () => {
           { id: "templates", label: "Templates", icon: Bell },
           { id: "triggers", label: "Triggers", icon: Settings },
           { id: "scheduler", label: "Scheduler", icon: Calendar },
+          { id: "notifications", label: "Notifications", icon: Send },
           { id: "analytics", label: "Analytics", icon: BarChart3 },
         ].map((tab) => (
           <button
@@ -147,6 +196,382 @@ const NotificationDashboard = () => {
             {tab.label}
           </button>
         ))}
+      </div>
+    </div>
+  );
+
+  const CreateNotificationModal = () => {
+    const [formData, setFormData] = useState({
+      title: "",
+      message: "",
+      platform: "Both",
+      webImage: null,
+      appImage: null,
+      webUrl: "",
+      appUrl: "",
+      whatsappUrl: "",
+    });
+
+    if (!showCreateNotification) return null;
+
+    return (
+      <div
+        className="fixed inset-0 flex items-center justify-center z-50"
+        style={{ background: "rgba(0, 0, 0, 0.5)" }}
+      >
+        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900">
+              Send Notification
+            </h2>
+            <button
+              onClick={() => setShowCreateNotification(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Title */}
+            <input
+              type="text"
+              placeholder="Notification Title"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+            />
+
+            {/* Message */}
+            <textarea
+              placeholder="Notification Message"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
+              value={formData.message}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
+            />
+
+            {/* Image Uploads */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Web Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFormData({ ...formData, webImage: e.target.files[0] })
+                  }
+                  className="w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  App Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFormData({ ...formData, appImage: e.target.files[0] })
+                  }
+                  className="w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+                />
+              </div>
+            </div>
+
+            {/* URLs */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Web URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  value={formData.webUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, webUrl: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  App URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="app://..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  value={formData.appUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, appUrl: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  WhatsApp URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  value={formData.whatsappUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, whatsappUrl: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Platform */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Platform
+              </label>
+              <div className="flex space-x-4">
+                {["Web", "App", "Both", "WhatsApp"].map((p) => (
+                  <label key={p} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="platform"
+                      value={p}
+                      checked={formData.platform === p}
+                      onChange={(e) =>
+                        setFormData({ ...formData, platform: e.target.value })
+                      }
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{p}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                onClick={() => setShowCreateNotification(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const newNotification = {
+                    id: notifications.length + 1,
+                    title: formData.title,
+                    message: formData.message,
+                    platform: formData.platform,
+                    status: "Sent",
+                    sentAt: new Date().toISOString().split("T")[0],
+                    webImage: formData.webImage,
+                    appImage: formData.appImage,
+                    urls: {
+                      web: formData.webUrl,
+                      app: formData.appUrl,
+                      whatsapp: formData.whatsappUrl,
+                    },
+                  };
+                  setNotifications([...notifications, newNotification]);
+                  setShowCreateNotification(false);
+                  setFormData({
+                    title: "",
+                    message: "",
+                    platform: "Both",
+                    webImage: null,
+                    appImage: null,
+                    webUrl: "",
+                    appUrl: "",
+                    whatsappUrl: "",
+                  });
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const NotificationsTab = () => (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
+        <button
+          onClick={() => setShowCreateNotification(true)}
+          className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-red-600"
+        >
+          <Plus size={16} className="mr-2" />
+          Send Notification
+        </button>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-300 overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-300">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Message
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Platform
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Web Image
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                App Image
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                URL
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Sent At
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {notifications.map((n) => (
+              <tr key={n.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 font-medium text-gray-900">
+                  {n.title}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">{n.message}</td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center">
+                    {n.platform === "Web" && (
+                      <Globe size={14} className="mr-1" />
+                    )}
+                    {n.platform === "App" && (
+                      <Smartphone size={14} className="mr-1" />
+                    )}
+                    {n.platform === "Both" && (
+                      <>
+                        <Globe size={14} className="mr-1" />
+                        <Smartphone size={14} className="mr-1" />
+                      </>
+                    )}
+                    {n.platform === "WhatsApp" && (
+                      <MessageCircle size={14} className="mr-1" />
+                    )}
+                    <span className="text-sm">{n.platform}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  {n.webImage ? (
+                    <img
+                      src={n.webImage}
+                      alt="Web"
+                      className="h-10 w-10 object-cover rounded"
+                    />
+                  ) : (
+                    <span className="text-gray-400 text-sm">—</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  {n.appImage ? (
+                    <img
+                      src={n.appImage}
+                      alt="App"
+                      className="h-10 w-10 object-cover rounded"
+                    />
+                  ) : (
+                    <span className="text-gray-400 text-sm">—</span>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-sm">
+                  {n.webUrl && (
+                    <a
+                      href={n.webUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline block"
+                    >
+                      Web
+                    </a>
+                  )}
+                  {n.appUrl && (
+                    <a
+                      href={n.appUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline block"
+                    >
+                      App
+                    </a>
+                  )}
+                  {n.whatsappUrl && (
+                    <a
+                      href={n.whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline block"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                  {!n.webUrl && !n.appUrl && !n.whatsappUrl && (
+                    <span className="text-gray-400 text-sm">—</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      n.status === "Sent"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {n.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">{n.sentAt}</td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex items-center justify-end space-x-2">
+                    <button className="text-blue-600 hover:text-blue-800">
+                      <Eye size={16} />
+                    </button>
+                    <button className="text-red-600 hover:text-red-800">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -197,23 +622,55 @@ const NotificationDashboard = () => {
             {templates.map((template) => (
               <tr key={template.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
-                  {/* Conditional Image Display */}
-                  {template.imageUrl && (
-                    <img
-                      src={template.imageUrl}
-                      alt={template.title}
-                      className="h-12 w-12 object-cover rounded"
-                    />
-                  )}
+                  {/* Show web/app/both images */}
+                  <div className="flex space-x-2">
+                    {template.platform === "Web" && template.webImage && (
+                      <img
+                        src={template.webImage}
+                        alt={`${template.title} Web`}
+                        className="h-12 w-12 object-cover rounded"
+                      />
+                    )}
+
+                    {template.platform === "App" && template.appImage && (
+                      <img
+                        src={template.appImage}
+                        alt={`${template.title} App`}
+                        className="h-12 w-12 object-cover rounded"
+                      />
+                    )}
+
+                    {template.platform === "Both" && (
+                      <>
+                        {template.webImage && (
+                          <img
+                            src={template.webImage}
+                            alt={`${template.title} Web`}
+                            className="h-12 w-12 object-cover rounded"
+                          />
+                        )}
+                        {template.appImage && (
+                          <img
+                            src={template.appImage}
+                            alt={`${template.title} App`}
+                            className="h-12 w-12 object-cover rounded"
+                          />
+                        )}
+                      </>
+                    )}
+                  </div>
                 </td>
+
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900">
                     {template.title}
                   </div>
                 </td>
+
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {template.trigger.replace("_", " ")}
                 </td>
+
                 <td className="px-6 py-4">
                   <div className="flex items-center">
                     {template.platform === "Web" && (
@@ -228,9 +685,13 @@ const NotificationDashboard = () => {
                         <Smartphone size={14} className="mr-1" />
                       </>
                     )}
+                    {template.platform === "WhatsApp" && (
+                      <MessageCircle size={14} className="mr-1" />
+                    )}
                     <span className="text-sm">{template.platform}</span>
                   </div>
                 </td>
+
                 <td className="px-6 py-4">
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${
@@ -242,9 +703,11 @@ const NotificationDashboard = () => {
                     {template.status}
                   </span>
                 </td>
+
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {template.created}
                 </td>
+
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end space-x-2">
                     <button className="text-blue-600 hover:text-blue-800">
@@ -443,9 +906,17 @@ const NotificationDashboard = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
-                  {campaign.date && campaign.time
-                    ? `${campaign.date} ${campaign.time}`
-                    : campaign.frequency}
+                  {campaign.type === "Scheduled" ? (
+                    <div className="space-y-1">
+                      {campaign.schedules.map((s, i) => (
+                        <div key={i}>
+                          {s.date} {s.time}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    campaign.frequency
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center">
@@ -632,6 +1103,8 @@ const NotificationDashboard = () => {
       whatsappUrl: "",
       trigger: "",
       platform: "Both",
+      webImage: null,
+      appImage: null,
     });
 
     if (!showCreateModal) return null;
@@ -655,6 +1128,7 @@ const NotificationDashboard = () => {
           </div>
 
           <div className="space-y-6">
+            {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Title
@@ -670,6 +1144,7 @@ const NotificationDashboard = () => {
               />
             </div>
 
+            {/* Text */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Notification Text
@@ -683,25 +1158,50 @@ const NotificationDashboard = () => {
                 }
               />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Web Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Web Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFormData({ ...formData, webImage: e.target.files[0] })
+                  }
+                  className="w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+                />
+              </div>
 
-            {/* New section for Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image (Optional)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                className="w-full text-sm text-gray-500
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-md file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-blue-50 file:text-blue-700
-                  hover:file:bg-blue-100"
-              />
+              {/* App Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  App Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFormData({ ...formData, appImage: e.target.files[0] })
+                  }
+                  className="w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
+                />
+              </div>
             </div>
-
+            {/* URLs */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Web URL */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Web URL
@@ -716,6 +1216,8 @@ const NotificationDashboard = () => {
                   }
                 />
               </div>
+
+              {/* App URL */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   App URL
@@ -730,6 +1232,8 @@ const NotificationDashboard = () => {
                   }
                 />
               </div>
+
+              {/* WhatsApp URL */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   WhatsApp URL
@@ -746,6 +1250,7 @@ const NotificationDashboard = () => {
               </div>
             </div>
 
+            {/* Trigger + Platform */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -773,6 +1278,8 @@ const NotificationDashboard = () => {
                   <option value="flash_sales">Flash Sales</option>
                 </select>
               </div>
+
+              {/* Platform */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Platform
@@ -797,6 +1304,7 @@ const NotificationDashboard = () => {
               </div>
             </div>
 
+            {/* Footer buttons */}
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -813,6 +1321,8 @@ const NotificationDashboard = () => {
                     platform: formData.platform,
                     status: "Active",
                     created: new Date().toISOString().split("T")[0],
+                    webImage: formData.webImage,
+                    appImage: formData.appImage,
                   };
                   setTemplates([...templates, newTemplate]);
                   setShowCreateModal(false);
@@ -824,6 +1334,8 @@ const NotificationDashboard = () => {
                     whatsappUrl: "",
                     trigger: "",
                     platform: "Both",
+                    webImage: null,
+                    appImage: null,
                   });
                 }}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
@@ -840,8 +1352,7 @@ const NotificationDashboard = () => {
     const [formData, setFormData] = useState({
       name: "",
       type: "Scheduled",
-      date: "",
-      time: "",
+      schedules: [{ date: "", time: "" }],
       frequency: "Daily",
       platform: "Both",
     });
@@ -849,7 +1360,10 @@ const NotificationDashboard = () => {
     if (!showScheduleModal) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div
+        className="fixed inset-0 flex items-center justify-center z-50"
+        style={{ background: "rgba(0,0,0,0.5)" }}
+      >
         <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-900">
@@ -896,33 +1410,73 @@ const NotificationDashboard = () => {
             </div>
 
             {formData.type === "Scheduled" && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    value={formData.date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, date: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    value={formData.time}
-                    onChange={(e) =>
-                      setFormData({ ...formData, time: e.target.value })
-                    }
-                  />
-                </div>
+              <div className="space-y-4">
+                {formData.schedules.map((schedule, index) => (
+                  <div key={index} className="grid grid-cols-2 gap-4 items-end">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        value={schedule.date}
+                        onChange={(e) => {
+                          const updated = [...formData.schedules];
+                          updated[index].date = e.target.value;
+                          setFormData({ ...formData, schedules: updated });
+                        }}
+                      />
+                    </div>
+                    <div className="flex space-x-2 items-center">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Time
+                        </label>
+                        <input
+                          type="time"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                          value={schedule.time}
+                          onChange={(e) => {
+                            const updated = [...formData.schedules];
+                            updated[index].time = e.target.value;
+                            setFormData({ ...formData, schedules: updated });
+                          }}
+                        />
+                      </div>
+                      {formData.schedules.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = formData.schedules.filter(
+                              (_, i) => i !== index
+                            );
+                            setFormData({ ...formData, schedules: updated });
+                          }}
+                          className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({
+                      ...formData,
+                      schedules: [
+                        ...formData.schedules,
+                        { date: "", time: "" },
+                      ],
+                    })
+                  }
+                  className="mt-2 px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  + Add Another
+                </button>
               </div>
             )}
 
@@ -981,12 +1535,12 @@ const NotificationDashboard = () => {
                     id: campaigns.length + 1,
                     name: formData.name,
                     type: formData.type,
-                    date: formData.date,
-                    time: formData.time,
+                    schedules: formData.schedules,
                     frequency: formData.frequency,
                     platform: formData.platform,
                     status: "Pending",
                   };
+
                   setCampaigns([...campaigns, newCampaign]);
                   setShowScheduleModal(false);
                 }}
@@ -1009,8 +1563,10 @@ const NotificationDashboard = () => {
         {activeTab === "triggers" && <TriggersTab />}
         {activeTab === "scheduler" && <SchedulerTab />}
         {activeTab === "analytics" && <AnalyticsTab />}
+        {activeTab === "notifications" && <NotificationsTab />}
         <CreateTemplateModal />
         <ScheduleCampaignModal />
+        <CreateNotificationModal />
       </div>
     </div>
   );

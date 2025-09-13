@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios.js";
 
 const CouponForm = () => {
-  const { couponId } = useParams();
+  const { couponCode } = useParams();
   const navigate = useNavigate();
 
   const [coupon, setCoupon] = useState({
@@ -22,9 +22,9 @@ const CouponForm = () => {
   const [message, setMessage] = useState({ text: "", type: "" });
 
   useEffect(() => {
-    if (couponId) {
+    if (couponCode) {
       api
-        .get(`/user/coupons/${couponId}`)
+        .get(`/user/coupons/${couponCode}`)
         .then((res) => {
           const c = res.data.coupon;
           setCoupon({
@@ -46,7 +46,7 @@ const CouponForm = () => {
           setTimeout(() => navigate("/coupons"), 2000);
         });
     }
-  }, [couponId, navigate]);
+  }, [couponCode, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

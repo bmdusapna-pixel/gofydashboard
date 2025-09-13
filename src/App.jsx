@@ -50,6 +50,8 @@ import NotificationDashboard from "./pages/NotificationDashboard";
 import CartList from "./pages/Customers/CartList";
 import CouponForm from "./pages/Coupon/CouponForm";
 import Coupons from "./pages/Coupon";
+import BulkOrders from "./pages/Orders/BulkOrders";
+import CouponAnalytics from "./pages/Coupon/CouponAnalytics";
 
 const App = () => {
   return (
@@ -129,7 +131,13 @@ const App = () => {
                 />
                 <Route path="/cart-list" element={<CartList />} />
                 <Route path="/coupon-form" element={<CouponForm />} />
+                <Route
+                  path="/coupon-form/:couponCode"
+                  element={<CouponForm />}
+                />
                 <Route path="/coupons" element={<Coupons />} />
+                <Route path="/bulk-orders" element={<BulkOrders />} />
+                <Route path="/coupon-analytics" element={<CouponAnalytics />} />
               </Route>
             </Route>
           </Route>

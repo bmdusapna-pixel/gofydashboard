@@ -2,6 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios.js";
 
+const bannerOptions = {
+  "hero banner": { web: "1920x600 px", app: "1080x400 px" },
+  "offer banner": { web: "1200x400 px", app: "800x300 px" },
+  "trending banner": { web: "1000x300 px", app: "600x200 px" },
+  "bottom banner": { web: "1920x250 px", app: "1080x250 px" },
+};
+
 const BannerForm = () => {
   const { bannerId } = useParams();
   const navigate = useNavigate();
@@ -33,7 +40,7 @@ const BannerForm = () => {
             description: b.description || "",
             webImageUrl: b.webImageUrl || "",
             appImageUrl: b.appImageUrl || "",
-            bannerUrl: b.targetUrl || "",
+            bannerUrl: b.bannerUrl || "",
           });
           setPreviews({
             web: b.webImageUrl || "",
@@ -75,7 +82,7 @@ const BannerForm = () => {
       formData.append("bannerName", banner.bannerName);
       formData.append("title", banner.title);
       formData.append("description", banner.description);
-      formData.append("targetUrl", banner.bannerUrl);
+      formData.append("bannerUrl", banner.bannerUrl);
 
       if (files.web) formData.append("webImage", files.web);
       if (files.app) formData.append("appImage", files.app);
@@ -93,7 +100,6 @@ const BannerForm = () => {
         setMessage({ text: "Banner added successfully!", type: "success" });
       }
 
-      // Reset form after add
       if (!banner.id) {
         setBanner({
           id: null,
@@ -142,18 +148,23 @@ const BannerForm = () => {
               </div>
             )}
 
-            {/* Banner Name */}
+            {/* Banner Type (Dropdown) */}
             <div>
-              <label className="block mb-2">Banner Name</label>
-              <input
-                type="text"
+              <label className="block mb-2">Banner Type</label>
+              <select
                 name="bannerName"
                 value={banner.bannerName}
                 onChange={handleInputChange}
-                disabled={!!banner.id}
-                placeholder="Unique Banner Name"
+                disabled={!!banner.id} // disable when editing
                 className="border border-gray-300 rounded-md p-2 w-full"
-              />
+              >
+                <option value="">Select Banner Type</option>
+                {Object.keys(bannerOptions).map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Title */}
@@ -195,42 +206,50 @@ const BannerForm = () => {
             </div>
 
             {/* Web & App Images */}
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block mb-2">Web Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, "web")}
-                />
-                {previews.web && (
-                  <div className="mt-2 h-32 border border-gray-300 rounded-md overflow-hidden">
-                    <img
-                      src={previews.web}
-                      alt="Web Preview"
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                )}
+            {banner.bannerName && (
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block mb-2">Web Image</label>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Required size: {bannerOptions[banner.bannerName]?.web}
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "web")}
+                  />
+                  {previews.web && (
+                    <div className="mt-2 h-32 border border-gray-300 rounded-md overflow-hidden">
+                      <img
+                        src={previews.web}
+                        alt="Web Preview"
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block mb-2">App Image</label>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Required size: {bannerOptions[banner.bannerName]?.app}
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "app")}
+                  />
+                  {previews.app && (
+                    <div className="mt-2 h-32 border border-gray-300 rounded-md overflow-hidden">
+                      <img
+                        src={previews.app}
+                        alt="App Preview"
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
-                <label className="block mb-2">App Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, "app")}
-                />
-                {previews.app && (
-                  <div className="mt-2 h-32 border border-gray-300 rounded-md overflow-hidden">
-                    <img
-                      src={previews.app}
-                      alt="App Preview"
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
 
             {/* Buttons */}
             <div className="flex space-x-3">

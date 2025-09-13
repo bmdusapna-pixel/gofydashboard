@@ -140,6 +140,116 @@ const App = () => {
       />
       <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
         <div className="">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 mb-6">
+            <h3 className="text-md font-semibold text-gray-700 mb-4">Filter</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Sign Up From */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Sign Up From
+                </label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+
+              {/* Sign Up To */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Sign Up To
+                </label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+
+              {/* Last Login From */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Last Login From
+                </label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+
+              {/* Last Login To */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Last Login To
+                </label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+
+              {/* State */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  State
+                </label>
+                <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none">
+                  <option value="">Select State</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Karnataka">Karnataka</option>
+                </select>
+              </div>
+
+              {/* City */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  City
+                </label>
+                <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none">
+                  <option value="">Select City</option>
+                  <option value="Mumbai">Mumbai</option>
+                  <option value="Pune">Pune</option>
+                  <option value="Bengaluru">Bengaluru</option>
+                </select>
+              </div>
+
+              {/* Pincode */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Pincode
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter Pincode"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+
+              {/* Platform */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Platform
+                </label>
+                <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none">
+                  <option value="">Select Platform</option>
+                  <option value="Web">Web</option>
+                  <option value="Android">Android App</option>
+                  <option value="iOS">iOS App</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end mt-4 space-x-2">
+              <button className="px-4 py-2 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                Reset
+              </button>
+              <button className="px-4 py-2 text-sm font-medium bg-yellow-500 text-white rounded-md hover:bg-yellow-600">
+                Apply Filter
+              </button>
+            </div>
+          </div>
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4 sm:mb-0">
