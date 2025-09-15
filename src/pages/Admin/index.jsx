@@ -10,9 +10,9 @@ export default function AdminRBAC() {
   ]);
 
   const [users, setUsers] = useState([
-    { id: 101, name: "Amit Sharma", roleId: 1 },
-    { id: 102, name: "Riya Patel", roleId: 2 },
-    { id: 103, name: "Karan Singh", roleId: 3 },
+    { id: 101, name: "Amit Sharma", roleId: 1, email: "amit.s@example.com" },
+    { id: 102, name: "Riya Patel", roleId: 2, email: "riya.p@example.com" },
+    { id: 103, name: "Karan Singh", roleId: 3, email: "karan.s@example.com" },
   ]);
 
   const [permissions, setPermissions] = useState({
@@ -25,7 +25,13 @@ export default function AdminRBAC() {
 
   // States for adding
   const [newRole, setNewRole] = useState("");
-  const [newUser, setNewUser] = useState({ name: "", roleId: "" });
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    roleId: "",
+  });
+  const [editingUser, setEditingUser] = useState(null);
 
   const togglePermission = (roleId, module, action) => {
     setPermissions((prev) => ({
@@ -49,21 +55,51 @@ export default function AdminRBAC() {
   const addRole = () => {
     if (!newRole.trim()) return;
     const id = roles.length ? Math.max(...roles.map((r) => r.id)) + 1 : 1;
-    setRoles([
-      ...roles,
+    // Add new role to the roles state
+    setRoles((prevRoles) => [
+      ...prevRoles,
       { id, name: newRole, twoFA: false, notifyOnLogin: false },
     ]);
+    // Add new role to the permissions state with a default empty object
+    setPermissions((prevPermissions) => ({
+      ...prevPermissions,
+      [id]: {},
+    }));
     setNewRole("");
   };
 
   const addUser = () => {
-    if (!newUser.name.trim() || !newUser.roleId) return;
+    if (
+      !newUser.name.trim() ||
+      !newUser.email.trim() ||
+      !newUser.password.trim() ||
+      !newUser.roleId
+    )
+      return;
     const id = users.length ? Math.max(...users.map((u) => u.id)) + 1 : 101;
     setUsers([
       ...users,
-      { id, name: newUser.name, roleId: parseInt(newUser.roleId) },
+      {
+        id,
+        name: newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+        roleId: parseInt(newUser.roleId),
+      },
     ]);
-    setNewUser({ name: "", roleId: "" });
+    setNewUser({ name: "", email: "", password: "", roleId: "" });
+  };
+
+  const handleEditUser = (user) => {
+    setEditingUser({ ...user });
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser) return;
+    setUsers((prevUsers) =>
+      prevUsers.map((u) => (u.id === editingUser.id ? editingUser : u))
+    );
+    setEditingUser(null);
   };
 
   const updateUserRole = (userId, roleId) => {
@@ -131,10 +167,11 @@ export default function AdminRBAC() {
         </div>
       </div>
 
-      {/* Assign Roles */}
+      {/* User Management and Assign Roles */}
       <div className="bg-white rounded-xl shadow border border-gray-300 p-5 space-y-4">
-        <h3 className="text-lg font-semibold">Assign Roles to Users</h3>
+        <h3 className="text-lg font-semibold">User Management</h3>
 
+        {/* User List Table */}
         <table className="w-full border-collapse border border-gray-300 text-sm">
           <thead className="bg-gray-100">
             <tr>
@@ -142,7 +179,13 @@ export default function AdminRBAC() {
                 User
               </th>
               <th className="border border-gray-300 px-3 py-2 text-left">
+                Email
+              </th>
+              <th className="border border-gray-300 px-3 py-2 text-left">
                 Role
+              </th>
+              <th className="border border-gray-300 px-3 py-2 text-left">
+                Actions
               </th>
             </tr>
           </thead>
@@ -150,6 +193,7 @@ export default function AdminRBAC() {
             {users.map((u) => (
               <tr key={u.id}>
                 <td className="border border-gray-300 px-3 py-2">{u.name}</td>
+                <td className="border border-gray-300 px-3 py-2">{u.email}</td>
                 <td className="border border-gray-300 px-3 py-2">
                   <select
                     className="border border-gray-300 rounded p-1"
@@ -163,19 +207,43 @@ export default function AdminRBAC() {
                     ))}
                   </select>
                 </td>
+                <td className="border border-gray-300 px-3 py-2">
+                  <button
+                    onClick={() => handleEditUser(u)}
+                    className="bg-blue-500 text-white px-2 py-1 rounded text-xs"
+                  >
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
 
         {/* Add User Form */}
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2 mt-3 flex-wrap">
           <input
             type="text"
             value={newUser.name}
             onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-            placeholder="New User Name"
-            className="border border-gray-300 rounded p-2 flex-1"
+            placeholder="User Name"
+            className="border border-gray-300 rounded p-2"
+          />
+          <input
+            type="email"
+            value={newUser.email}
+            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+            placeholder="User Email"
+            className="border border-gray-300 rounded p-2"
+          />
+          <input
+            type="password"
+            value={newUser.password}
+            onChange={(e) =>
+              setNewUser({ ...newUser, password: e.target.value })
+            }
+            placeholder="Password"
+            className="border border-gray-300 rounded p-2"
           />
           <select
             value={newUser.roleId}
@@ -196,6 +264,52 @@ export default function AdminRBAC() {
             Add User
           </button>
         </div>
+
+        {/* Edit User Modal/Form */}
+        {editingUser && (
+          <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-2">
+            <h4 className="font-semibold">Edit User: {editingUser.name}</h4>
+            <input
+              type="text"
+              value={editingUser.name}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, name: e.target.value })
+              }
+              placeholder="Name"
+              className="border border-gray-300 rounded p-2 w-full"
+            />
+            <input
+              type="email"
+              value={editingUser.email}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, email: e.target.value })
+              }
+              placeholder="Email"
+              className="border border-gray-300 rounded p-2 w-full"
+            />
+            <input
+              type="password"
+              value={editingUser.password}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, password: e.target.value })
+              }
+              placeholder="Password"
+              className="border border-gray-300 rounded p-2 w-full"
+            />
+            <button
+              onClick={handleUpdateUser}
+              className="bg-purple-600 text-white px-3 py-2 rounded mr-2"
+            >
+              Update User
+            </button>
+            <button
+              onClick={() => setEditingUser(null)}
+              className="bg-gray-500 text-white px-3 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Permissions Matrix */}
