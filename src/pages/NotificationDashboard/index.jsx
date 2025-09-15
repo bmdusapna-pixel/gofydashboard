@@ -1556,7 +1556,7 @@ const NotificationDashboard = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 flex-1 overflow-y-auto">
       <TabNavigation />
       <div className="flex-1 overflow-y-auto">
         {activeTab === "templates" && <TemplatesTab />}
