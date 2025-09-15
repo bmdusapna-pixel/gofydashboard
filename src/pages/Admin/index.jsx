@@ -15,6 +15,15 @@ export default function AdminRBAC() {
     { id: 103, name: "Karan Singh", roleId: 3, email: "karan.s@example.com" },
   ]);
 
+  // Dynamic modules state
+  const [modules, setModules] = useState([
+    "inventory",
+    "marketing",
+    "orders",
+    "support",
+  ]);
+  const [newModule, setNewModule] = useState("");
+
   const [permissions, setPermissions] = useState({
     1: { inventory: { view: true, add: true, edit: true, delete: true } },
     2: { inventory: { view: true, add: false, edit: true, delete: false } },
@@ -39,8 +48,8 @@ export default function AdminRBAC() {
       [roleId]: {
         ...prev[roleId],
         [module]: {
-          ...prev[roleId][module],
-          [action]: !prev[roleId][module][action],
+          ...prev[roleId]?.[module],
+          [action]: !prev[roleId]?.[module]?.[action],
         },
       },
     }));
@@ -55,17 +64,55 @@ export default function AdminRBAC() {
   const addRole = () => {
     if (!newRole.trim()) return;
     const id = roles.length ? Math.max(...roles.map((r) => r.id)) + 1 : 1;
-    // Add new role to the roles state
+
     setRoles((prevRoles) => [
       ...prevRoles,
       { id, name: newRole, twoFA: false, notifyOnLogin: false },
     ]);
-    // Add new role to the permissions state with a default empty object
+
+    // Initialize permissions for the new role across all existing modules
+    const newRolePermissions = {};
+    modules.forEach((module) => {
+      newRolePermissions[module] = {
+        view: false,
+        add: false,
+        edit: false,
+        delete: false,
+      };
+    });
+
     setPermissions((prevPermissions) => ({
       ...prevPermissions,
-      [id]: {},
+      [id]: newRolePermissions,
     }));
+
     setNewRole("");
+  };
+
+  const addModule = () => {
+    if (!newModule.trim() || modules.includes(newModule.toLowerCase())) return;
+    const newMod = newModule.toLowerCase();
+
+    // Add the new module to the modules state
+    setModules((prev) => [...prev, newMod]);
+
+    // Update permissions for all existing roles to include the new module
+    setPermissions((prev) => {
+      const updatedPermissions = { ...prev };
+      roles.forEach((role) => {
+        updatedPermissions[role.id] = {
+          ...updatedPermissions[role.id],
+          [newMod]: {
+            view: false,
+            add: false,
+            edit: false,
+            delete: false,
+          },
+        };
+      });
+      return updatedPermissions;
+    });
+    setNewModule("");
   };
 
   const addUser = () => {
@@ -115,55 +162,85 @@ export default function AdminRBAC() {
       <h2 className="sm:text-xl text-lg font-semibold">
         Role-Based Access Control (RBAC)
       </h2>
-
-      {/* Roles List */}
-      <div className="bg-white rounded-xl shadow border border-gray-300 p-5 space-y-4">
-        <h3 className="text-lg font-semibold">Available Roles</h3>
-
-        <ul className="space-y-2">
-          {roles.map((role) => (
-            <li
-              key={role.id}
-              className="flex justify-between items-center border border-gray-300 rounded-lg p-3"
+      {/* Roles and Modules Management */}
+      <div className="flex gap-4">
+        {/* Roles List */}
+        <div className="bg-white rounded-xl shadow border border-gray-300 p-5 space-y-4 flex-1">
+          <h3 className="text-lg font-semibold">Available Roles</h3>
+          <ul className="space-y-2">
+            {roles.map((role) => (
+              <li
+                key={role.id}
+                className="flex justify-between items-center border border-gray-300 rounded-lg p-3"
+              >
+                <span>{role.name}</span>
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-1 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={role.twoFA}
+                      onChange={() => toggleSecurity(role.id, "twoFA")}
+                    />
+                    2FA
+                  </label>
+                  <label className="flex items-center gap-1 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={role.notifyOnLogin}
+                      onChange={() => toggleSecurity(role.id, "notifyOnLogin")}
+                    />
+                    Notify on Login
+                  </label>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {/* Add Role Form */}
+          <div className="flex gap-2 mt-3">
+            <input
+              type="text"
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value)}
+              placeholder="New Role Name"
+              className="border border-gray-300 rounded p-2 flex-1"
+            />
+            <button
+              onClick={addRole}
+              className="bg-blue-600 text-white px-3 py-2 rounded"
             >
-              <span>{role.name}</span>
-              <div className="flex gap-3">
-                <label className="flex items-center gap-1 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={role.twoFA}
-                    onChange={() => toggleSecurity(role.id, "twoFA")}
-                  />
-                  2FA
-                </label>
-                <label className="flex items-center gap-1 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={role.notifyOnLogin}
-                    onChange={() => toggleSecurity(role.id, "notifyOnLogin")}
-                  />
-                  Notify on Login
-                </label>
-              </div>
-            </li>
-          ))}
-        </ul>
+              Add Role
+            </button>
+          </div>
+        </div>
 
-        {/* Add Role Form */}
-        <div className="flex gap-2 mt-3">
-          <input
-            type="text"
-            value={newRole}
-            onChange={(e) => setNewRole(e.target.value)}
-            placeholder="New Role Name"
-            className="border border-gray-300 rounded p-2 flex-1"
-          />
-          <button
-            onClick={addRole}
-            className="bg-blue-600 text-white px-3 py-2 rounded"
-          >
-            Add Role
-          </button>
+        {/* Add Module Section */}
+        <div className="bg-white rounded-xl shadow border border-gray-300 p-5 space-y-4 flex-1">
+          <h3 className="text-lg font-semibold">Available Modules</h3>
+          <ul className="space-y-2">
+            {modules.map((moduleName, index) => (
+              <li
+                key={index}
+                className="border border-gray-300 rounded-lg p-3 capitalize"
+              >
+                {moduleName}
+              </li>
+            ))}
+          </ul>
+          <div className="flex gap-2 mt-3">
+            <input
+              type="text"
+              value={newModule}
+              onChange={(e) => setNewModule(e.target.value)}
+              placeholder="New Module Name"
+              className="border border-gray-300 rounded p-2 flex-1"
+            />
+            <button
+              onClick={addModule}
+              className="bg-purple-600 text-white px-3 py-2 rounded"
+            >
+              Add Module
+            </button>
+          </div>
         </div>
       </div>
 
@@ -267,7 +344,7 @@ export default function AdminRBAC() {
 
         {/* Edit User Modal/Form */}
         {editingUser && (
-          <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-2">
+          <div className="mt-4 p-4 border border-gray-400 rounded-lg bg-gray-50 space-y-2">
             <h4 className="font-semibold">Edit User: {editingUser.name}</h4>
             <input
               type="text"
@@ -315,46 +392,84 @@ export default function AdminRBAC() {
       {/* Permissions Matrix */}
       <div className="bg-white rounded-xl shadow border border-gray-300 p-5">
         <h3 className="text-lg font-semibold mb-4">Permissions</h3>
-        <table className="w-full border-collapse border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border border-gray-300 px-3 py-2">Role</th>
-              <th className="border border-gray-300 px-3 py-2">Module</th>
-              <th className="border border-gray-300 px-3 py-2">View</th>
-              <th className="border border-gray-300 px-3 py-2">Add</th>
-              <th className="border border-gray-300 px-3 py-2">Edit</th>
-              <th className="border border-gray-300 px-3 py-2">Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(permissions).map(([roleId, modules]) =>
-              Object.entries(modules).map(([module, actions]) => (
-                <tr key={roleId + module}>
-                  <td className="border border-gray-300 px-3 py-2">
-                    {roles.find((r) => r.id === parseInt(roleId))?.name}
-                  </td>
-                  <td className="border border-gray-300 px-3 py-2 capitalize">
-                    {module}
-                  </td>
-                  {["view", "add", "edit", "delete"].map((action) => (
-                    <td
-                      key={action}
-                      className="border border-gray-300 px-3 py-2 text-center"
+        <div className="w-full overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300 text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border border-gray-300 px-3 py-2">Role</th>
+                {modules.map((moduleName) => (
+                  <th
+                    key={moduleName}
+                    colSpan="4"
+                    className="border border-gray-300 px-3 py-2 text-center"
+                  >
+                    {moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}
+                  </th>
+                ))}
+              </tr>
+              <tr>
+                <th className="border border-gray-300 px-3 py-2"></th>
+                {modules.map((moduleName) => (
+                  <>
+                    <th
+                      key={`${moduleName}-view`}
+                      className="border border-gray-300 px-1 py-2 text-center"
                     >
-                      <input
-                        type="checkbox"
-                        checked={actions[action]}
-                        onChange={() =>
-                          togglePermission(parseInt(roleId), module, action)
-                        }
-                      />
-                    </td>
+                      View
+                    </th>
+                    <th
+                      key={`${moduleName}-add`}
+                      className="border border-gray-300 px-1 py-2 text-center"
+                    >
+                      Add
+                    </th>
+                    <th
+                      key={`${moduleName}-edit`}
+                      className="border border-gray-300 px-1 py-2 text-center"
+                    >
+                      Edit
+                    </th>
+                    <th
+                      key={`${moduleName}-delete`}
+                      className="border border-gray-300 px-1 py-2 text-center"
+                    >
+                      Delete
+                    </th>
+                  </>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {roles.map((role) => (
+                <tr key={role.id}>
+                  <td className="border border-gray-300 px-3 py-2 font-semibold">
+                    {role.name}
+                  </td>
+                  {modules.map((module) => (
+                    <>
+                      {["view", "add", "edit", "delete"].map((action) => (
+                        <td
+                          key={`${role.id}-${module}-${action}`}
+                          className="border border-gray-300 px-3 py-2 text-center"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              permissions[role.id]?.[module]?.[action] || false
+                            }
+                            onChange={() =>
+                              togglePermission(role.id, module, action)
+                            }
+                          />
+                        </td>
+                      ))}
+                    </>
                   ))}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
