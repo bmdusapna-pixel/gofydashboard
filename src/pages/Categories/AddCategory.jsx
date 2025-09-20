@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios.js";
 
 const AddCategory = ({ onAdd, onCancel }) => {
@@ -12,6 +13,7 @@ const AddCategory = ({ onAdd, onCancel }) => {
     image: null,
     bannerImage: null, // New state for the banner image
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -46,9 +48,9 @@ const AddCategory = ({ onAdd, onCancel }) => {
     if (
       !newCategory.name ||
       !newCategory.collectionId ||
-      !newCategory.metaTitle ||
-      !newCategory.metaKeywords ||
-      !newCategory.metaDescription ||
+      // !newCategory.metaTitle ||
+      // !newCategory.metaKeywords ||
+      // !newCategory.metaDescription ||
       !newCategory.image ||
       !newCategory.bannerImage // Add validation for the new banner image
     ) {
@@ -76,7 +78,7 @@ const AddCategory = ({ onAdd, onCancel }) => {
       if (onAdd) {
         onAdd(response.data);
       }
-
+      navigate("/categories/list");
       setNewCategory({
         name: "",
         collectionId: "",

@@ -106,7 +106,7 @@ const AddColor = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-primary-50 min-h-screen">
+    <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
       <div className="">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300">
           <h1 className="text-lg font-medium mb-6 whitespace-nowrap">

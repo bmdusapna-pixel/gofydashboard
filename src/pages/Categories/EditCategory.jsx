@@ -105,7 +105,7 @@ const EditCategory = () => {
 
       console.log("Category updated successfully:", response.data);
       // Navigate back to the categories list or a confirmation page
-      navigate("/categories");
+      navigate("/categories/list");
     } catch (err) {
       console.error(
         "Error updating category:",

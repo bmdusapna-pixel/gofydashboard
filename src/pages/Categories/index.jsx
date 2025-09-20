@@ -72,8 +72,12 @@ const Categories = () => {
     setOpenDropdownId(null);
   };
 
-  const handleDelete = (categoryName) => {
+  const handleDelete = async (categoryId, categoryName) => {
+    await api.delete(`/categories/${categoryId}`);
     console.log(`Deleting category: ${categoryName}`);
+    setCategories((prev) =>
+      prev.filter((cat) => cat.categoryId !== categoryId)
+    );
     setOpenDropdownId(null);
   };
 
@@ -215,7 +219,10 @@ const Categories = () => {
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition text-sm text-gray-700"
                                 onClick={() =>
-                                  handleDelete(category.categoryName)
+                                  handleDelete(
+                                    category.categoryId,
+                                    category.categoryName
+                                  )
                                 }
                               >
                                 <Trash2 className="w-4 h-4 text-red-500" />{" "}
