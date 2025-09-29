@@ -1,7 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
-import { EllipsisVertical, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  EllipsisVertical,
+  Eye,
+  Pencil,
+  Plus,
+  Trash2,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import api from "../../api/axios";
-// import collections from "../../assets/collections.list.js";
 
 const collectionTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
@@ -9,12 +16,18 @@ const collectionTableHeaders = [
   { title: "Collection Image", _id: "collectionImage" },
   { title: "Collection Name", _id: "collectionName" },
   { title: "Number of Categories", _id: "numberOfCategories" },
+  { title: "Status", _id: "status" }, // <-- new column
   { title: "Action", _id: "action" },
 ];
 
 const Collections = () => {
   const [collections, setCollections] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const dropdownRef = useRef(null);
+  const itemsPerPage = 5;
+
   useEffect(() => {
     const fetch = async () => {
       try {
@@ -28,10 +41,6 @@ const Collections = () => {
     };
     fetch();
   }, []);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const dropdownRef = useRef(null);
-  const itemsPerPage = 5;
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -64,13 +73,35 @@ const Collections = () => {
     setOpenDropdownId(null);
   };
 
+  const handleToggleStatus = async (collection) => {
+    try {
+      const newStatus = collection.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+
+      const res = await api.put(`/collections/${collection.collectionId}`, {
+        status: newStatus,
+      });
+
+      // Update state locally without refetch
+      setCollections((prev) =>
+        prev.map((col) =>
+          col.collectionId === collection.collectionId
+            ? { ...col, status: newStatus }
+            : col
+        )
+      );
+
+      setOpenDropdownId(null);
+      console.log(res.data.message);
+    } catch (error) {
+      console.error("Error toggling status:", error);
+    }
+  };
+
   const getFilteredCollections = () => {
-    // No filtering is implemented, so we return the raw collections data.
     return collections;
   };
 
   const filteredCollections = getFilteredCollections();
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentCollections = filteredCollections.slice(
@@ -79,12 +110,10 @@ const Collections = () => {
   );
   const totalPages = Math.ceil(filteredCollections.length / itemsPerPage);
 
-  // No useEffect dependency on filterQuery as it's removed.
-
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      setOpenDropdownId(null); // Close dropdown on page change
+      setOpenDropdownId(null);
     }
   };
 
@@ -150,6 +179,17 @@ const Collections = () => {
                           ).length
                         }
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            collection.status === "ACTIVE"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {collection.status}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap relative">
                         <button
                           className="flex cursor-pointer items-center justify-center w-6 h-6 focus:outline-none focus:ring-1 focus:ring-gray-200 rounded-full"
@@ -165,12 +205,7 @@ const Collections = () => {
                             ref={dropdownRef}
                             className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
                           >
-                            <div
-                              className="flex flex-col w-full"
-                              role="menu"
-                              aria-orientation="vertical"
-                              aria-labelledby="options-menu"
-                            >
+                            <div className="flex flex-col w-full" role="menu">
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
                                 onClick={() =>
@@ -191,6 +226,21 @@ const Collections = () => {
                               </button>
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                onClick={() => handleToggleStatus(collection)}
+                              >
+                                {collection.status === "ACTIVE" ? (
+                                  <CheckCircle className="text-green-500 w-4 h-4" />
+                                ) : (
+                                  <XCircle className="text-red-500 w-4 h-4" />
+                                )}
+                                <span>
+                                  {collection.status === "ACTIVE"
+                                    ? "Deactivate"
+                                    : "Activate"}
+                                </span>
+                              </button>
+                              <button
+                                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
                                 onClick={() =>
                                   handleDelete(collection.collectionName)
                                 }
@@ -207,7 +257,7 @@ const Collections = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan="5"
+                      colSpan="7"
                       className="px-4 py-3 text-center text-sm text-gray-600"
                     >
                       No collections found
