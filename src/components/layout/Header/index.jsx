@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useSidebar } from "../../../hooks/toggleContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,8 +7,17 @@ import {
   faEnvelope,
   faSearch,
 } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setQuery(params.get("search") || "");
+  }, [location.search]);
   const { toggleMobileSidebar } = useSidebar();
   return (
     <header className="flex items-center justify-between h-16 px-4 bg-white border-b border-primary-100">
@@ -48,6 +57,19 @@ const Index = () => {
           <input
             type="text"
             placeholder="Search..."
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              const params = new URLSearchParams(location.search);
+              if (e.target.value) {
+                params.set("search", e.target.value);
+              } else {
+                params.delete("search");
+              }
+              navigate(`${location.pathname}?${params.toString()}`, {
+                replace: true,
+              });
+            }}
             className="w-full pl-10 pr-4 py-2 rounded-full border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent"
           />
           <FontAwesomeIcon

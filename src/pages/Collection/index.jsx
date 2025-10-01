@@ -9,6 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 import api from "../../api/axios";
+import CategoryModalTable from "./CategoryModalTable";
 
 const collectionTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
@@ -27,6 +28,9 @@ const Collections = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
   const itemsPerPage = 5;
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCollectionId, setSelectedCollectionId] = useState(null);
 
   useEffect(() => {
     const fetch = async () => {
@@ -58,8 +62,12 @@ const Collections = () => {
     };
   }, []);
 
-  const handleView = (collectionName) => {
+  const handleView = (collectionName, collectionId) => {
     console.log(`Viewing details for collection: ${collectionName}`);
+    console.log(`Viewing details for collectionId: ${collectionId}`);
+    setSelectedCollectionId(collectionId);
+    setIsModalOpen(true);
+
     setOpenDropdownId(null);
   };
 
@@ -209,7 +217,10 @@ const Collections = () => {
                               <button
                                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
                                 onClick={() =>
-                                  handleView(collection.collectionName)
+                                  handleView(
+                                    collection.collectionName,
+                                    collection._id
+                                  )
                                 }
                               >
                                 <Eye className="w-4 h-4 text-blue-500" />
@@ -229,9 +240,9 @@ const Collections = () => {
                                 onClick={() => handleToggleStatus(collection)}
                               >
                                 {collection.status === "ACTIVE" ? (
-                                  <CheckCircle className="text-green-500 w-4 h-4" />
-                                ) : (
                                   <XCircle className="text-red-500 w-4 h-4" />
+                                ) : (
+                                  <CheckCircle className="text-green-500 w-4 h-4" />
                                 )}
                                 <span>
                                   {collection.status === "ACTIVE"
@@ -300,6 +311,13 @@ const Collections = () => {
               Next
             </button>
           </div>
+          {/* Modal */}
+          {isModalOpen && selectedCollectionId && (
+            <CategoryModalTable
+              collectionId={selectedCollectionId}
+              onClose={() => setIsModalOpen(false)}
+            />
+          )}
         </div>
       </div>
     </div>

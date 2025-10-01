@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import api from "../../api/axios";
 
 const App = () => {
   const [customerProfiles, setCustomerProfiles] = useState([]);
+  const [filteredProfiles, setFilteredProfiles] = useState([]);
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("search")?.toLowerCase() || "";
 
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
@@ -78,6 +82,21 @@ const App = () => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    setFilteredProfiles(customerProfiles);
+  }, [customerProfiles]);
+
+  useEffect(() => {
+    const filtered = customerProfiles.filter(
+      (customer) =>
+        customer.customerName.toLowerCase().includes(searchQuery) ||
+        customer.customerId.toLowerCase().includes(searchQuery) ||
+        customer.phone.toLowerCase().includes(searchQuery)
+    );
+    setFilteredProfiles(filtered);
+    setCurrentPage(1);
+  }, [searchQuery, customerProfiles]);
+
   // Toggle dropdown visibility
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -119,11 +138,11 @@ const App = () => {
   // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentCustomerProfiles = customerProfiles.slice(
+  const currentCustomerProfiles = filteredProfiles.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
-  const totalPages = Math.ceil(customerProfiles.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredProfiles.length / itemsPerPage);
 
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
