@@ -256,16 +256,53 @@ const App = () => {
                   <option value="iOS">iOS App</option>
                 </select>
               </div>
-            </div>
 
-            {/* Buttons */}
-            <div className="flex justify-end mt-4 space-x-2">
-              <button className="px-4 py-2 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                Reset
-              </button>
-              <button className="px-4 py-2 text-sm font-medium bg-yellow-500 text-white rounded-md hover:bg-yellow-600">
-                Apply Filter
-              </button>
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter Name"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+
+              {/* Customer ID */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Customer ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter Customer ID"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Phone
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter Phone Number"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-300 focus:outline-none"
+                />
+              </div>
+              {/* Buttons */}
+              <div>
+                <div className="flex justify-end mt-6 space-x-2">
+                  <button className="px-4 py-2 text-sm font-medium bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                    Reset
+                  </button>
+                  <button className="px-4 py-2 text-sm font-medium bg-yellow-500 text-white rounded-md hover:bg-yellow-600">
+                    Apply Filter
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
