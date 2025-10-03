@@ -51,7 +51,19 @@ const AdminSettings = () => {
       image: "https://placehold.co/300x150/f88e0f/ffffff?text=Slider+2",
     },
   ]);
-  const [sliderAutoplayTime, setSliderAutoplayTime] = useState(5); // in seconds
+  const [sliderAutoplayTime, setSliderAutoplayTime] = useState(5);
+
+  const [popups, setPopups] = useState({
+    home: { type: "web_app", expiry: "", url: "", image: "" },
+    logout: { type: "web_app", expiry: "", url: "", image: "" },
+  });
+
+  const handlePopupChange = (popupId, field, value) => {
+    setPopups((prev) => ({
+      ...prev,
+      [popupId]: { ...prev[popupId], [field]: value },
+    }));
+  };
 
   // State for Blog Section
   const [blogAutoplay, setBlogAutoplay] = useState(true);
@@ -484,6 +496,113 @@ const AdminSettings = () => {
             >
               Add New Slider
             </button>
+          </div>
+        </section>
+        {/* Popup Modal Dashboard */}
+        <section className="border-b-2 pb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-6 flex items-center">
+            <Image className="mr-3 text-purple-600" size={26} /> Popup Modal
+            Dashboard
+          </h2>
+
+          {/* Autoplay Time */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700">
+              Autoplay Time (seconds)
+            </label>
+            <input
+              type="number"
+              value={sliderAutoplayTime}
+              onChange={(e) => setSliderAutoplayTime(Number(e.target.value))}
+              min="1"
+              className="mt-1 block w-full md:w-1/4 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Two Fixed Popups */}
+          <div className="space-y-8">
+            {[
+              { id: "home", label: "🏠 Home Page Popup (After Login)" },
+              { id: "logout", label: "🚪 Logout Page Popup (Before Logout)" },
+            ].map((popup) => (
+              <div
+                key={popup.id}
+                className="bg-gray-50 p-6 rounded-lg shadow-sm space-y-4"
+              >
+                {/* Section Title */}
+                <h3 className="text-md font-semibold text-gray-800 border-b pb-2">
+                  {popup.label}
+                </h3>
+
+                {/* Inputs */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {/* Popup Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Popup Type
+                    </label>
+                    <select
+                      value={popups[popup.id]?.type || "web_app"}
+                      onChange={(e) =>
+                        handlePopupChange(popup.id, "type", e.target.value)
+                      }
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="web_app">Web & App</option>
+                      <option value="web">Web Only</option>
+                      <option value="app">App Only</option>
+                    </select>
+                  </div>
+
+                  {/* Expiry Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="date"
+                      value={popups[popup.id]?.expiry || ""}
+                      onChange={(e) =>
+                        handlePopupChange(popup.id, "expiry", e.target.value)
+                      }
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* URL */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      URL
+                    </label>
+                    <input
+                      type="url"
+                      value={popups[popup.id]?.url || ""}
+                      onChange={(e) =>
+                        handlePopupChange(popup.id, "url", e.target.value)
+                      }
+                      placeholder="https://example.com/link"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Image URL */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={popups[popup.id]?.image || ""}
+                      onChange={(e) =>
+                        handlePopupChange(popup.id, "image", e.target.value)
+                      }
+                      placeholder="https://example.com/image.jpg"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

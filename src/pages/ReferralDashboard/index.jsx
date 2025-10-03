@@ -2,7 +2,8 @@ import { useState } from "react";
 
 export default function ReferralDashboard() {
   // Global settings
-  const [referralAmount, setReferralAmount] = useState(100); // per referral
+  const [referrerPoints, setReferrerPoints] = useState(100); // points referrer gets
+  const [referredPoints, setReferredPoints] = useState(50); // points referred user gets
   const [referralLimit, setReferralLimit] = useState(10); // max per user
   const [expandedUser, setExpandedUser] = useState(null);
 
@@ -54,6 +55,13 @@ export default function ReferralDashboard() {
     },
   ];
 
+  // Calculate total earnings for a user
+  const calculateEarnings = (user) => {
+    const referrerEarnings = user.referrals.length * referrerPoints;
+    const referredUsersEarnings = user.referrals.length * referredPoints;
+    return referrerEarnings + referredUsersEarnings;
+  };
+
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-xl font-semibold">
@@ -61,15 +69,22 @@ export default function ReferralDashboard() {
       </h2>
 
       {/* Global Settings */}
-      <div className="grid grid-cols-2 gap-4 bg-white border border-gray-300 p-4 rounded-lg shadow-sm">
+      <div className="grid grid-cols-3 gap-4 bg-white border border-gray-300 p-4 rounded-lg shadow-sm">
         <div>
-          <label className="text-sm text-gray-600">
-            Referral Amount (per referral)
-          </label>
+          <label className="text-sm text-gray-600">Referrer Points</label>
           <input
             type="number"
-            value={referralAmount}
-            onChange={(e) => setReferralAmount(Number(e.target.value))}
+            value={referrerPoints}
+            onChange={(e) => setReferrerPoints(Number(e.target.value))}
+            className="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-gray-600">Referred User Points</label>
+          <input
+            type="number"
+            value={referredPoints}
+            onChange={(e) => setReferredPoints(Number(e.target.value))}
             className="w-full mt-1 border border-gray-300 rounded-lg px-3 py-2"
           />
         </div>
@@ -126,7 +141,7 @@ export default function ReferralDashboard() {
                     {u.referrals.length} / {referralLimit}
                   </td>
                   <td className="px-4 py-2 border-t border-r border-gray-300 font-medium">
-                    ₹{u.referrals.length * referralAmount}
+                    ₹{calculateEarnings(u)}
                   </td>
                   <td className="px-4 py-2 border-t">
                     <span
@@ -162,6 +177,9 @@ export default function ReferralDashboard() {
                                   <th className="px-3 py-2 border border-gray-300">
                                     Joining Date
                                   </th>
+                                  <th className="px-3 py-2 border border-gray-300">
+                                    Earnings
+                                  </th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -175,6 +193,9 @@ export default function ReferralDashboard() {
                                     </td>
                                     <td className="px-3 py-2 border border-gray-300">
                                       {ref.joinDate}
+                                    </td>
+                                    <td className="px-3 py-2 border border-gray-300 font-medium">
+                                      ₹{referredPoints}
                                     </td>
                                   </tr>
                                 ))}
