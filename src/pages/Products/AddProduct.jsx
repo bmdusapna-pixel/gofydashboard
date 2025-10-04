@@ -8,6 +8,7 @@ const AddProduct = () => {
     name: "",
     url: "",
     brand: "",
+    point: null,
     categories: [],
     material: null,
     gender: "",
@@ -863,19 +864,34 @@ const AddProduct = () => {
                 </div>
               </div>
               {/* Related Categories */}
-              <div>
-                <label className="block mb-2 whitespace-nowrap">
-                  Related Categories
-                </label>
-                <Select
-                  isMulti
-                  name="relatedCategories"
-                  options={categoryOptions}
-                  className="basic-multi-select"
-                  classNamePrefix="select"
-                  value={selectedRelatedCategories}
-                  onChange={handleRelatedCategoriesChange}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Related Categories
+                  </label>
+                  <Select
+                    isMulti
+                    name="relatedCategories"
+                    options={categoryOptions}
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    value={selectedRelatedCategories}
+                    onChange={handleRelatedCategoriesChange}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 whitespace-nowrap">
+                    Gofy Point
+                  </label>
+                  <input
+                    type="number"
+                    value={product.point}
+                    onChange={(e) =>
+                      handleProductChange("point", e.target.value)
+                    }
+                    className="border border-gray-300 rounded p-2 w-full"
+                  />
+                </div>
               </div>
               {/* Description */}
               <div>

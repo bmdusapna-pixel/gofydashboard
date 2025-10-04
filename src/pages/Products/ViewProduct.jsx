@@ -71,7 +71,7 @@ const ViewProduct = () => {
           </div>
 
           {/* Product-level details */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             <div>
               <p className="text-sm text-gray-500">Material</p>
               <p className="text-sm font-semibold">
@@ -85,6 +85,10 @@ const ViewProduct = () => {
             <div>
               <p className="text-sm text-gray-500">Status</p>
               <p className="text-sm font-semibold">{product.status}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Gofy Point</p>
+              <p className="text-sm font-semibold">{product.point}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Date Added</p>
