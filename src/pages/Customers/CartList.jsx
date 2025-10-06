@@ -1,29 +1,47 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
+import CartViewModal from "./CartViewModal.jsx";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [open, setOpen] = useState(false);
+  const [selectedCart, setSelectedCart] = useState(null);
   const itemsPerPage = 5;
 
   const fetchCart = async () => {
     try {
       const response = await api.get("/user/cart");
       const items = response.data;
-      const formatted = items.map((item) => ({
-        id: item._id,
-        productName: item.productId?.name || "N/A",
-        productImage: item.productId?.images?.[0] || "https://placehold.co/60",
-        quantity: item.quantity || 1,
-        price: item.productId?.variants?.[0]?.ageGroups?.[0]?.price || 0,
-        subtotal:
-          (item.productId?.variants?.[0]?.ageGroups?.[0]?.price || 0) *
-          (item.quantity || 1),
-        userName: item.userId?.name || "Unknown User",
-        createdAt: item.createdAt
-          ? new Date(item.createdAt).toISOString().split("T")[0]
-          : "N/A",
-      }));
+
+      const formatted = items.map((item) => {
+        const product = item.productId;
+
+        const variant = product.variants.find((v) => v.color === item.colorId);
+
+        const ageGroup = variant?.ageGroups.find(
+          (ag) => ag.ageGroup === item.ageGroupId
+        );
+
+        return {
+          id: item._id,
+          productName: product?.name || "N/A",
+          productImages: variant?.images || ["https://placehold.co/60"],
+          price: ageGroup?.price || 0,
+          quantity: item.quantity || 1,
+          subtotal: (ageGroup?.price || 0) * (item.quantity || 1),
+          userName: item.userId?.name || "Unknown User",
+          createdAt: item.createdAt
+            ? new Date(item.createdAt).toISOString().split("T")[0]
+            : "N/A",
+          fullProduct: product,
+          variant,
+          ageGroup,
+          colorId: item.colorId,
+          ageGroupId: item.ageGroupId,
+        };
+      });
+
       setCartItems(formatted);
     } catch (err) {
       console.error("Error fetching cart:", err);
@@ -35,9 +53,9 @@ const Cart = () => {
     fetchCart();
   }, []);
 
-  const handleView = (itemId) => {
-    console.log("Viewing cart item:", itemId);
-    // Example: navigate(`/cart/${itemId}`);
+  const handleView = (item) => {
+    setOpen(true);
+    setSelectedCart(item);
   };
 
   // Pagination Logic
@@ -98,7 +116,7 @@ const Cart = () => {
                     </td>
                     <td className="px-4 py-3 flex items-center gap-3">
                       <img
-                        src={item.productImage}
+                        src={item.productImages?.[0]}
                         alt={item.productName}
                         className="w-12 h-12 rounded-md object-cover shadow-sm"
                         onError={(e) => {
@@ -127,7 +145,7 @@ const Cart = () => {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       <button
-                        onClick={() => handleView(item.id)}
+                        onClick={() => handleView(item)}
                         className="flex items-center px-3 py-1 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:text-blue-800 transition"
                       >
                         <i className="fas fa-eye mr-2"></i>
@@ -183,6 +201,13 @@ const Cart = () => {
           </button>
         </div>
       </div>
+      {open && (
+        <CartViewModal
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          cartItem={selectedCart}
+        />
+      )}
     </div>
   );
 };

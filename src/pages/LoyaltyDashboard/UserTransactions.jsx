@@ -20,6 +20,14 @@ const transactions = {
       transactionFor: "Order #1234",
       remarks: "Cashback",
     },
+    {
+      id: "txn-006",
+      type: "Admin Add Points",
+      points: 75,
+      expiry: "2026-01-01",
+      transactionFor: "Admin Adjustment",
+      remarks: "Manual credit by Admin",
+    },
   ],
   "CUST-002": [
     {
@@ -29,6 +37,14 @@ const transactions = {
       expiry: "2025-11-20",
       transactionFor: "Order #5678",
       remarks: "Cashback",
+    },
+    {
+      id: "txn-007",
+      type: "Admin Add Points",
+      points: 50,
+      expiry: "2026-02-15",
+      transactionFor: "Loyalty Bonus",
+      remarks: "Special reward by Admin",
     },
   ],
   "CUST-003": [
@@ -50,7 +66,6 @@ const transactions = {
     },
   ],
 };
-
 const UserTransactions = () => {
   const { customerId } = useParams(); // e.g. "CUST-001"
   const navigate = useNavigate();
