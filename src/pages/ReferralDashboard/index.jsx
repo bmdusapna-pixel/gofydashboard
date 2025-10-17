@@ -71,7 +71,7 @@ export default function ReferralDashboard() {
       {/* Global Settings */}
       <div className="grid grid-cols-3 gap-4 bg-white border border-gray-300 p-4 rounded-lg shadow-sm">
         <div>
-          <label className="text-sm text-gray-600">Referrer Points</label>
+          <label className="text-sm text-gray-600">Referrer Points (Me)</label>
           <input
             type="number"
             value={referrerPoints}
@@ -80,7 +80,9 @@ export default function ReferralDashboard() {
           />
         </div>
         <div>
-          <label className="text-sm text-gray-600">Referred User Points</label>
+          <label className="text-sm text-gray-600">
+            Referred User Points (Friend)
+          </label>
           <input
             type="number"
             value={referredPoints}

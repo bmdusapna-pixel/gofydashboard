@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   Search,
   Filter,
@@ -11,11 +11,32 @@ import {
   Star,
   Flag,
 } from "lucide-react";
+import api from "../../api/axios.js";
+
+const getReviewsApi = async (productId) => {
+  const res = await api.get(`/reviews?productId=${productId}`);
+  return res.data;
+};
+
+const deleteReviewApi = async (reviewId) => {
+  const res = await api.delete(`/reviews/${reviewId}`);
+  return res.data;
+};
 
 const ReviewManagementDashboard = () => {
   const [reviews, setReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const data = await getReviewsApi();
+      setReviews(data);
+      setFilteredReviews(data);
+    };
+    fetchReviews();
+  }, []);
+
   const [statusFilter, setStatusFilter] = useState("all");
   const [flaggedFilter, setFlaggedFilter] = useState("all");
   const [selectedReviews, setSelectedReviews] = useState(new Set());
@@ -68,96 +89,96 @@ const ReviewManagementDashboard = () => {
   };
 
   // Mock review data
-  useEffect(() => {
-    const mockReviews = [
-      {
-        id: 1,
-        productName: "Soft Organic Cotton Onesie",
-        customerName: "Maria Rodriguez",
-        rating: 2,
-        comment:
-          "The fabric is soft but the sizing is way too small. It was a late delivery, and it caused a rash on my baby's skin. This is a very poor quality product.",
-        date: "2025-08-28",
-        status: "pending",
-        flagged: true,
-        flaggedKeywords: ["too small", "rash", "poor quality", "late delivery"],
-      },
-      {
-        id: 2,
-        productName: "Adventure Play Mat",
-        customerName: "David Lee",
-        rating: 5,
-        comment:
-          "Our baby loves this play mat! The colors are vibrant, and the material is very durable. Great value and fast delivery.",
-        date: "2025-08-27",
-        status: "approved",
-        flagged: false,
-        flaggedKeywords: [],
-      },
-      {
-        id: 3,
-        productName: "Baby Diaper Cream",
-        customerName: "Jessica Chen",
-        rating: 1,
-        comment:
-          "This is a scam! My order never arrived, and the customer service is awful. I need a refund immediately.",
-        date: "2025-08-26",
-        status: "pending",
-        flagged: true,
-        flaggedKeywords: ["scam", "never arrived", "awful", "refund"],
-      },
-      {
-        id: 4,
-        productName: "Wooden Building Blocks Set",
-        customerName: "Tom Wilson",
-        rating: 4,
-        comment:
-          "Good product overall. The blocks are a little smaller than I expected, but they are safe and well-made.",
-        date: "2025-08-25",
-        status: "approved",
-        flagged: false,
-        flaggedKeywords: [],
-      },
-      {
-        id: 5,
-        productName: "Silicone Baby Feeder",
-        customerName: "Olivia Garcia",
-        rating: 3,
-        comment:
-          "Works okay but the mouthpiece feels cheap. I'm worried it might be a choking hazard for my child.",
-        date: "2025-08-24",
-        status: "pending",
-        flagged: true,
-        flaggedKeywords: ["choking hazard", "cheap"],
-      },
-      {
-        id: 6,
-        productName: "Adjustable High Chair",
-        customerName: "Chris Evans",
-        rating: 5,
-        comment:
-          "This high chair is fantastic. It's easy to clean, sturdy, and adjusts perfectly as my baby grows. Very satisfied with this purchase!",
-        date: "2025-08-23",
-        status: "approved",
-        flagged: false,
-        flaggedKeywords: [],
-      },
-      {
-        id: 7,
-        productName: "Children's Rain Boots",
-        customerName: "Chloe White",
-        rating: 2,
-        comment:
-          "The boots are cute but the quality is terrible. The seams split after only one use, and the sole came damaged.",
-        date: "2025-08-22",
-        status: "pending",
-        flagged: true,
-        flaggedKeywords: ["terrible", "damaged"],
-      },
-    ];
-    setReviews(reEvaluateFlags(mockReviews, flaggedKeywords));
-    setFilteredReviews(reEvaluateFlags(mockReviews, flaggedKeywords));
-  }, [flaggedKeywords]);
+  // useEffect(() => {
+  //   const mockReviews = [
+  //     {
+  //       id: 1,
+  //       productName: "Soft Organic Cotton Onesie",
+  //       customerName: "Maria Rodriguez",
+  //       rating: 2,
+  //       comment:
+  //         "The fabric is soft but the sizing is way too small. It was a late delivery, and it caused a rash on my baby's skin. This is a very poor quality product.",
+  //       date: "2025-08-28",
+  //       status: "pending",
+  //       flagged: true,
+  //       flaggedKeywords: ["too small", "rash", "poor quality", "late delivery"],
+  //     },
+  //     {
+  //       id: 2,
+  //       productName: "Adventure Play Mat",
+  //       customerName: "David Lee",
+  //       rating: 5,
+  //       comment:
+  //         "Our baby loves this play mat! The colors are vibrant, and the material is very durable. Great value and fast delivery.",
+  //       date: "2025-08-27",
+  //       status: "approved",
+  //       flagged: false,
+  //       flaggedKeywords: [],
+  //     },
+  //     {
+  //       id: 3,
+  //       productName: "Baby Diaper Cream",
+  //       customerName: "Jessica Chen",
+  //       rating: 1,
+  //       comment:
+  //         "This is a scam! My order never arrived, and the customer service is awful. I need a refund immediately.",
+  //       date: "2025-08-26",
+  //       status: "pending",
+  //       flagged: true,
+  //       flaggedKeywords: ["scam", "never arrived", "awful", "refund"],
+  //     },
+  //     {
+  //       id: 4,
+  //       productName: "Wooden Building Blocks Set",
+  //       customerName: "Tom Wilson",
+  //       rating: 4,
+  //       comment:
+  //         "Good product overall. The blocks are a little smaller than I expected, but they are safe and well-made.",
+  //       date: "2025-08-25",
+  //       status: "approved",
+  //       flagged: false,
+  //       flaggedKeywords: [],
+  //     },
+  //     {
+  //       id: 5,
+  //       productName: "Silicone Baby Feeder",
+  //       customerName: "Olivia Garcia",
+  //       rating: 3,
+  //       comment:
+  //         "Works okay but the mouthpiece feels cheap. I'm worried it might be a choking hazard for my child.",
+  //       date: "2025-08-24",
+  //       status: "pending",
+  //       flagged: true,
+  //       flaggedKeywords: ["choking hazard", "cheap"],
+  //     },
+  //     {
+  //       id: 6,
+  //       productName: "Adjustable High Chair",
+  //       customerName: "Chris Evans",
+  //       rating: 5,
+  //       comment:
+  //         "This high chair is fantastic. It's easy to clean, sturdy, and adjusts perfectly as my baby grows. Very satisfied with this purchase!",
+  //       date: "2025-08-23",
+  //       status: "approved",
+  //       flagged: false,
+  //       flaggedKeywords: [],
+  //     },
+  //     {
+  //       id: 7,
+  //       productName: "Children's Rain Boots",
+  //       customerName: "Chloe White",
+  //       rating: 2,
+  //       comment:
+  //         "The boots are cute but the quality is terrible. The seams split after only one use, and the sole came damaged.",
+  //       date: "2025-08-22",
+  //       status: "pending",
+  //       flagged: true,
+  //       flaggedKeywords: ["terrible", "damaged"],
+  //     },
+  //   ];
+  //   setReviews(reEvaluateFlags(mockReviews, flaggedKeywords));
+  //   setFilteredReviews(reEvaluateFlags(mockReviews, flaggedKeywords));
+  // }, [flaggedKeywords]);
 
   // Filter reviews based on search and filters
   useEffect(() => {
@@ -194,13 +215,20 @@ const ReviewManagementDashboard = () => {
     );
   };
 
-  const handleDelete = (reviewId) => {
-    setReviews((prev) => prev.filter((review) => review.id !== reviewId));
-    setSelectedReviews((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(reviewId);
-      return newSet;
-    });
+  const handleDelete = async (reviewId) => {
+    try {
+      await deleteReviewApi(reviewId); // Call the API
+      // If API call is successful, then update the state
+      setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+      setSelectedReviews((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(reviewId);
+        return newSet;
+      });
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      // Optionally show an error message to the user
+    }
   };
 
   const handleBulkAction = (action) => {

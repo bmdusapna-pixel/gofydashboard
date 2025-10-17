@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Eye, Edit, Trash2, Pause, Play, Plus, Book, Zap } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Pause,
+  Play,
+  Plus,
+  Book,
+  Zap,
+  Copy,
+} from "lucide-react";
 import NotificationFormModal from "./NotificationFormModal.jsx";
 
 const initialNotifications = [
@@ -12,7 +22,8 @@ const initialNotifications = [
     icon: Book,
     sentAt: "19 Sep 2025, 6:00 PM",
     type: "Scheduled",
-    students: 2990,
+    platform: "Web",
+    customers: 2990,
     status: "Active",
   },
   {
@@ -24,7 +35,8 @@ const initialNotifications = [
     icon: Book,
     sentAt: "19 Sep 2025, 11:00 AM",
     type: "Scheduled",
-    students: 2990,
+    platform: "App",
+    customers: 2990,
     status: "Finished",
   },
   {
@@ -35,7 +47,8 @@ const initialNotifications = [
     icon: Zap,
     sentAt: "18 Sep 2025, 2:51 PM",
     type: "Scheduled",
-    students: 5535,
+    platform: "Both",
+    customers: 5535,
     status: "Active",
   },
   {
@@ -46,7 +59,8 @@ const initialNotifications = [
     icon: Zap,
     sentAt: "18 Sep 2025, 5:05 PM",
     type: "Scheduled",
-    students: 5535,
+    platform: "Web",
+    customers: 5535,
     status: "Active",
   },
 ];
@@ -56,7 +70,6 @@ const NotificationDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAction = (id, actionType) => {
-    // Implement logic for Pause, Play, or Delete
     console.log(`Action: ${actionType} on Notification ID: ${id}`);
   };
 
@@ -78,7 +91,8 @@ const NotificationDashboard = () => {
         })
         .replace(",", ""),
       type: newCampaignData.scheduleType === "Send Now" ? "Sent" : "Scheduled",
-      students: 0,
+      platform: newCampaignData.platform || "Web",
+      customers: 0,
       status:
         newCampaignData.scheduleType === "Send Now" ? "Active" : "Scheduled",
     };
@@ -118,7 +132,6 @@ const NotificationDashboard = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {/* Corrected Table Headers */}
               <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                 S.No
               </th>
@@ -132,10 +145,13 @@ const NotificationDashboard = () => {
                 Link
               </th>
               <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+                Platform
+              </th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
                 Notification Type
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                Students
+                Customers
               </th>
               <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                 Status
@@ -145,15 +161,17 @@ const NotificationDashboard = () => {
               </th>
             </tr>
           </thead>
+
           <tbody className="bg-white divide-y divide-gray-200">
             {notifications.map((n, index) => {
               const IconComponent = n.icon;
               return (
                 <tr key={n.id}>
-                  <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500 font-medium">
+                  <td className="px-3 py-3 text-sm text-gray-500 font-medium">
                     {index + 1}
                   </td>
-                  <td className="px-3 py-3 whitespace-pre-wrap text-sm font-medium text-gray-900 flex items-start space-x-2">
+
+                  <td className="px-3 py-3 text-sm font-medium text-gray-900 flex items-start space-x-2">
                     <div className="text-gray-600 mt-1">
                       {IconComponent && <IconComponent size={16} />}
                     </div>
@@ -164,21 +182,28 @@ const NotificationDashboard = () => {
                       </p>
                     </div>
                   </td>
+
                   <td className="px-3 py-3 text-sm text-gray-700 max-w-lg">
                     {n.message}
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-center text-sm">
+
+                  <td className="px-3 py-3 text-center text-sm">
                     <button className="text-blue-600 hover:text-blue-900 font-medium text-xs border border-blue-200 rounded-full px-2 py-1">
                       view
                     </button>
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {n.type}
+
+                  <td className="px-3 py-3 text-sm text-gray-700">
+                    {n.platform}
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                    {n.students.toLocaleString()}
+
+                  <td className="px-3 py-3 text-sm text-gray-500">{n.type}</td>
+
+                  <td className="px-3 py-3 text-right text-sm font-medium text-gray-900">
+                    {n.customers.toLocaleString()}
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-center">
+
+                  <td className="px-3 py-3 text-center">
                     <span
                       className={`px-3 py-1 text-xs rounded-full font-semibold ${getStatusClasses(
                         n.status
@@ -187,9 +212,9 @@ const NotificationDashboard = () => {
                       {n.status}
                     </span>
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-center text-sm font-medium">
+
+                  <td className="px-3 py-3 text-center text-sm font-medium">
                     <div className="flex items-center justify-center space-x-1">
-                      {/* Action Buttons: Pause/Play, Edit, Delete */}
                       <button
                         onClick={() =>
                           handleAction(
@@ -209,12 +234,22 @@ const NotificationDashboard = () => {
                           <Play size={16} />
                         )}
                       </button>
+
                       <button
                         onClick={() => handleAction(n.id, "edit")}
                         className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
                       >
                         <Edit size={16} />
                       </button>
+
+                      <button
+                        onClick={() => navigator.clipboard.writeText(n.title)}
+                        className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                        title="Copy Title"
+                      >
+                        <Copy size={16} />
+                      </button>
+
                       <button
                         onClick={() => handleAction(n.id, "delete")}
                         className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors"

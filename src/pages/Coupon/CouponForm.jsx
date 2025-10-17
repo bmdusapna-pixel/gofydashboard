@@ -17,6 +17,10 @@ const CouponForm = () => {
     startDate: "",
     expiryDate: "",
     usageLimit: "",
+    usageLimitPerCustomer: "", // 🆕 new
+    visibility: "PUBLIC", // 🆕 new
+    platform: "BOTH", // 🆕 new
+    firstPurchaseOnly: false, // 🆕 new
   });
 
   const [message, setMessage] = useState({ text: "", type: "" });
@@ -35,9 +39,13 @@ const CouponForm = () => {
             discountValue: c.discountValue || "",
             minOrderValue: c.minOrderValue || "",
             maxDiscount: c.maxDiscount || "",
-            startDate: c.startDate ? c.startDate.slice(0, 10) : "",
-            expiryDate: c.expiryDate ? c.expiryDate.slice(0, 10) : "",
+            startDate: c.startDate ? c.startDate.slice(0, 16) : "",
+            expiryDate: c.expiryDate ? c.expiryDate.slice(0, 16) : "",
             usageLimit: c.usageLimit || "",
+            usageLimitPerCustomer: c.usageLimitPerCustomer || "",
+            visibility: c.visibility || "PUBLIC",
+            platform: c.platform || "BOTH",
+            firstPurchaseOnly: c.firstPurchaseOnly || false,
           });
           setMessage({ text: `Editing coupon: ${c.code}`, type: "info" });
         })
@@ -49,8 +57,11 @@ const CouponForm = () => {
   }, [couponCode, navigate]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setCoupon((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setCoupon((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -69,7 +80,6 @@ const CouponForm = () => {
         setMessage({ text: "Coupon added successfully!", type: "success" });
       }
 
-      // Reset form only if new coupon
       if (!coupon.id) {
         setCoupon({
           id: null,
@@ -82,6 +92,10 @@ const CouponForm = () => {
           startDate: "",
           expiryDate: "",
           usageLimit: "",
+          usageLimitPerCustomer: "",
+          visibility: "PUBLIC",
+          platform: "BOTH",
+          firstPurchaseOnly: false,
         });
       }
 
@@ -201,9 +215,9 @@ const CouponForm = () => {
             {/* Start & Expiry Date */}
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block mb-2">Start Date</label>
+                <label className="block mb-2">Start Date & Time</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   name="startDate"
                   value={coupon.startDate}
                   onChange={handleInputChange}
@@ -211,9 +225,9 @@ const CouponForm = () => {
                 />
               </div>
               <div>
-                <label className="block mb-2">Expiry Date</label>
+                <label className="block mb-2">Expiry Date & Time</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   name="expiryDate"
                   value={coupon.expiryDate}
                   onChange={handleInputChange}
@@ -223,20 +237,76 @@ const CouponForm = () => {
             </div>
 
             {/* Usage Limit */}
-            <div>
-              <label className="block mb-2">Usage Limit (optional)</label>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block mb-2">Total Usage Limit</label>
+                <input
+                  type="number"
+                  name="usageLimit"
+                  value={coupon.usageLimit}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 100"
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+              </div>
+              <div>
+                <label className="block mb-2">Usage Limit Per Customer</label>
+                <input
+                  type="number"
+                  name="usageLimitPerCustomer"
+                  value={coupon.usageLimitPerCustomer}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 1"
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+              </div>
+            </div>
+
+            {/* Visibility & Platform */}
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block mb-2">Visibility</label>
+                <select
+                  name="visibility"
+                  value={coupon.visibility}
+                  onChange={handleInputChange}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                >
+                  <option value="PUBLIC">Public</option>
+                  <option value="PRIVATE">Private</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-2">Platform</label>
+                <select
+                  name="platform"
+                  value={coupon.platform}
+                  onChange={handleInputChange}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                >
+                  <option value="WEB">Web</option>
+                  <option value="APP">App</option>
+                  <option value="BOTH">Both</option>
+                </select>
+              </div>
+            </div>
+
+            {/* First Purchase */}
+            <div className="flex items-center space-x-2">
               <input
-                type="number"
-                name="usageLimit"
-                value={coupon.usageLimit}
+                type="checkbox"
+                id="firstPurchaseOnly"
+                name="firstPurchaseOnly"
+                checked={coupon.firstPurchaseOnly}
                 onChange={handleInputChange}
-                placeholder="e.g., 100"
-                className="border border-gray-300 rounded-md p-2 w-full"
               />
+              <label htmlFor="firstPurchaseOnly" className="cursor-pointer">
+                Applicable only for first purchase
+              </label>
             </div>
 
             {/* Buttons */}
-            <div className="flex space-x-3">
+            <div className="flex space-x-3 mt-4">
               <button
                 type="button"
                 onClick={handleSubmit}

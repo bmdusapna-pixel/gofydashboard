@@ -11,6 +11,10 @@ const couponTableHeaders = [
   { title: "Max Discount", _id: "maxDiscount" },
   { title: "Start Date", _id: "startDate" },
   { title: "Expiry Date", _id: "expiryDate" },
+  { title: "Visibility", _id: "visibility" }, // 🆕
+  { title: "Platform", _id: "platform" }, // 🆕
+  { title: "First Purchase", _id: "firstPurchase" }, // 🆕
+  { title: "Usage/Customer", _id: "usageLimitPerCustomer" }, // 🆕
   { title: "Status", _id: "status" },
   { title: "Action", _id: "action" },
 ];
@@ -62,7 +66,7 @@ const Coupons = () => {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
-      <div className="">
+      <div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -88,7 +92,7 @@ const Coupons = () => {
                   {couponTableHeaders.map((item) => (
                     <th
                       key={item._id}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       {item.title}
                     </th>
@@ -105,6 +109,8 @@ const Coupons = () => {
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {indexOfFirstItem + index + 1}
                       </td>
+
+                      {/* Coupon Info */}
                       <td className="px-4 py-3 text-sm font-semibold text-gray-800">
                         {coupon.code}
                       </td>
@@ -121,12 +127,50 @@ const Coupons = () => {
                           ? `₹${coupon.maxDiscount}`
                           : "No Limit"}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(coupon.startDate).toLocaleDateString()}
+
+                      {/* Dates */}
+                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                        {new Date(coupon.startDate).toLocaleString([], {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(coupon.expiryDate).toLocaleDateString()}
+                      <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                        {new Date(coupon.expiryDate).toLocaleString([], {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </td>
+
+                      {/* 🆕 Visibility */}
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {coupon.visibility || "PUBLIC"}
+                      </td>
+
+                      {/* 🆕 Platform */}
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {coupon.platform || "BOTH"}
+                      </td>
+
+                      {/* 🆕 First Purchase */}
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {coupon.firstPurchaseOnly ? "Yes" : "No"}
+                      </td>
+
+                      {/* 🆕 Usage Limit Per Customer */}
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {coupon.usageLimitPerCustomer
+                          ? coupon.usageLimitPerCustomer
+                          : "-"}
+                      </td>
+
+                      {/* Status */}
                       <td className="px-4 py-3 text-sm">
                         {coupon.status === "ACTIVE" ? (
                           <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs font-medium">
@@ -138,6 +182,8 @@ const Coupons = () => {
                           </span>
                         )}
                       </td>
+
+                      {/* Actions */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <button
@@ -161,7 +207,7 @@ const Coupons = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan="9"
+                      colSpan={couponTableHeaders.length}
                       className="px-4 py-3 text-center text-sm text-gray-600"
                     >
                       No coupons found

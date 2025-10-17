@@ -243,9 +243,6 @@ const NotificationDashboard = () => {
                         <Smartphone size={14} className="mr-1" />
                       </>
                     )}
-                    {template.platform === "WhatsApp" && (
-                      <MessageCircle size={14} className="mr-1" />
-                    )}
                     <span className="text-sm">{template.platform}</span>
                   </div>
                 </td>
@@ -508,7 +505,6 @@ const NotificationDashboard = () => {
       text: "",
       webUrl: "",
       appUrl: "",
-      whatsappUrl: "",
       trigger: "",
       platform: "Both",
       webImage: null,
@@ -566,8 +562,9 @@ const NotificationDashboard = () => {
                 }
               />
             </div>
+
+            {/* Images */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Web Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Web Image (Optional)
@@ -579,15 +576,14 @@ const NotificationDashboard = () => {
                     setFormData({ ...formData, webImage: e.target.files[0] })
                   }
                   className="w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
                 />
               </div>
 
-              {/* App Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   App Image (Optional)
@@ -599,17 +595,17 @@ const NotificationDashboard = () => {
                     setFormData({ ...formData, appImage: e.target.files[0] })
                   }
                   className="w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
                 />
               </div>
             </div>
+
             {/* URLs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Web URL */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Web URL
@@ -625,7 +621,6 @@ const NotificationDashboard = () => {
                 />
               </div>
 
-              {/* App URL */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   App URL
@@ -637,22 +632,6 @@ const NotificationDashboard = () => {
                   value={formData.appUrl}
                   onChange={(e) =>
                     setFormData({ ...formData, appUrl: e.target.value })
-                  }
-                />
-              </div>
-
-              {/* WhatsApp URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  WhatsApp URL
-                </label>
-                <input
-                  type="url"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="https://..."
-                  value={formData.whatsappUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, whatsappUrl: e.target.value })
                   }
                 />
               </div>
@@ -687,13 +666,12 @@ const NotificationDashboard = () => {
                 </select>
               </div>
 
-              {/* Platform */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Platform
                 </label>
                 <div className="flex space-x-4 pt-2">
-                  {["Web", "App", "Both", "WhatsApp"].map((platform) => (
+                  {["Web", "App", "Both"].map((platform) => (
                     <label key={platform} className="flex items-center">
                       <input
                         type="radio"
@@ -712,7 +690,7 @@ const NotificationDashboard = () => {
               </div>
             </div>
 
-            {/* Footer buttons */}
+            {/* Footer */}
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -734,17 +712,6 @@ const NotificationDashboard = () => {
                   };
                   setTemplates([...templates, newTemplate]);
                   setShowCreateModal(false);
-                  setFormData({
-                    title: "",
-                    text: "",
-                    webUrl: "",
-                    appUrl: "",
-                    whatsappUrl: "",
-                    trigger: "",
-                    platform: "Both",
-                    webImage: null,
-                    appImage: null,
-                  });
                 }}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >

@@ -123,7 +123,21 @@ export const navItems = [
     name: "Banners",
     icon: faFileInvoiceDollar,
     path: "/banners",
-    type: "link",
+    type: "dropdown",
+    subItems: [
+      { name: "All Banners", path: "/banners" },
+      { name: "Delay Banners", path: "/delay-banners" },
+    ],
+  },
+  {
+    name: "Blogs",
+    icon: faClipboardList,
+    type: "dropdown",
+    path: "/blogs",
+    subItems: [
+      { name: "All Blogs", path: "/blogs" },
+      { name: "Add Blog", path: "/blogs/add-new" },
+    ],
   },
   {
     name: "Coupons",

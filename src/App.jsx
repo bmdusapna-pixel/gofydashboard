@@ -32,6 +32,7 @@ import AddCollection from "./pages/Collection/AddCollection";
 import AgeGroups from "./pages/AgeGroups";
 import EditAgeGroup from "./pages/AgeGroups/EditAgeGroup";
 import Banners from "./pages/Banner";
+import DelayBanners from "./pages/Banner/BannerDashboard";
 import Color from "./pages/Color";
 import Material from "./pages/Material";
 import AddEdit from "./pages/Banner/AddEdit";
@@ -53,6 +54,8 @@ import CouponForm from "./pages/Coupon/CouponForm";
 import Coupons from "./pages/Coupon";
 import BulkOrders from "./pages/Orders/BulkOrders";
 import CouponAnalytics from "./pages/Coupon/CouponAnalytics";
+import Blogs from "./pages/Blogs";
+import AddBlog from "./pages/Blogs/AddBlog";
 
 const App = () => {
   return (
@@ -87,6 +90,7 @@ const App = () => {
                 <Route path="/purchase/return" element={<PurchaseReturn />} />
                 <Route path="/collections/list" element={<Collections />} />
                 <Route path="/banners" element={<Banners />} />
+                <Route path="/delay-banners" element={<DelayBanners />} />
                 <Route path="/banner-add-edit" element={<AddEdit />} />
                 <Route
                   path="/banner-add-edit/:bannerId"
@@ -140,6 +144,8 @@ const App = () => {
                 <Route path="/coupons" element={<Coupons />} />
                 <Route path="/bulk-orders" element={<BulkOrders />} />
                 <Route path="/coupon-analytics" element={<CouponAnalytics />} />
+                <Route path="/blogs" element={<Blogs />} />
+                <Route path="/blogs/add-new" element={<AddBlog />} />
               </Route>
             </Route>
           </Route>
