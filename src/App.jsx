@@ -47,6 +47,7 @@ import UserTransactions from "./pages/LoyaltyDashboard/UserTransactions";
 import Review from "./pages/Review";
 import Activities from "./pages/Activities";
 import NotificationDashboard from "./pages/NotificationDashboard";
+import Notification from "./pages/NotificationDashboard/Notification";
 import CartList from "./pages/Customers/CartList";
 import CouponForm from "./pages/Coupon/CouponForm";
 import Coupons from "./pages/Coupon";
@@ -129,6 +130,7 @@ const App = () => {
                   path="/notifications"
                   element={<NotificationDashboard />}
                 />
+                <Route path="/notification-logger" element={<Notification />} />
                 <Route path="/cart-list" element={<CartList />} />
                 <Route path="/coupon-form" element={<CouponForm />} />
                 <Route

@@ -156,7 +156,11 @@ export const navItems = [
     name: "Notifications",
     icon: faUsers,
     path: "/notifications",
-    type: "link",
+    type: "dropdown",
+    subItems: [
+      { name: "Notifications", path: "/notifications" },
+      { name: "Notification Logger", path: "/notification-logger" },
+    ],
   },
   {
     name: "Review",
