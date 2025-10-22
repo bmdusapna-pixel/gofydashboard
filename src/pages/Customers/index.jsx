@@ -14,6 +14,7 @@ const App = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [points, setPoints] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
+  const [remarks, setRemarks] = useState("");
 
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
@@ -541,6 +542,7 @@ const App = () => {
                       setIsModalOpen(false);
                       setPoints("");
                       setExpiryDate("");
+                      setRemarks("");
                     }}
                   ></i>
                 </div>
@@ -564,10 +566,23 @@ const App = () => {
                   Expiry Date
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
                   className="w-full px-3 py-2 border rounded-md border-gray-300 focus:outline-none focus:ring focus:ring-blue-200"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm text-gray-700 mb-1">
+                  Remarks
+                </label>
+                <textarea
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  rows="3"
+                  placeholder="Enter remarks (optional)"
+                  className="w-full px-3 py-2 border rounded-md border-gray-300 focus:outline-none focus:ring focus:ring-blue-200 resize-none"
                 />
               </div>
 
@@ -577,6 +592,7 @@ const App = () => {
                     setIsModalOpen(false);
                     setPoints("");
                     setExpiryDate("");
+                    setRemarks("");
                   }}
                   className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
                 >
