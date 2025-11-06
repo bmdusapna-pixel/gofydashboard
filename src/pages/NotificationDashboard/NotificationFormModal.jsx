@@ -1,3 +1,4 @@
+import api from "../../api/axios.js";
 import React, { useState, useEffect } from "react";
 import { Upload, X } from "lucide-react";
 
@@ -37,19 +38,49 @@ const NotificationFormModal = ({ isOpen, onClose, onAddCampaign }) => {
     if (fileInput) fileInput.value = "";
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.title || !formData.body) {
       alert("Notification Heading and Body are required.");
       return;
     }
-    onAddCampaign({
-      ...formData,
-      imagePreview,
-      scheduleType,
-      scheduledDates,
-      recurringData,
-      targetPlatform,
-    });
+    try {
+      const form = new FormData();
+      form.append("title", formData.title);
+      form.append("body", formData.body);
+      form.append("link", formData.link);
+      form.append("targetPlatform", targetPlatform);
+      form.append("scheduleType", scheduleType);
+      if (formData.imageFile) {
+        form.append("imageFile", formData.imageFile);
+      }
+      if (scheduleType === "Scheduled") {
+        form.append(
+          "scheduledDates",
+          JSON.stringify(scheduledDates.filter((d) => !!d))
+        );
+      }
+
+      if (scheduleType === "Recurring") {
+        form.append("recurringData", JSON.stringify(recurringData));
+      }
+      const response = await api.post("/notifications", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      alert("Campaign created successfully!");
+      if (response.data && response.data.campaign) {
+        onAddCampaign(response.data.campaign);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      let msg =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        "Failed to create campaign.";
+      alert(msg);
+    }
   };
 
   const handleFormChange = (e) => {
