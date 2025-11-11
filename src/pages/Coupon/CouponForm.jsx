@@ -8,6 +8,7 @@ const CouponForm = () => {
 
   const [coupon, setCoupon] = useState({
     id: null,
+    title: "",
     code: "",
     description: "",
     discountType: "PERCENTAGE",
@@ -33,6 +34,7 @@ const CouponForm = () => {
           const c = res.data.coupon;
           setCoupon({
             id: c._id,
+            title: c.title || "",
             code: c.code || "",
             description: c.description || "",
             discountType: c.discountType || "PERCENTAGE",
@@ -83,6 +85,7 @@ const CouponForm = () => {
       if (!coupon.id) {
         setCoupon({
           id: null,
+          title: "",
           code: "",
           description: "",
           discountType: "PERCENTAGE",
@@ -132,6 +135,18 @@ const CouponForm = () => {
                 {message.text}
               </div>
             )}
+
+            <div>
+              <label className="block mb-2">Title</label>
+              <input
+                type="text"
+                name="title"
+                value={coupon.title}
+                onChange={handleInputChange}
+                placeholder="e.g., Festive Offer"
+                className="border border-gray-300 rounded-md p-2 w-full"
+              />
+            </div>
 
             {/* Coupon Code */}
             <div>
