@@ -14,6 +14,8 @@ const table_header = [
 
 const AllOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
@@ -45,14 +47,28 @@ const AllOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const result = await api.get("/user/order");
-        setOrders(result.data);
+        const params = {
+          page: currentPage,
+          limit: itemsPerPage,
+        };
+        if (filterByStatus !== "all") {
+          params.status = filterByStatus.toUpperCase();
+        }
+
+        const result = await api.get("/user/order/admin", { params });
+
+        // API returns { success, orders, totalPages, currentPage, totalOrders }
+        const data = result.data || {};
+        setOrders(Array.isArray(data.orders) ? data.orders : []);
+        setTotalPages(data.totalPages || 1);
+        setCurrentPage(data.currentPage || currentPage);
+        setTotalOrders(data.totalOrders || 0);
       } catch (err) {
         console.error("Error fetching orders:", err);
       }
     };
     fetchOrders();
-  }, []);
+  }, [currentPage, filterByStatus]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -81,20 +97,9 @@ const AllOrders = () => {
     setOpenDropdownId(null);
   };
 
-  const getFilteredOrders = () => {
-    if (filterByStatus === "all") {
-      return orders;
-    }
-    return orders.filter(
-      (order) => order.status.toLowerCase() === filterByStatus.toLowerCase()
-    );
-  };
-
-  const filteredOrders = getFilteredOrders();
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  // Server side filtering and pagination. `orders` contains current page results.
+  const currentOrders = orders;
+  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -167,15 +172,15 @@ const AllOrders = () => {
                         {order.userId?.name}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        ₹ {order.discountedPrice.toFixed(2)}
+                        ₹ {Number(order.pricing?.total ?? 0).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${getOrderStatusClasses(
-                            order.status
+                            order.orderStatus || order.status
                           )}`}
                         >
-                          {order.status}
+                          {order.orderStatus || order.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap relative">
