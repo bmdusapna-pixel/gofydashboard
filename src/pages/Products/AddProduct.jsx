@@ -40,6 +40,7 @@ const AddProduct = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [videoPreview, setVideoPreview] = useState(null);
+  const [autoRewrite, setAutoRewrite] = useState(true);
 
   useEffect(() => {
     const fetchAgeGroups = async () => {
@@ -136,24 +137,29 @@ const AddProduct = () => {
   const handleProductNameChange = (e) => {
     const { value } = e.target;
     const urlSlug = generateSlug(value);
-    setProduct((prev) => ({ ...prev, name: value, url: urlSlug }));
-
-    // Update all SKUs
-    setVariants((prev) =>
-      prev.map((variant) => {
-        const colorName = getColorName(variant.color);
-        return {
-          ...variant,
-          ageGroups: variant.ageGroups.map((ag) => {
-            const ageName = getAgeGroupName(ag.ageGroup);
-            return {
-              ...ag,
-              sku: generateSKU(value, colorName, ageName),
-            };
-          }),
-        };
-      })
+    // Update name and url only when autoRewrite is enabled; otherwise update name only
+    setProduct((prev) =>
+      autoRewrite ? { ...prev, name: value, url: urlSlug } : { ...prev, name: value }
     );
+
+    // Update all SKUs only when autoRewrite is enabled
+    if (autoRewrite) {
+      setVariants((prev) =>
+        prev.map((variant) => {
+          const colorName = getColorName(variant.color);
+          return {
+            ...variant,
+            ageGroups: variant.ageGroups.map((ag) => {
+              const ageName = getAgeGroupName(ag.ageGroup);
+              return {
+                ...ag,
+                sku: generateSKU(value, colorName, ageName),
+              };
+            }),
+          };
+        })
+      );
+    }
   };
 
   const addProductSpec = () => {
@@ -290,7 +296,7 @@ const AddProduct = () => {
       updated[variantIndex][field] = value;
 
       // When color changes -> update all SKUs inside this variant
-      if (field === "color") {
+      if (field === "color" && autoRewrite) {
         const colorName = getColorName(value);
         updated[variantIndex].ageGroups = updated[variantIndex].ageGroups.map(
           (ag) => {
@@ -323,7 +329,7 @@ const AddProduct = () => {
       }
 
       // Auto-generate SKU when ageGroup selected
-      if (field === "ageGroup") {
+      if (field === "ageGroup" && autoRewrite) {
         const colorName = getColorName(updated[variantIndex].color);
         const ageName = getAgeGroupName(value);
         const sku = generateSKU(product.name, colorName, ageName);
@@ -620,9 +626,19 @@ const AddProduct = () => {
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
       <div className="">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-300">
-          <h1 className="text-lg font-medium mb-6 whitespace-nowrap">
-            Add Product
-          </h1>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <h1 className="text-lg font-medium whitespace-nowrap">Add Product</h1>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={autoRewrite}
+                  onChange={(e) => setAutoRewrite(e.target.checked)}
+                />
+                <span>Auto-rewrite</span>
+              </label>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-8 text-sm">
             {/* Moved Product Display Section inside the form */}
