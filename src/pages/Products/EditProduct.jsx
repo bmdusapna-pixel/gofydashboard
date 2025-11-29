@@ -99,6 +99,7 @@ const EditProduct = () => {
           discount: "",
           stock: "",
           tax: "",
+          sku: "",
         },
       ],
       specifications: [{ key: "", value: "" }],
@@ -168,6 +169,7 @@ const EditProduct = () => {
               discount: ag.discount || 0,
               stock: ag.stock || "",
               tax: ag.tax || "",
+              sku: ag.sku || "",
             })) || [
               {
                 ageGroup: "",
@@ -176,6 +178,7 @@ const EditProduct = () => {
                 discount: 0,
                 stock: "",
                 tax: "",
+                sku: "",
               },
             ],
             specifications: v.specifications?.length
@@ -194,6 +197,33 @@ const EditProduct = () => {
     fetchProduct();
   }, [url]);
 
+  const generateSKU = (productName, colorName, ageGroupName) => {
+    if (!productName || !colorName || !ageGroupName) return "";
+
+    const part = (txt) =>
+      txt
+        .toString()
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "");
+
+    const rand = Math.floor(100 + Math.random() * 900); // 3-digit
+
+    return `${part(productName)}/${part(colorName)}/${part(
+      ageGroupName
+    )}/${rand}`;
+  };
+
+  const getColorName = (id) => {
+    const c = colors.find((col) => col._id === id);
+    return c ? c.name : "";
+  };
+
+  const getAgeGroupName = (id) => {
+    const a = ageGroupOptions.find((g) => g._id === id);
+    return a ? a.ageRange : "";
+  };
+
   const handleProductChange = (field, value) => {
     setProduct((prev) => ({ ...prev, [field]: value }));
   };
@@ -202,6 +232,23 @@ const EditProduct = () => {
     const { value } = e.target;
     const urlSlug = generateSlug(value);
     setProduct((prev) => ({ ...prev, name: value, url: urlSlug }));
+
+    // Update all SKUs
+    setVariants((prev) =>
+      prev.map((variant) => {
+        const colorName = getColorName(variant.color);
+        return {
+          ...variant,
+          ageGroups: variant.ageGroups.map((ag) => {
+            const ageName = getAgeGroupName(ag.ageGroup);
+            return {
+              ...ag,
+              sku: generateSKU(value, colorName, ageName),
+            };
+          }),
+        };
+      })
+    );
   };
 
   const addProductSpec = () => {
@@ -361,6 +408,21 @@ const EditProduct = () => {
     setVariants((prev) => {
       const updated = [...prev];
       updated[variantIndex][field] = value;
+
+      // When color changes -> update all SKUs inside this variant
+      if (field === "color") {
+        const colorName = getColorName(value);
+        updated[variantIndex].ageGroups = updated[variantIndex].ageGroups.map(
+          (ag) => {
+            const ageName = getAgeGroupName(ag.ageGroup);
+            return {
+              ...ag,
+              sku: generateSKU(product.name, colorName, ageName),
+            };
+          }
+        );
+      }
+
       return updated;
     });
   };
@@ -369,6 +431,8 @@ const EditProduct = () => {
     setVariants((prev) => {
       const updated = [...prev];
       updated[variantIndex].ageGroups[ageIndex][field] = value;
+
+      // Auto-calc discount
       if (field === "price" || field === "cutPrice") {
         const price =
           parseFloat(updated[variantIndex].ageGroups[ageIndex].price) || 0;
@@ -377,6 +441,15 @@ const EditProduct = () => {
         updated[variantIndex].ageGroups[ageIndex].discount =
           cutPrice > 0 ? Math.round(((cutPrice - price) / cutPrice) * 100) : "";
       }
+
+      // Auto-generate SKU when ageGroup selected
+      if (field === "ageGroup") {
+        const colorName = getColorName(updated[variantIndex].color);
+        const ageName = getAgeGroupName(value);
+        const sku = generateSKU(product.name, colorName, ageName);
+        updated[variantIndex].ageGroups[ageIndex].sku = sku;
+      }
+
       return updated;
     });
   };
@@ -395,6 +468,7 @@ const EditProduct = () => {
             discount: "",
             stock: "",
             tax: "",
+            sku: "",
           },
         ],
       };
@@ -487,6 +561,7 @@ const EditProduct = () => {
             discount: "",
             stock: "",
             tax: "",
+            sku: "",
           },
         ],
         specifications: [{ key: "", value: "" }],
@@ -632,6 +707,7 @@ const EditProduct = () => {
             discount: Number(ageGroup.discount),
             stock: Number(ageGroup.stock),
             tax: Number(ageGroup.tax),
+            sku: ageGroup.sku,
           })),
           specifications: variant.specifications.filter(
             (s) => s.key && s.value
@@ -1582,6 +1658,25 @@ const EditProduct = () => {
                             <option value="18">18%</option>
                             <option value="28">28%</option>
                           </select>
+                        </div>
+                        {/* SKU */}
+                        <div>
+                          <label className="block mb-2 whitespace-nowrap">
+                            SKU
+                          </label>
+                          <input
+                            type="text"
+                            value={ageGroup.sku}
+                            onChange={(e) =>
+                              handleAgeGroupChange(
+                                vIndex,
+                                ageIndex,
+                                "sku",
+                                e.target.value
+                              )
+                            }
+                            className="border border-gray-300 rounded p-2 w-full"
+                          />
                         </div>
                       </div>
                     </div>
