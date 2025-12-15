@@ -41,7 +41,7 @@ const EditProduct = () => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
-  const [newImages, setNewImages] = useState([]);
+  const [newImages, setNewImages] = useState([]); // will store objects: { file, preview }
   const [videoPreview, setVideoPreview] = useState(null);
   const [newVideo, setNewVideo] = useState(null);
   const [autoRewrite, setAutoRewrite] = useState(false);
@@ -318,8 +318,12 @@ const EditProduct = () => {
 
   const handleImageUpload = (files) => {
     const fileArray = Array.from(files);
-    setNewImages((prev) => [...prev, ...fileArray]);
-    const newImageUrls = fileArray.map((file) => URL.createObjectURL(file));
+    const newImageObjs = fileArray.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setNewImages((prev) => [...prev, ...newImageObjs]);
+    const newImageUrls = newImageObjs.map((obj) => obj.preview);
     setImagePreviews((prev) => [...prev, ...newImageUrls]);
   };
 
@@ -674,7 +678,7 @@ const EditProduct = () => {
     try {
       const formData = new FormData();
 
-      newImages.forEach((file) => {
+      newImages.forEach(({ file }) => {
         formData.append("images", file);
       });
 
@@ -693,15 +697,15 @@ const EditProduct = () => {
         ];
 
         const updatedImages = variantImages
-          .map((url) => {
-            if (url.startsWith("blob:")) {
-              const newImageIndex = newImages.findIndex(
-                (file) => URL.createObjectURL(file) === url
-              );
-              return `new-image-${newImageIndex}`;
-            }
-            return url;
-          })
+            .map((url) => {
+              if (url.startsWith("blob:")) {
+                const newImageIndex = newImages.findIndex(
+                  (obj) => obj.preview === url
+                );
+                return `new-image-${newImageIndex}`;
+              }
+              return url;
+            })
           .filter(Boolean);
 
         return {
