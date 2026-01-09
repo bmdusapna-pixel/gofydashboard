@@ -25,6 +25,7 @@ const Products = () => {
   const navigate = useNavigate();
   const [productList, setProductList] = useState([]);
   const [deleted, setDeleted] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -38,6 +39,15 @@ const Products = () => {
     };
     fetchProducts();
   }, [deleted]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const response = await api.get("/categories");
+      setCategories(response.data.categories.map((category) => category.categoryName));
+    };
+    fetchCategories();
+  }, []);
+  console.log(categories);
 
   const getStatusClasses = (status) => {
     switch (status) {
@@ -110,7 +120,8 @@ const Products = () => {
       }
       const matchesCategory =
         filterByCategory === "all" ||
-        product.category?.categoryName === filterByCategory;
+        product.categories?.[0]?.categoryName === filterByCategory ||
+        product.zohoCategory === filterByCategory;
       const matchesPromotion =
         filterByPromotion === "all" ||
         (Array.isArray(product.promotions)
@@ -194,19 +205,13 @@ const Products = () => {
                 onChange={(e) => setFilterByCategory(e.target.value)}
               >
                 <option value="all">All Categories</option>
-                {[
-                  ...new Set(
-                    productList
-                      .map((product) => product.category?.categoryName)
-                      .filter(Boolean)
-                  ),
-                ].map((category) => (
+                {categories.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
                 ))}
               </select>
-            </div>
+            </div>  
           </div>
 
           {/* Table */}
@@ -253,7 +258,7 @@ const Products = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.categories?.[0]?.categoryName}
+                        {product.categories?.[0]?.categoryName || product.zohoCategory}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                         {product.variants[0]?.ageGroups?.[0]?.stock}
