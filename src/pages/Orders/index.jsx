@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { EllipsisVertical, Eye, Pencil, Trash2 } from "lucide-react";
 import api from "../../api/axios.js";
+import Cookies from "js-cookie";
 
 const table_header = [
   { _id: 1, title: "Sr No." },
@@ -40,6 +41,8 @@ const AllOrders = () => {
     }
   };
 
+  const token = Cookies.get("token");
+
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
@@ -55,7 +58,12 @@ const AllOrders = () => {
           params.status = filterByStatus.toUpperCase();
         }
 
-        const result = await api.get("/user/order/admin", { params });
+        const result = await api.get("/user/order/admin", { params },{
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         // API returns { success, orders, totalPages, currentPage, totalOrders }
         const data = result.data || {};
