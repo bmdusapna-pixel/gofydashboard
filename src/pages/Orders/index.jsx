@@ -28,6 +28,8 @@ const AllOrders = () => {
     switch (status?.toLowerCase()) {
       case "processing":
         return "bg-blue-100 text-blue-800";
+      case "confirmed":
+        return "bg-pink-100 text-pink-800";
       case "shipped":
         return "bg-indigo-100 text-indigo-800";
       case "delivered":

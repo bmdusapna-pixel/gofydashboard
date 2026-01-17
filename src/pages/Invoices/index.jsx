@@ -1,5 +1,8 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import api from "../../api/axios";
+import axios from "axios";
+import { Eye, Download } from 'lucide-react';
+
 
 // Main App component for Invoice Table
 const App = () => {
@@ -11,7 +14,7 @@ const App = () => {
 
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 100;
   const dropdownRef = useRef(null);
   const [viewInvoice, setViewInvoice] = useState(null);
   const [editInvoice, setEditInvoice] = useState(null);
@@ -20,21 +23,20 @@ const App = () => {
 
   const getStatusClasses = (status) => {
     switch (status) {
-      case "PAID":
+      case "paid":
         return "bg-green-100 text-green-800";
-      case "PENDING":
+      case "draft":
         return "bg-yellow-100 text-yellow-800";
-      case "CANCELLED":
+      case "cancelled":
         return "bg-gray-200 text-gray-800";
-      case "REFUNDED":
+      case "refunded":
         return "bg-blue-100 text-blue-800";
-      case "FAILED":
+      case "failed":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
-  
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -63,7 +65,7 @@ const App = () => {
 
       const normalizedInvoices = (response.data.invoices || []).map((inv) => ({
         _id: inv._id,
-        invoiceId: inv.invoiceId,
+        invoiceId: inv.posInvoiceId,
         customerName: inv.userId?.name || "N/A",
         customerEmail: inv.userId?.email || "",
         customerPhone: inv.userId?.phone || "",
@@ -81,9 +83,21 @@ const App = () => {
       setTotalPages(Number(response.data.totalPages || 1));
       setTotalInvoices(Number(response.data.totalInvoices || 0));
     } catch (e) {
-      setError(e?.response?.data?.message || e.message || "Failed to load invoices");
+      setError(
+        e?.response?.data?.message || e.message || "Failed to load invoices"
+      );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateInvoice = async (invoiceId, status) => {
+    try {
+      const response = await api.put(`invoice/${invoiceId}`, status);
+      const data = response.data;
+      console.log(data);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -99,13 +113,14 @@ const App = () => {
     }
   };
 
-  const handleView = async (invoiceId) => {
+  const handleView = async (invoice) => {
     try {
-      setOpenDropdownId(null);
-      const res = await api.get(`invoice/${invoiceId}`);
-      setViewInvoice(res.data.invoice);
+      console.log("called")
+      setViewInvoice(invoice.raw.invoiceUrl);
     } catch (e) {
-      alert(e?.response?.data?.message || e.message || "Failed to load invoice");
+      alert(
+        e?.response?.data?.message || e.message || "Failed to load invoice"
+      );
     }
   };
 
@@ -117,7 +132,9 @@ const App = () => {
       setEditStatus(res.data.invoice?.status || "PENDING");
       setEditNotes(res.data.invoice?.notes || "");
     } catch (e) {
-      alert(e?.response?.data?.message || e.message || "Failed to load invoice");
+      alert(
+        e?.response?.data?.message || e.message || "Failed to load invoice"
+      );
     }
   };
 
@@ -131,7 +148,9 @@ const App = () => {
       setEditInvoice(null);
       await fetchInvoices();
     } catch (e) {
-      alert(e?.response?.data?.message || e.message || "Failed to update invoice");
+      alert(
+        e?.response?.data?.message || e.message || "Failed to update invoice"
+      );
     }
   };
 
@@ -143,7 +162,9 @@ const App = () => {
       await api.delete(`invoice/${invoiceId}`);
       await fetchInvoices();
     } catch (e) {
-      alert(e?.response?.data?.message || e.message || "Failed to delete invoice");
+      alert(
+        e?.response?.data?.message || e.message || "Failed to delete invoice"
+      );
     }
   };
 
@@ -169,14 +190,16 @@ const App = () => {
       "Payment Method",
       "Status",
     ];
-  
+
     const csvContent = [
       headers.join(","),
       ...invoices.map((inv) =>
         [
           inv.invoiceId,
           inv.customerName,
-          inv.raw?.items?.length > 1 ? "Multiple Items" : inv.raw?.items?.[0]?.productName || "N/A",
+          inv.raw?.items?.length > 1
+            ? "Multiple Items"
+            : inv.raw?.items?.[0]?.productName || "N/A",
           new Date(inv.orderDate).toLocaleDateString(),
           inv.total,
           inv.paymentMethod,
@@ -186,14 +209,13 @@ const App = () => {
           .join(",")
       ),
     ].join("\n");
-  
+
     const blob = new Blob([csvContent], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "invoices.csv";
     link.click();
   };
-  
 
   return (
     <>
@@ -267,15 +289,21 @@ const App = () => {
 
                         <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
                           <div className="flex flex-col">
-                            <span className="font-medium text-gray-800">{invoice.customerName}</span>
+                            <span className="font-medium text-gray-800">
+                              {invoice.customerName}
+                            </span>
                             {invoice.customerEmail ? (
-                              <span className="text-xs text-gray-500">{invoice.customerEmail}</span>
+                              <span className="text-xs text-gray-500">
+                                {invoice.customerEmail}
+                              </span>
                             ) : null}
                           </div>
                         </td>
 
                         <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-                          {invoice.orderDate ? new Date(invoice.orderDate).toLocaleDateString() : "—"}
+                          {invoice.orderDate
+                            ? new Date(invoice.orderDate).toLocaleDateString()
+                            : "—"}
                         </td>
 
                         <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
@@ -295,46 +323,21 @@ const App = () => {
                             {invoice.status}
                           </span>
                         </td>
-
-                        <td className="px-4 py-3 text-sm whitespace-nowrap">
-                          <div className="relative inline-block text-left" ref={dropdownRef}>
-                            <button
-                              className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-gray-100"
-                              onClick={() => toggleDropdown(invoice._id)}
-                              aria-label="Actions"
-                            >
-                              <i className="fas fa-ellipsis-h"></i>
-                            </button>
-
-                            {openDropdownId === invoice._id && (
-                              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
-                                <button
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                                  onClick={() => handleView(invoice.invoiceId)}
-                                >
-                                  View
-                                </button>
-                                <button
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                                  onClick={() => handleEdit(invoice.invoiceId)}
-                                >
-                                  Edit status
-                                </button>
-                                <button
-                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                  onClick={() => handleDelete(invoice.invoiceId)}
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            )}
+                        <td>
+                          <div className="flex justify-around m-auto p-auto">
+                          <button><Eye/></button>
+                          <button><Download /></button>
                           </div>
                         </td>
+                        
                       </tr>
                     ))
                   ) : loading ? (
                     <tr>
-                      <td colSpan="8" className="px-4 py-8 text-center text-sm text-gray-500">
+                      <td
+                        colSpan="8"
+                        className="px-4 py-8 text-center text-sm text-gray-500"
+                      >
                         Loading invoices...
                       </td>
                     </tr>
@@ -355,39 +358,42 @@ const App = () => {
             {/* Pagination Controls */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-6 gap-3">
               <div className="text-sm text-gray-600">
-                Total: <span className="font-medium text-gray-800">{totalInvoices}</span>
+                Total:{" "}
+                <span className="font-medium text-gray-800">
+                  {totalInvoices}
+                </span>
               </div>
 
               <div className="flex justify-end items-center space-x-2">
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <div className="flex space-x-1">
-                {pageButtons.map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => paginate(p)}
-                    className={`px-3 py-1 text-sm rounded-md ${
-                      currentPage === p
-                        ? "bg-yellow-200 text-yellow-800"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <div className="flex space-x-1">
+                  {pageButtons.map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => paginate(p)}
+                      className={`px-3 py-1 text-sm rounded-md ${
+                        currentPage === p
+                          ? "bg-yellow-200 text-yellow-800"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
               </div>
             </div>
           </div>
@@ -399,7 +405,9 @@ const App = () => {
         <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-xl shadow-xl border border-gray-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-              <div className="font-semibold text-gray-800">Invoice {viewInvoice.invoiceId}</div>
+              <div className="font-semibold text-gray-800">
+                Invoice {viewInvoice.invoiceId}
+              </div>
               <button
                 className="h-8 w-8 rounded-md hover:bg-gray-100"
                 onClick={() => setViewInvoice(null)}
@@ -412,34 +420,55 @@ const App = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-xs text-gray-500">Customer</div>
-                  <div className="text-gray-800 font-medium">{viewInvoice.userId?.name || "N/A"}</div>
-                  <div className="text-gray-600">{viewInvoice.userId?.email || ""}</div>
-                  <div className="text-gray-600">{viewInvoice.userId?.phone || ""}</div>
+                  <div className="text-gray-800 font-medium">
+                    {viewInvoice.userId?.name || "N/A"}
+                  </div>
+                  <div className="text-gray-600">
+                    {viewInvoice.userId?.email || ""}
+                  </div>
+                  <div className="text-gray-600">
+                    {viewInvoice.userId?.phone || ""}
+                  </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500">Status</div>
                   <div className="mt-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusClasses(viewInvoice.status)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusClasses(
+                        viewInvoice.status
+                      )}`}
+                    >
                       {viewInvoice.status}
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 mt-3">Invoice date</div>
                   <div className="text-gray-700">
-                    {viewInvoice.invoiceDate ? new Date(viewInvoice.invoiceDate).toLocaleString() : "—"}
+                    {viewInvoice.invoiceDate
+                      ? new Date(viewInvoice.invoiceDate).toLocaleString()
+                      : "—"}
                   </div>
                 </div>
               </div>
 
               <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <div className="px-4 py-2 bg-gray-50 text-sm font-medium text-gray-700">Items</div>
+                <div className="px-4 py-2 bg-gray-50 text-sm font-medium text-gray-700">
+                  Items
+                </div>
                 <div className="divide-y divide-gray-200">
                   {(viewInvoice.items || []).map((it, idx) => (
-                    <div key={idx} className="px-4 py-3 text-sm flex justify-between gap-4">
+                    <div
+                      key={idx}
+                      className="px-4 py-3 text-sm flex justify-between gap-4"
+                    >
                       <div className="text-gray-800">
                         <div className="font-medium">{it.productName}</div>
-                        <div className="text-xs text-gray-500">Qty: {it.quantity}</div>
+                        <div className="text-xs text-gray-500">
+                          Qty: {it.quantity}
+                        </div>
                       </div>
-                      <div className="text-gray-700 whitespace-nowrap">₹{Number(it.totalPrice || 0).toFixed(2)}</div>
+                      <div className="text-gray-700 whitespace-nowrap">
+                        ₹{Number(it.totalPrice || 0).toFixed(2)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -448,25 +477,38 @@ const App = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-xs text-gray-500">Payment method</div>
-                  <div className="text-gray-800">{viewInvoice.paymentMethod}</div>
-                  <div className="text-xs text-gray-500 mt-2">Payment status</div>
-                  <div className="text-gray-800">{viewInvoice.paymentStatus}</div>
+                  <div className="text-gray-800">
+                    {viewInvoice.paymentMethod}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    Payment status
+                  </div>
+                  <div className="text-gray-800">
+                    {viewInvoice.paymentStatus}
+                  </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500">Total</div>
-                  <div className="text-gray-800 font-semibold">₹{Number(viewInvoice.pricing?.total || 0).toFixed(2)}</div>
+                  <div className="text-gray-800 font-semibold">
+                    ₹{Number(viewInvoice.pricing?.total || 0).toFixed(2)}
+                  </div>
                 </div>
               </div>
 
               {viewInvoice.notes ? (
                 <div className="text-sm">
                   <div className="text-xs text-gray-500">Notes</div>
-                  <div className="text-gray-700 whitespace-pre-wrap">{viewInvoice.notes}</div>
+                  <div className="text-gray-700 whitespace-pre-wrap">
+                    {viewInvoice.notes}
+                  </div>
                 </div>
               ) : null}
             </div>
             <div className="px-5 py-4 border-t border-gray-200 flex justify-end">
-              <button className="px-4 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200" onClick={() => setViewInvoice(null)}>
+              <button
+                className="px-4 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200"
+                onClick={() => setViewInvoice(null)}
+              >
                 Close
               </button>
             </div>
@@ -479,7 +521,9 @@ const App = () => {
         <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-xl shadow-xl border border-gray-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-              <div className="font-semibold text-gray-800">Edit status: {editInvoice.invoiceId}</div>
+              <div className="font-semibold text-gray-800">
+                Edit status: {editInvoice.invoiceId}
+              </div>
               <button
                 className="h-8 w-8 rounded-md hover:bg-gray-100"
                 onClick={() => setEditInvoice(null)}
@@ -503,7 +547,9 @@ const App = () => {
                 </select>
               </div>
               <div>
-                <div className="text-xs text-gray-500 mb-1">Notes (optional)</div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Notes (optional)
+                </div>
                 <textarea
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-400"
                   rows={4}
@@ -513,10 +559,16 @@ const App = () => {
               </div>
             </div>
             <div className="px-5 py-4 border-t border-gray-200 flex justify-end gap-2">
-              <button className="px-4 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200" onClick={() => setEditInvoice(null)}>
+              <button
+                className="px-4 py-2 text-sm bg-gray-100 rounded-md hover:bg-gray-200"
+                onClick={() => setEditInvoice(null)}
+              >
                 Cancel
               </button>
-              <button className="px-4 py-2 text-sm text-white bg-primary-600 rounded-md hover:bg-primary-700" onClick={handleSaveEdit}>
+              <button
+                className="px-4 py-2 text-sm text-white bg-primary-600 rounded-md hover:bg-primary-700"
+                onClick={handleSaveEdit}
+              >
                 Save
               </button>
             </div>
