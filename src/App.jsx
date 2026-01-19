@@ -63,12 +63,12 @@ const App = () => {
       <ToastContainer />
       <SidebarProvider>
         <Routes>
-          <Route element={<MainLayout />}>
-            <Route element={<PrivateRoute />}>
+          <Route element={<PrivateRoute />}>
+            <Route element={<MainLayout />}>
               <Route element={<ContentLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/sales-dashboard" element={<SalesDashboard />} />
                 <Route path="/" element={<SummaryDashboard />} />
+                <Route path="/sales-dashboard" element={<SalesDashboard />} />
                 <Route path="/products/list" element={<Products />} />
                 <Route path="/products/add-new" element={<AddProduct />} />
                 <Route path="/products/view/:url" element={<ViewProduct />} />
