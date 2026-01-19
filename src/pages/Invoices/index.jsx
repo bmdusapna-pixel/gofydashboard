@@ -91,80 +91,17 @@ const App = () => {
     }
   };
 
-  const updateInvoice = async (invoiceId, status) => {
-    try {
-      const response = await api.put(`invoice/${invoiceId}`, status);
-      const data = response.data;
-      console.log(data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
     fetchInvoices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
+  console.log(invoices)
+
   const paginate = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
       setOpenDropdownId(null);
-    }
-  };
-
-  const handleView = async (invoice) => {
-    try {
-      console.log("called")
-      setViewInvoice(invoice.raw.invoiceUrl);
-    } catch (e) {
-      alert(
-        e?.response?.data?.message || e.message || "Failed to load invoice"
-      );
-    }
-  };
-
-  const handleEdit = async (invoiceId) => {
-    try {
-      setOpenDropdownId(null);
-      const res = await api.get(`invoice/${invoiceId}`);
-      setEditInvoice(res.data.invoice);
-      setEditStatus(res.data.invoice?.status || "PENDING");
-      setEditNotes(res.data.invoice?.notes || "");
-    } catch (e) {
-      alert(
-        e?.response?.data?.message || e.message || "Failed to load invoice"
-      );
-    }
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editInvoice?.invoiceId) return;
-    try {
-      await api.put(`invoice/${editInvoice.invoiceId}`, {
-        status: editStatus,
-        notes: editNotes,
-      });
-      setEditInvoice(null);
-      await fetchInvoices();
-    } catch (e) {
-      alert(
-        e?.response?.data?.message || e.message || "Failed to update invoice"
-      );
-    }
-  };
-
-  const handleDelete = async (invoiceId) => {
-    const ok = confirm("Delete this invoice? This cannot be undone.");
-    if (!ok) return;
-    try {
-      setOpenDropdownId(null);
-      await api.delete(`invoice/${invoiceId}`);
-      await fetchInvoices();
-    } catch (e) {
-      alert(
-        e?.response?.data?.message || e.message || "Failed to delete invoice"
-      );
     }
   };
 
@@ -325,8 +262,12 @@ const App = () => {
                         </td>
                         <td>
                           <div className="flex justify-around m-auto p-auto">
-                          <button><Eye/></button>
-                          <button><Download /></button>
+                          <button
+                          // onClick={handleView()}
+                          ><Eye className="text-sm"/></button>
+                          <button
+                          // onClick={handleDownload()}
+                          ><Download className="text-sm"/></button>
                           </div>
                         </td>
                         
