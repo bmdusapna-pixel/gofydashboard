@@ -20,7 +20,7 @@ const App = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 20;
 
   const dropdownRefs = useRef({});
 
@@ -58,7 +58,7 @@ const App = () => {
           customerImage: customerImage,
           phone: user.phone || "N/A",
           registrationDate: registrationDate,
-          totalOrders: 15,
+          totalOrders: user.totalOrders,
           lastActive: "2025-07-18",
           source: "Web",
         };
@@ -67,19 +67,19 @@ const App = () => {
       setCustomerProfiles(formattedProfiles);
     } catch (error) {
       console.error("Error fetching users:", error);
-      setCustomerProfiles([
-        {
-          id: "cust-001",
-          customerId: "CUST-001",
-          customerName: "Alice Wonderland",
-          customerImage: "https://placehold.co/40x40/FFD700/000?text=AW",
-          phone: "123-456-7890",
-          registrationDate: "2024-01-15",
-          totalOrders: 15,
-          lastActive: "2025-07-18",
-          source: "Web",
-        },
-      ]);
+      // setCustomerProfiles([
+      //   {
+      //     id: "cust-001",
+      //     customerId: "CUST-001",
+      //     customerName: "Alice Wonderland",
+      //     customerImage: "https://placehold.co/40x40/FFD700/000?text=AW",
+      //     phone: "123-456-7890",
+      //     registrationDate: "2024-01-15",
+      //     totalOrders: 15,
+      //     lastActive: "2025-07-18",
+      //     source: "Web",
+      //   },
+      // ]);
     }
   };
 

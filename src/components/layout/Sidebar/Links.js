@@ -8,6 +8,8 @@ import {
   faFileInvoiceDollar,
   faLayerGroup,
   faPalette,
+  faGear,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const navItems = [
@@ -69,13 +71,13 @@ export const navItems = [
   {
     name: "Inventory", // New top-level item
     icon: faClipboardList, // Using a new icon for Inventory
-    type: "dropdown",
+    type: "link",
     path: "/inventory", // Base path for Inventory dropdown
-    subItems: [
-      { name: "Inventory", path: "/inventory" },
-      { name: "Received Orders", path: "/received" },
-      { name: "Warehouse", path: "/inventory/warehouse" }, // Warehouse as a sub-item
-    ],
+    // subItems: [
+    //   { name: "Inventory", path: "/inventory" },
+    //   { name: "Received Orders", path: "/received" },
+    //   { name: "Warehouse", path: "/inventory/warehouse" }, // Warehouse as a sub-item
+    // ],
   },
   {
     name: "Loyalty Dashboard",
@@ -94,25 +96,25 @@ export const navItems = [
       { name: "Bulk Orders", path: "/bulk-orders" },
     ],
   },
-  {
-    name: "Purchase",
-    icon: faClipboardList,
-    type: "dropdown",
-    subItems: [
-      {
-        name: "List",
-        path: "/purchase/list",
-      },
-      {
-        name: "Order",
-        path: "/purchase/order",
-      },
-      {
-        name: "Return",
-        path: "/purchase/return",
-      },
-    ],
-  },
+  // {
+  //   name: "Purchase",
+  //   icon: faClipboardList,
+  //   type: "dropdown",
+  //   subItems: [
+  //     {
+  //       name: "List",
+  //       path: "/purchase/list",
+  //     },
+  //     {
+  //       name: "Order",
+  //       path: "/purchase/order",
+  //     },
+  //     {
+  //       name: "Return",
+  //       path: "/purchase/return",
+  //     },
+  //   ],
+  // },
   {
     name: "Invoices",
     icon: faFileInvoiceDollar,
@@ -129,16 +131,7 @@ export const navItems = [
       { name: "Delay Banners", path: "/delay-banners" },
     ],
   },
-  {
-    name: "Blogs",
-    icon: faClipboardList,
-    type: "dropdown",
-    path: "/blogs",
-    subItems: [
-      { name: "All Blogs", path: "/blogs" },
-      { name: "Add Blog", path: "/blogs/add-new" },
-    ],
-  },
+
   {
     name: "Coupons",
     icon: faClipboardList,
@@ -183,6 +176,16 @@ export const navItems = [
     type: "link",
   },
   {
+    name: "Blogs",
+    icon: faClipboardList,
+    type: "dropdown",
+    path: "/blogs",
+    subItems: [
+      { name: "All Blogs", path: "/blogs" },
+      { name: "Add Blog", path: "/blogs/add-new" },
+    ],
+  },
+  {
     name: "Admin",
     icon: faUsers,
     path: "/admin",
@@ -190,14 +193,25 @@ export const navItems = [
   },
   {
     name: "Settings",
-    icon: faUsers,
+    icon: faGear,
     path: "/admin-settings",
     type: "link",
   },
   {
-    name: "Logs",
+    name: "Profile",
     icon: faUsers,
-    path: "/activities",
+    path: "/profile",
     type: "link",
   },
+  {
+    name: "Logout",
+    icon: faUser,
+    type:"button"
+  },
+  // {
+  //   name: "Logs",
+  //   icon: faUsers,
+  //   path: "/activities",
+  //   type: "link",
+  // },
 ];

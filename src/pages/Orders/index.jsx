@@ -10,7 +10,9 @@ const table_header = [
   { _id: 4, title: "Customer" },
   { _id: 5, title: "Total" },
   { _id: 6, title: "Order Status" },
-  { _id: 7, title: "Action" },
+  { _id: 7, title: "Delivery Type" },
+  { _id: 8, title: "Payment Method" },
+  { _id: 9, title: "Action" },
 ];
 
 const AllOrders = () => {
@@ -21,7 +23,7 @@ const AllOrders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 20;
   const [filterByStatus, setFilterByStatus] = useState("all");
 
   const getOrderStatusClasses = (status) => {
@@ -69,6 +71,7 @@ const AllOrders = () => {
 
         // API returns { success, orders, totalPages, currentPage, totalOrders }
         const data = result.data || {};
+        console.log(data);
         setOrders(Array.isArray(data.orders) ? data.orders : []);
         setTotalPages(data.totalPages || 1);
         setCurrentPage(data.currentPage || currentPage);
@@ -192,6 +195,12 @@ const AllOrders = () => {
                         >
                           {order.orderStatus || order.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                        {order.deliveryType}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                        {order.paymentMethod}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap relative">
                         <button

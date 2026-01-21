@@ -164,7 +164,17 @@ const App = ({ navItems }) => {
                         </>
                       )}
                     </NavLink>
-                  ) : (
+                  ) : item.type === "button" ? (
+                    <button
+                      onClick={handleLogout}
+                      className={`${baseLinkClasses} w-full text-left text-red-200 hover:bg-red-600 hover:text-white`}
+                    >
+                      <FontAwesomeIcon
+                        icon={item.icon}
+                        className="mr-3"
+                      />
+                      {item.name}
+                    </button>) : (
                     <>
                       <button
                         onClick={() => handleDropdownToggle(item.name)}
@@ -222,47 +232,6 @@ const App = ({ navItems }) => {
               ))}
             </nav>
 
-            {/* 👤 User Section */}
-            <div className="relative mt-2 mb-4">
-              <div
-                className="flex items-center p-3 bg-primary-500 rounded-lg cursor-pointer"
-                onClick={handleUserDropdownToggle}
-              >
-                <img
-                  className="w-10 h-10 rounded-full object-cover"
-                  src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
-                  alt="User avatar"
-                />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-white">
-                    Sarah Johnson
-                  </p>
-                  <p className="text-xs text-primary-100">Admin</p>
-                </div>
-                <button className="ml-auto text-primary-100 hover:text-white pointer-events-none">
-                  <FontAwesomeIcon icon={faEllipsisV} />
-                </button>
-              </div>
-              {isUserDropdownOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-lg shadow-lg py-1 z-10">
-                  <NavLink
-                    to="/profile"
-                    onClick={handleLinkClick}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <FontAwesomeIcon icon={faUserCircle} className="mr-2" />
-                    Profile
-                  </NavLink>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
-                  >
-                    <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>

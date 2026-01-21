@@ -1,15 +1,19 @@
 // Inventory.jsx
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { EllipsisVertical, Eye, Pencil, Trash2 } from "lucide-react";
+import api from "../../api/axios";
+import axios from "axios";
 
 const inventoryTableHeaders = [
   { title: "Sr No.", _id: "srNo" },
   { title: "Product ID", _id: "productId" },
   { title: "Product Name", _id: "productName" },
+  { title: "Variant (Color / Age)", _id: "variant" },
   { title: "Stock", _id: "stock" },
   { title: "Status", _id: "status" },
   { title: "Action", _id: "action" },
 ];
+
 
 // Demo Data: Children Clothes & Toys
 const demoProducts = [
@@ -37,10 +41,10 @@ const demoProducts = [
 
 const Inventory = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
-  const [products, setProducts] = useState([]);
+  const [inventory,setInventory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
-  const itemsPerPage = 5;
+  const itemsPerPage = 20;
 
   const [filterByStock, setFilterByStock] = useState("all");
 
@@ -48,9 +52,21 @@ const Inventory = () => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
 
+  const fetchInventory = async(req,res)=>{
+    try {
+      console.log("i am called")
+      const res = await api.get("products/inventory");
+      console.log("res",res);
+      setInventory(res.data.data);
+
+    } 
+    catch (error) {
+      console.log("i am called")
+      console.log(error);
+    }
+  }
   useEffect(() => {
-    // Load demo data
-    setProducts(demoProducts);
+     fetchInventory();
   }, []);
 
   useEffect(() => {
@@ -66,24 +82,24 @@ const Inventory = () => {
   }, []);
 
   // stock filter logic
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+  const filteredInventory = useMemo(() => {
+    return inventory.filter((item) => {
       if (filterByStock === "all") return true;
-      if (filterByStock === "out" && product.stock === 0) return true;
-      if (filterByStock === "low" && product.stock > 0 && product.stock <= 5)
-        return true;
-      if (filterByStock === "in" && product.stock > 5) return true;
-      return false;
+      if (filterByStock === "out") return item.stock === 0;
+      if (filterByStock === "low") return item.stock > 0 && item.stock <= 5;
+      if (filterByStock === "in") return item.stock > 5;
+      return true;
     });
-  }, [products, filterByStock]);
+  }, [inventory, filterByStock]);
+  
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(
+  const currentProducts = filteredInventory.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -103,6 +119,7 @@ const Inventory = () => {
       return <span className="text-yellow-600 font-medium">Low Stock</span>;
     return <span className="text-green-600 font-medium">In Stock</span>;
   };
+  
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
@@ -129,91 +146,93 @@ const Inventory = () => {
           </div>
 
           {/* Table Section */}
-          <div className="overflow-x-auto rounded-lg border border-primary-100">
-            <table className="min-w-full divide-y divide-primary-100">
-              <thead className="bg-gray-50">
-                <tr>
-                  {inventoryTableHeaders.map((item) => (
-                    <th
-                      key={item._id}
-                      className="px-4 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {item.title}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-primary-100">
-                {currentProducts.length > 0 ? (
-                  currentProducts.map((product, index) => (
-                    <tr
-                      key={product._id}
-                      className={`hover:bg-gray-50 transition duration-150 ease-in-out ${
-                        product.stock === 0 ? "bg-red-50" : ""
-                      }`}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {indexOfFirstItem + index + 1}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {product.productId}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {product.productName}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {product.stock}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm">
-                        {getStockStatus(product.stock)}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap relative">
-                        <button
-                          className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition"
-                          onClick={() => toggleDropdown(product._id)}
-                          title="More Actions"
-                          aria-haspopup="true"
-                          aria-expanded={openDropdownId === product._id}
-                        >
-                          <EllipsisVertical className="w-5 h-5 text-gray-500" />
-                        </button>
+          <div className="overflow-x-auto rounded-xl border border-primary-100 bg-white shadow-sm">
+  <table className="min-w-full divide-y divide-primary-100">
+    {/* Header */}
+    <thead className="bg-gray-100">
+      <tr>
+        {inventoryTableHeaders.map((item) => (
+          <th
+            key={item._id}
+            className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+          >
+            {item.title}
+          </th>
+        ))}
+      </tr>
+    </thead>
 
-                        {openDropdownId === product._id && (
-                          <div
-                            ref={dropdownRef}
-                            className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-primary-100 z-10"
-                          >
-                            <div className="flex flex-col py-2" role="menu">
-                              <button className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition text-sm text-gray-700">
-                                <Eye className="w-4 h-4 text-blue-500" /> View
-                              </button>
-                              <button className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition text-sm text-gray-700">
-                                <Pencil className="w-4 h-4 text-yellow-500" />{" "}
-                                Edit
-                              </button>
-                              <button className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition text-sm text-gray-700">
-                                <Trash2 className="w-4 h-4 text-red-500" />{" "}
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={inventoryTableHeaders.length}
-                      className="px-4 py-3 text-center text-sm text-gray-500"
-                    >
-                      No products found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+    {/* Body */}
+    <tbody className="divide-y divide-gray-100">
+      {currentProducts.length > 0 ? (
+        currentProducts.map((item, index) => (
+          <tr
+            key={item.itemId}
+            className={`transition ${
+              item.stock === 0
+                ? "bg-red-50 hover:bg-red-100"
+                : "hover:bg-gray-50"
+            }`}
+          >
+            {/* Sr No */}
+            <td className="px-5 py-3 text-sm text-gray-600">
+              {indexOfFirstItem + index + 1}
+            </td>
+
+            {/* Product ID */}
+            <td className="px-5 py-3 text-sm font-medium text-gray-800">
+              {item.productId}
+            </td>
+
+            {/* Product Name */}
+            <td className="px-5 py-3 text-sm text-gray-800">
+              {item.productName}
+            </td>
+
+            {/* Variant */}
+            <td className="px-5 py-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-gray-700">
+                  {item.color}
+                </span>
+                <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700">
+                  {item.ageGroup}
+                </span>
+              </div>
+            </td>
+
+            {/* Stock */}
+            <td className="px-5 py-3 text-sm font-semibold text-gray-800">
+              {item.stock}
+            </td>
+
+            {/* Status */}
+            <td className="px-5 py-3 text-sm">
+              {getStockStatus(item.stock)}
+            </td>
+
+            {/* Action */}
+            <td className="px-5 py-3 text-sm text-right relative">
+              <button className="p-2 rounded-full hover:bg-gray-200 transition">
+                <EllipsisVertical className="w-5 h-5 text-gray-600" />
+              </button>
+            </td>
+          </tr>
+        ))
+      ) : (
+        <tr>
+          <td
+            colSpan={inventoryTableHeaders.length}
+            className="px-6 py-6 text-center text-sm text-gray-500"
+          >
+            No inventory found
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
           </div>
+
 
           {/* Pagination */}
           <div className="flex justify-end items-center gap-2">

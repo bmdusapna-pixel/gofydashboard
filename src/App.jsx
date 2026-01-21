@@ -56,6 +56,8 @@ import BulkOrders from "./pages/Orders/BulkOrders";
 import CouponAnalytics from "./pages/Coupon/CouponAnalytics";
 import Blogs from "./pages/Blogs";
 import AddBlog from "./pages/Blogs/AddBlog";
+import ComingSoon from "./pages/ComingSoon";
+import UnderDevelopment from "./pages/Underdevelopment";
 
 const App = () => {
   return (
@@ -109,7 +111,7 @@ const App = () => {
                 />
                 <Route path="/setting" element={<Settings />} />
                 <Route path="/inventory" element={<Inventory />} />
-                <Route path="/seo-analytics" element={<SeoAnalytics />} />
+                <Route path="/seo-analytics" element={<UnderDevelopment />} />
                 <Route path="/admin-settings" element={<AdminSettings />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route
@@ -122,19 +124,19 @@ const App = () => {
                 />
                 <Route
                   path="/loyalty-dashboard"
-                  element={<LoyaltyDashboard />}
+                  element={<ComingSoon/>}
                 />
                 <Route
                   path="/loyalty-dashboard/:customerId"
-                  element={<UserTransactions />}
+                  element={<ComingSoon/>}
                 />
                 <Route path="/review" element={<Review />} />
                 <Route path="/activities" element={<Activities />} />
                 <Route
                   path="/notifications"
-                  element={<NotificationDashboard />}
+                  element={<ComingSoon />}
                 />
-                <Route path="/notification-logger" element={<Notification />} />
+                <Route path="/notification-logger" element={<ComingSoon />} />
                 <Route path="/cart-list" element={<CartList />} />
                 <Route path="/coupon-form" element={<CouponForm />} />
                 <Route
@@ -144,8 +146,9 @@ const App = () => {
                 <Route path="/coupons" element={<Coupons />} />
                 <Route path="/bulk-orders" element={<BulkOrders />} />
                 <Route path="/coupon-analytics" element={<CouponAnalytics />} />
-                <Route path="/blogs" element={<Blogs />} />
-                <Route path="/blogs/add-new" element={<AddBlog />} />
+                <Route path="/blogs" element={<ComingSoon/>} />
+                <Route path="/blogs/add-new" element={<ComingSoon />} />
+                <Route path="/profile" element={<ComingSoon/>}/>
               </Route>
             </Route>
           </Route>

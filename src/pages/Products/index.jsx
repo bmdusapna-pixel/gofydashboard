@@ -16,9 +16,7 @@ const heading_items = [
 
 const Products = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [filterByDate, setFilterByDate] = useState("all");
-  const itemsPerPage = 5;
   const [filterByCategory, setFilterByCategory] = useState("all");
   const [filterByPromotion, setFilterByPromotion] = useState("all");
   const dropdownRef = useRef(null);
@@ -26,19 +24,23 @@ const Products = () => {
   const [productList, setProductList] = useState([]);
   const [deleted, setDeleted] = useState(false);
   const [categories, setCategories] = useState([]);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 20;
+  
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await api.get("/products");
+        const response = await api.get(`/products?page=${currentPage}&limit=20`);
         setProductList(response.data.data);
+        setTotalPages(response.data.pagination.totalPages);
         console.log("Fetched products:", response.data.data);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
     };
     fetchProducts();
-  }, [deleted]);
+  }, [currentPage],[deleted]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -49,19 +51,12 @@ const Products = () => {
   }, []);
   console.log(categories);
 
-  const getStatusClasses = (status) => {
-    switch (status) {
-      case "In Stock":
-        return "bg-green-100 text-green-800";
-      case "Low Stock":
-        return "bg-yellow-100 text-yellow-800";
-      case "On Order":
-        return "bg-blue-100 text-blue-800";
-      case "Out of Stock":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const getStockStatus = (stock) => {
+    if (stock === 0)
+      return <span className="bg-red-100 text-red-800 p-2 rounded-2xl">Out of Stock</span>;
+    if (stock <= 5)
+      return <span className="bg-yellow-100 text-yellow-800 p-2 rounded-2xl">Low Stock</span>;
+    return <span className="bg-green-100 text-green-800 p-2 rounded-2xl">In Stock</span>;
   };
 
   const toggleDropdown = (id) => {
@@ -132,24 +127,11 @@ const Products = () => {
   };
 
   const filteredProducts = getFilteredProducts();
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [filterByDate, filterByCategory, filterByPromotion]);
-
-  const paginate = (pageNumber) => {
-    if (pageNumber > 0 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-      setOpenDropdownId(null);
-    }
-  };
+  
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
@@ -211,7 +193,7 @@ const Products = () => {
                   </option>
                 ))}
               </select>
-            </div>  
+            </div>
           </div>
 
           {/* Table */}
@@ -230,21 +212,21 @@ const Products = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-primary-100">
-                {currentProducts.length > 0 ? (
-                  currentProducts.map((product, index) => (
+                {productList.length > 0 ? (
+                  productList.map((product, index) => (
                     <tr
                       key={product._id}
                       className="hover:bg-gray-50 transition duration-150 ease-in-out"
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        {indexOfFirstItem + index + 1}
+                       {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                         {product.productId}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 flex items-center">
                         <img
-                          src={product.variants[0]?.images[0]}
+                          src={product.images[0]}
                           alt={product.name}
                           className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
                           onError={(e) => {
@@ -257,26 +239,28 @@ const Products = () => {
                           {product.name}
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.categories?.[0]?.categoryName || product.zohoCategory}
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
+                        {product.category[0].categoryName}
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm text-gray-600">
+                            {product.color}
+                          </span>
+                          <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-600">
+                            {product.ageGroup}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.variants[0]?.ageGroups?.[0]?.stock}
+                        {product.stock}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
                         ₹{" "}
                         {parseFloat(
-                          product.variants[0]?.ageGroups?.[0]?.price
+                          product.price
                         ).toFixed(2)}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusClasses(
-                            product.status
-                          )}`}
-                        >
-                          {product.status}
-                        </span>
+                      <td className="px-4 py-3 text-sm">
+                        {getStockStatus(product.stock)}
                       </td>
                       <td className="px-4 py-3 relative whitespace-nowrap">
                         <button
@@ -334,37 +318,57 @@ const Products = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-end items-center gap-3">
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="cursor-pointer px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <div className="flex gap-2">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => paginate(i + 1)}
-                  className={`cursor-pointer px-3 py-2 text-sm rounded-md ${
-                    currentPage === i + 1
-                      ? "bg-yellow-200 text-yellow-800"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="cursor-pointer px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+          <div className="flex justify-between items-center mt-4">
+  <p className="text-sm text-gray-600">
+    Page {currentPage} of {totalPages}
+  </p>
+
+  <div className="flex gap-2">
+    <button
+      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+      disabled={currentPage === 1}
+      className="px-3 py-2 text-sm bg-gray-200 rounded-md disabled:opacity-50"
+    >
+      Previous
+    </button>
+
+    {[...Array(totalPages)].map((_, i) => {
+      const page = i + 1;
+      if (
+        page === 1 ||
+        page === totalPages ||
+        Math.abs(page - currentPage) <= 1
+      ) {
+        return (
+          <button
+            key={page}
+            onClick={() => setCurrentPage(page)}
+            className={`px-3 py-2 text-sm rounded-md ${
+              currentPage === page
+                ? "bg-yellow-200 text-yellow-800"
+                : "bg-gray-200 hover:bg-gray-300"
+            }`}
+          >
+            {page}
+          </button>
+        );
+      }
+      return null;
+    })}
+
+    <button
+      onClick={() =>
+        setCurrentPage((p) => Math.min(p + 1, totalPages))
+      }
+      disabled={currentPage === totalPages}
+      className="px-3 py-2 text-sm bg-gray-200 rounded-md disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+</div>
+
+
         </div>
       </div>
     </div>
