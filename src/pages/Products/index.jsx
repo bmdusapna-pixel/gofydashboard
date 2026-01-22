@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { EllipsisVertical, Eye, Pencil, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios.js";
@@ -19,6 +19,8 @@ const Products = () => {
   const [filterByDate, setFilterByDate] = useState("all");
   const [filterByCategory, setFilterByCategory] = useState("all");
   const [filterByPromotion, setFilterByPromotion] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const [productList, setProductList] = useState([]);
@@ -26,21 +28,51 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const itemsPerPage = 20;
-  
+
+  // Debounce search query
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await api.get(`/products?page=${currentPage}&limit=20`);
-        setProductList(response.data.data);
-        setTotalPages(response.data.pagination.totalPages);
-        console.log("Fetched products:", response.data.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+  
+  const fetchProducts = async (page = 1) => {
+    try {
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "20",
+      });
+
+      // Add search parameter
+      if (debouncedSearchQuery.trim()) {
+        params.append("search", debouncedSearchQuery.trim());
       }
-    };
-    fetchProducts();
-  }, [currentPage],[deleted]);
+
+      // Add filter parameters
+      if (filterByPromotion !== "all") {
+        params.append("promotion", filterByPromotion);
+      }
+      if (filterByDate !== "all") {
+        params.append("dateFilter", filterByDate);
+      }
+      if (filterByCategory !== "all") {
+        params.append("category", filterByCategory);
+      }
+
+      const response = await api.get(`/products/items?${params.toString()}`);
+      setProductList(response.data.data);
+      setTotalPages(response.data.pagination.totalPages);
+      setTotalCount(response.data.pagination.totalCount);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+  console.log("products",productList)
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -49,8 +81,11 @@ const Products = () => {
     };
     fetchCategories();
   }, []);
-  console.log(categories);
 
+  useEffect(() => {
+    fetchProducts(currentPage);
+  }, [currentPage, deleted, debouncedSearchQuery, filterByDate, filterByCategory, filterByPromotion]);
+  
   const getStockStatus = (stock) => {
     if (stock === 0)
       return <span className="bg-red-100 text-red-800 p-2 rounded-2xl">Out of Stock</span>;
@@ -75,6 +110,41 @@ const Products = () => {
     };
   }, []);
 
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+  
+
+  // Group products by product _id to show actions only once per product
+  const groupedProducts = useMemo(() => {
+    const grouped = {};
+    productList.forEach((item) => {
+      const productId = item._id;
+      if (!grouped[productId]) {
+        grouped[productId] = [];
+      }
+      grouped[productId].push(item);
+    });
+    return grouped;
+  }, [productList]);
+
+  // Flatten grouped products for display, marking first variant of each product
+  const displayProducts = useMemo(() => {
+    const flattened = [];
+    Object.keys(groupedProducts).forEach((productId) => {
+      const variants = groupedProducts[productId];
+      variants.forEach((variant, index) => {
+        flattened.push({
+          ...variant,
+          isFirstVariant: index === 0,
+          productId: productId,
+        });
+      });
+    });
+    return flattened;
+  }, [groupedProducts]);
+
   const handleView = (product) => {
     navigate(`/products/view/${product.url}`);
     setOpenDropdownId(null);
@@ -95,42 +165,10 @@ const Products = () => {
     setOpenDropdownId(null);
   };
 
-  const getFilteredProducts = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return productList.filter((product) => {
-      const productDate = new Date(product.dateAdded);
-      productDate.setHours(0, 0, 0, 0);
-      let matchesDate = true;
-      if (filterByDate === "week") {
-        const sevenDaysAgo = new Date(today);
-        sevenDaysAgo.setDate(today.getDate() - 7);
-        matchesDate = productDate >= sevenDaysAgo && productDate <= today;
-      } else if (filterByDate === "month") {
-        matchesDate =
-          productDate.getMonth() === today.getMonth() &&
-          productDate.getFullYear() === today.getFullYear();
-      } else if (filterByDate === "year") {
-        matchesDate = productDate.getFullYear() === today.getFullYear();
-      }
-      const matchesCategory =
-        filterByCategory === "all" ||
-        product.categories?.[0]?.categoryName === filterByCategory ||
-        product.zohoCategory === filterByCategory;
-      const matchesPromotion =
-        filterByPromotion === "all" ||
-        (Array.isArray(product.promotions)
-          ? product.promotions.includes(filterByPromotion)
-          : product.promotions === filterByPromotion);
-      return matchesDate && matchesCategory && matchesPromotion;
-    });
-  };
-
-  const filteredProducts = getFilteredProducts();
-
+  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterByDate, filterByCategory, filterByPromotion]);
+  }, [filterByDate, filterByCategory, filterByPromotion, debouncedSearchQuery]);
   
 
   return (
@@ -138,61 +176,69 @@ const Products = () => {
       <div className="">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-700">
-              Product Catalog
-            </h2>
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-700">
+                Product Catalog
+              </h2>
               <Link
                 to="/products/add-new"
                 className="cursor-pointer bg-red-200 hover:bg-red-300 text-red-800 text-sm font-medium py-2 px-4 rounded-md shadow-sm transition-colors"
               >
                 Add New Product
               </Link>
-              <select
-                className="cursor-pointer px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
-                value={filterByPromotion}
-                onChange={(e) => setFilterByPromotion(e.target.value)}
-              >
-                <option value="all">All Promotions</option>
-                {[
-                  ...new Set(
-                    productList.flatMap((p) =>
-                      Array.isArray(p.promotions)
-                        ? p.promotions
-                        : [p.promotions]
-                    )
-                  ),
-                ]
-                  .filter(Boolean)
-                  .map((promo) => (
-                    <option key={promo} value={promo}>
-                      {promo}
+            </div>
+
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              {/* Search Input */}
+              <div className="flex-1 min-w-[200px]">
+                <input
+                  type="text"
+                  placeholder="Search by name, product ID, or SKU..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm"
+                />
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-4">
+                <select
+                  className="cursor-pointer px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
+                  value={filterByPromotion}
+                  onChange={(e) => setFilterByPromotion(e.target.value)}
+                >
+                  <option value="all">All Promotions</option>
+                  <option value="super_deal">Super Deal</option>
+                  <option value="offers">Offers</option>
+                  <option value="trending">Trending</option>
+                  <option value="deal_of_the_day">Deal of the Day</option>
+                  <option value="new_arrival">New Arrival</option>
+                </select>
+                <select
+                  className="px-4 py-2 border border-gray-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
+                  value={filterByDate}
+                  onChange={(e) => setFilterByDate(e.target.value)}
+                >
+                  <option value="all">All Time</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                </select>
+                <select
+                  className="cursor-pointer px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
+                  value={filterByCategory}
+                  onChange={(e) => setFilterByCategory(e.target.value)}
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
                     </option>
                   ))}
-              </select>
-              <select
-                className="px-4 py-2 border border-gray-300 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
-                value={filterByDate}
-                onChange={(e) => setFilterByDate(e.target.value)}
-              >
-                <option value="all">All Time</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="year">This Year</option>
-              </select>
-              <select
-                className="cursor-pointer px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm rounded-md shadow-sm font-medium"
-                value={filterByCategory}
-                onChange={(e) => setFilterByCategory(e.target.value)}
-              >
-                <option value="all">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -212,11 +258,13 @@ const Products = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-primary-100">
-                {productList.length > 0 ? (
-                  productList.map((product, index) => (
+                {displayProducts.length > 0 ? (
+                  displayProducts.map((product, index) => (
                     <tr
-                      key={product._id}
-                      className="hover:bg-gray-50 transition duration-150 ease-in-out"
+                      key={`${product.productId}-${product.itemId}`}
+                      className={`hover:bg-gray-50 transition duration-150 ease-in-out ${
+                        !product.isFirstVariant ? "bg-gray-50/50" : ""
+                      }`}
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                        {(currentPage - 1) * itemsPerPage + index + 1}
@@ -225,22 +273,35 @@ const Products = () => {
                         {product.productId}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 flex items-center">
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src =
-                              "https://placehold.co/40x40/CCCCCC/000?text=N/A";
-                          }}
-                        />
+                        {product.isFirstVariant && (
+                          <img
+                            src={product.images?.[0]}
+                            alt={product.name}
+                            className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://placehold.co/40x40/CCCCCC/000?text=N/A";
+                            }}
+                          />
+                        )}
+                        {!product.isFirstVariant && (
+                          <div className="w-10 h-10 mr-3"></div>
+                        )}
                         <span className="text-sm font-medium text-gray-800">
-                          {product.name}
+                          {product.isFirstVariant ? product.name : ""}
                         </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {product.category[0].categoryName}
+                        {product.isFirstVariant && (
+                          <div className="mb-1">
+                            {Array.isArray(product.category) && product.category[0]?.categoryName
+                              ? product.category[0].categoryName
+                              : typeof product.category === "string"
+                              ? product.category
+                              : "N/A"}
+                          </div>
+                        )}
                         <div className="flex flex-col gap-1">
                           <span className="text-sm text-gray-600">
                             {product.color}
@@ -263,42 +324,48 @@ const Products = () => {
                         {getStockStatus(product.stock)}
                       </td>
                       <td className="px-4 py-3 relative whitespace-nowrap">
-                        <button
-                          className="flex cursor-pointer items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100"
-                          onClick={() => toggleDropdown(product._id)}
-                          title="More Actions"
-                        >
-                          <EllipsisVertical className="w-5 h-5 text-gray-600" />
-                        </button>
-                        {openDropdownId === product._id && (
-                          <div
-                            ref={dropdownRef}
-                            className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
-                          >
-                            <div className="flex flex-col gap-1 p-1">
-                              <button
-                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
-                                onClick={() => handleView(product)}
+                        {product.isFirstVariant ? (
+                          <>
+                            <button
+                              className="flex cursor-pointer items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100"
+                              onClick={() => toggleDropdown(product.productId)}
+                              title="More Actions"
+                            >
+                              <EllipsisVertical className="w-5 h-5 text-gray-600" />
+                            </button>
+                            {openDropdownId === product.productId && (
+                              <div
+                                ref={dropdownRef}
+                                className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
                               >
-                                <Eye className="w-4 h-4 text-blue-500" />
-                                View
-                              </button>
-                              <button
-                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
-                                onClick={() => handleEdit(product)}
-                              >
-                                <Pencil className="w-4 h-4 text-yellow-500" />
-                                Edit
-                              </button>
-                              <button
-                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-red-600"
-                                onClick={() => handleDelete(product._id)}
-                              >
-                                <Trash2 className="w-4 h-4 text-red-500" />
-                                Delete
-                              </button>
-                            </div>
-                          </div>
+                                <div className="flex flex-col gap-1 p-1">
+                                  <button
+                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
+                                    onClick={() => handleView(product)}
+                                  >
+                                    <Eye className="w-4 h-4 text-blue-500" />
+                                    View
+                                  </button>
+                                  <button
+                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
+                                    onClick={() => handleEdit(product)}
+                                  >
+                                    <Pencil className="w-4 h-4 text-yellow-500" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-red-600"
+                                    onClick={() => handleDelete(product._id)}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
                         )}
                       </td>
                     </tr>
@@ -318,57 +385,29 @@ const Products = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center mt-4">
-  <p className="text-sm text-gray-600">
-    Page {currentPage} of {totalPages}
-  </p>
-
-  <div className="flex gap-2">
-    <button
-      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-      disabled={currentPage === 1}
-      className="px-3 py-2 text-sm bg-gray-200 rounded-md disabled:opacity-50"
-    >
-      Previous
-    </button>
-
-    {[...Array(totalPages)].map((_, i) => {
-      const page = i + 1;
-      if (
-        page === 1 ||
-        page === totalPages ||
-        Math.abs(page - currentPage) <= 1
-      ) {
-        return (
-          <button
-            key={page}
-            onClick={() => setCurrentPage(page)}
-            className={`px-3 py-2 text-sm rounded-md ${
-              currentPage === page
-                ? "bg-yellow-200 text-yellow-800"
-                : "bg-gray-200 hover:bg-gray-300"
-            }`}
-          >
-            {page}
-          </button>
-        );
-      }
-      return null;
-    })}
-
-    <button
-      onClick={() =>
-        setCurrentPage((p) => Math.min(p + 1, totalPages))
-      }
-      disabled={currentPage === totalPages}
-      className="px-3 py-2 text-sm bg-gray-200 rounded-md disabled:opacity-50"
-    >
-      Next
-    </button>
-  </div>
-</div>
-
-
+          {totalPages > 1 && (
+              <div className="flex justify-center mt-8">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="px-4 py-2 text-gray-700">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
         </div>
       </div>
     </div>

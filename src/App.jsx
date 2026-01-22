@@ -116,11 +116,13 @@ const App = () => {
                 <Route path="/admin" element={<Admin />} />
                 <Route
                   path="/product-analytics"
-                  element={<ProductAnalytics />}
+                  // element={<ProductAnalytics />}
+                  element={<ComingSoon />}
                 />
                 <Route
                   path="/referral-dashboard"
-                  element={<ReferralDashboard />}
+                  // element={<ReferralDashboard />}
+                  element={<ComingSoon />}
                 />
                 <Route
                   path="/loyalty-dashboard"

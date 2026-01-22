@@ -86,15 +86,15 @@ export const navItems = [
     type: "link",
   },
   {
-    name: "Orders",
+    name: "Order History",
     icon: faShoppingCart,
-    type: "dropdown",
+    type: "link",
     path: "/orders", // Base path for dropdown
-    subItems: [
-      { name: "All Orders", path: "/orders" },
-      { name: "Cart List", path: "/cart-list" },
-      { name: "Bulk Orders", path: "/bulk-orders" },
-    ],
+    // subItems: [
+    //   { name: "All Orders", path: "/orders" },
+    //   // { name: "Cart List", path: "/cart-list" },
+    //   // { name: "Bulk Orders", path: "/bulk-orders" },
+    // ],
   },
   // {
   //   name: "Purchase",
@@ -136,7 +136,7 @@ export const navItems = [
     name: "Coupons",
     icon: faClipboardList,
     type: "dropdown",
-    path: "/orders",
+    path: "/coupans",
     subItems: [
       { name: "All Coupons", path: "/coupons" },
       { name: "Add Coupon", path: "/coupon-form" },

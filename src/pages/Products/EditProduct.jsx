@@ -24,6 +24,7 @@ const EditProduct = () => {
     dealHours: "",
     images: [],
     video: null,
+    sizeChart: null,
     specifications: [{ key: "", value: "" }],
     keyFeatures: [{ key: "", value: "" }],
     displayOn: [],
@@ -44,6 +45,8 @@ const EditProduct = () => {
   const [newImages, setNewImages] = useState([]); // will store objects: { file, preview }
   const [videoPreview, setVideoPreview] = useState(null);
   const [newVideo, setNewVideo] = useState(null);
+  const [sizeChartPreview, setSizeChartPreview] = useState(null);
+  const [newSizeChart, setNewSizeChart] = useState(null);
   const [autoRewrite, setAutoRewrite] = useState(false);
 
   useEffect(() => {
@@ -143,11 +146,13 @@ const EditProduct = () => {
           metaKeywords: data.metaKeywords || "",
           images: data.images || [],
           video: data.video || null,
+          sizeChart: data.sizeChart || null,
         });
 
         // 🟢 Preload media previews
         setImagePreviews(data.images || []);
         setVideoPreview(data.video || null);
+        setSizeChartPreview(data.sizeChart || null);
 
         // 🟢 Map variants correctly
         setVariants(
@@ -190,6 +195,7 @@ const EditProduct = () => {
         // 🟢 Reset new images and video states
         setNewImages([]);
         setNewVideo(null);
+        setNewSizeChart(null);
       } catch (err) {
         console.error("Error fetching product:", err);
       }
@@ -330,6 +336,17 @@ const EditProduct = () => {
   const handleVideoUpload = (file) => {
     setNewVideo(file);
     setVideoPreview(URL.createObjectURL(file));
+  };
+
+  const handleSizeChartUpload = (file) => {
+    setNewSizeChart(file);
+    setSizeChartPreview(URL.createObjectURL(file));
+  };
+
+  const removeSizeChart = () => {
+    setProduct((prev) => ({ ...prev, sizeChart: null }));
+    setNewSizeChart(null);
+    setSizeChartPreview(null);
   };
 
   const removeMedia = (index, type) => {
@@ -686,6 +703,10 @@ const EditProduct = () => {
         formData.append("video", newVideo);
       }
 
+      if (newSizeChart) {
+        formData.append("sizeChart", newSizeChart);
+      }
+
       const persistentImageUrls = imagePreviews.filter(
         (url) => !url.startsWith("blob:")
       );
@@ -729,6 +750,7 @@ const EditProduct = () => {
         ...product,
         images: persistentImageUrls,
         video: videoPreview && !newVideo ? product.video : null,
+        sizeChart: sizeChartPreview && !newSizeChart ? product.sizeChart : null,
         variants: variantsWithPersistentImages,
         keyFeatures: product.keyFeatures.filter((f) => f.key && f.value),
       };
@@ -963,6 +985,70 @@ const EditProduct = () => {
                       <button
                         type="button"
                         onClick={() => removeMedia(null, "video")}
+                        className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full p-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Size Chart Upload */}
+              <div className="space-y-4">
+                <label className="block font-medium text-gray-700">
+                  Size Chart (Optional)
+                </label>
+                <div
+                  className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${
+                    isDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const files = e.dataTransfer.files;
+                    if (files.length) {
+                      const image = Array.from(files).find((file) =>
+                        file.type.startsWith("image/")
+                      );
+                      if (image) handleSizeChartUpload(image);
+                    }
+                  }}
+                >
+                  <p>Drag & drop a size chart image here, or</p>
+                  <label
+                    htmlFor="size-chart-upload"
+                    className="text-blue-500 underline cursor-pointer"
+                  >
+                    Click to browse
+                  </label>
+                  <input
+                    id="size-chart-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleSizeChartUpload(file);
+                    }}
+                    className="hidden"
+                  />
+                </div>
+                {sizeChartPreview && (
+                  <div className="mt-4">
+                    <h3 className="font-medium mb-2">Size Chart Preview:</h3>
+                    <div className="relative inline-block border border-gray-300 rounded overflow-hidden">
+                      <img
+                        src={sizeChartPreview}
+                        alt="Size chart preview"
+                        className="max-w-md max-h-96 object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeSizeChart}
                         className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full p-1"
                       >
                         ✕

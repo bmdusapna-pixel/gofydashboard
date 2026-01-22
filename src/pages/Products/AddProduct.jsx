@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import Select from "react-select"; // Import react-select
 import { SquarePen } from "lucide-react";
+import SizeChart from "../../../../website/src/Components/SizeChart";
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
@@ -22,6 +23,7 @@ const AddProduct = () => {
     dealHours: "",
     images: [],
     video: null,
+    sizeChart:null,
     specifications: [{ key: "", value: "" }],
     keyFeatures: [{ key: "", value: "" }],
     displayOn: [],
@@ -39,6 +41,7 @@ const AddProduct = () => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [sizePreviews, setSizePreviews] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
   const [autoRewrite, setAutoRewrite] = useState(true);
 
@@ -232,6 +235,16 @@ const AddProduct = () => {
   const handleVideoUpload = (file) => {
     setProduct((prev) => ({ ...prev, video: file }));
     setVideoPreview(URL.createObjectURL(file));
+  };
+
+  const handleSizeUpload = (file) => {
+    setProduct((prev) => ({ ...prev, sizeChart: file }));
+    setSizePreviews(URL.createObjectURL(file));
+  };
+
+  const removeSizeChart = () => {
+    setProduct((prev) => ({ ...prev, sizeChart: null }));
+    setSizePreviews(null);
   };
 
   const removeMedia = (index, type) => {
@@ -553,6 +566,9 @@ const AddProduct = () => {
       if (product.video) {
         formData.append("video", product.video);
       }
+      if (product.sizeChart) {
+        formData.append("sizeChart", product.sizeChart);
+      }
       const payload = {
         ...product,
         variants: variants.map((variant) => ({
@@ -808,6 +824,70 @@ const AddProduct = () => {
                       <button
                         type="button"
                         onClick={() => removeMedia(null, "video")}
+                        className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full p-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Size Chart Upload */}
+              <div className="space-y-4">
+                <label className="block font-medium text-gray-700">
+                  Size Chart (Optional)
+                </label>
+                <div
+                  className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${
+                    isDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const files = e.dataTransfer.files;
+                    if (files.length) {
+                      const image = Array.from(files).find((file) =>
+                        file.type.startsWith("image/")
+                      );
+                      if (image) handleSizeUpload(image);
+                    }
+                  }}
+                >
+                  <p>Drag & drop a size chart image here, or</p>
+                  <label
+                    htmlFor="size-chart-upload"
+                    className="text-blue-500 underline cursor-pointer"
+                  >
+                    Click to browse
+                  </label>
+                  <input
+                    id="size-chart-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleSizeUpload(file);
+                    }}
+                    className="hidden"
+                  />
+                </div>
+                {sizePreviews && (
+                  <div className="mt-4">
+                    <h3 className="font-medium mb-2">Size Chart Preview:</h3>
+                    <div className="relative inline-block border border-gray-300 rounded overflow-hidden">
+                      <img
+                        src={sizePreviews}
+                        alt="Size chart preview"
+                        className="max-w-md max-h-96 object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeSizeChart}
                         className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full p-1"
                       >
                         ✕
