@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import Select from "react-select"; // Import react-select
 import { SquarePen } from "lucide-react";
-import SizeChart from "../../../../website/src/Components/SizeChart";
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
