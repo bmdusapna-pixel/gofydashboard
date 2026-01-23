@@ -58,6 +58,7 @@ import Blogs from "./pages/Blogs";
 import AddBlog from "./pages/Blogs/AddBlog";
 import ComingSoon from "./pages/ComingSoon";
 import UnderDevelopment from "./pages/Underdevelopment";
+import AdminProfile from "./pages/Admin/Profile";
 
 const App = () => {
   return (
@@ -150,7 +151,7 @@ const App = () => {
                 <Route path="/coupon-analytics" element={<CouponAnalytics />} />
                 <Route path="/blogs" element={<ComingSoon/>} />
                 <Route path="/blogs/add-new" element={<ComingSoon />} />
-                <Route path="/profile" element={<ComingSoon/>}/>
+                <Route path="/profile" element={<AdminProfile/>}/>
               </Route>
             </Route>
           </Route>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   LineChart,
   Line,
@@ -29,6 +29,8 @@ import {
   Truck,
   Package,
 } from "lucide-react";
+import api from "../../api/axios";
+import axios from "axios";
 
 const dashboardData = {
   sales: [
@@ -123,7 +125,7 @@ const dashboardData = {
       iconColor: "text-amber-600",
     },
     {
-      title: "New Customers",
+      title: "Total Customers",
       value: "342",
       change: "+5.3%",
       changeType: "positive",
@@ -589,15 +591,86 @@ const RecentOrdersTable = ({ orders }) => (
       </table>
     </div>
     <div className="mt-4 flex justify-end">
-      <button className="text-rose-600 hover:text-rose-800 font-medium text-sm">
+      {/* <button className="text-rose-600 hover:text-rose-800 font-medium text-sm">
         View All
-      </button>
+      </button> */}
     </div>
   </>
 );
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("This Month");
+  const [remote, setRemote] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/dashboard/stats");
+        setRemote(res.data);
+        console.log(res.data)
+      } catch (e) {
+        console.error("Failed to load dashboard stats:", e);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const statsWithUi = useMemo(() => {
+    const stats = remote?.stats || dashboardData.stats.map((s) => ({
+      key: s.title,
+      title: s.title,
+      value: s.value,
+      // changePct: typeof s.change === "string" ? Number(String(s.change).replace("%", "")) : 0,
+    }));
+
+    const uiByKey = {
+      totalSales: {
+        icon: DollarSign,
+        bgColor: "bg-blue-100",
+        iconColor: "text-blue-600",
+        format: (v) => `₹${Number(v || 0).toLocaleString()}`,
+      },
+      totalOrders: {
+        icon: ShoppingCart,
+        bgColor: "bg-amber-100",
+        iconColor: "text-amber-600",
+        format: (v) => Number(v || 0).toLocaleString(),
+      },
+      newCustomers: {
+        icon: Users,
+        bgColor: "bg-pink-100",
+        iconColor: "text-pink-600",
+        format: (v) => Number(v || 0).toLocaleString(),
+      },
+      avgOrderValue: {
+        icon: TrendingUp,
+        bgColor: "bg-emerald-100",
+        iconColor: "text-emerald-600",
+        format: (v) => `₹${Number(v || 0).toFixed(2)}`,
+      },
+    };
+
+    return stats.map((s) => {
+      const ui = uiByKey[s.key] || {
+        icon: DollarSign,
+        bgColor: "bg-gray-100",
+        iconColor: "text-gray-600",
+        format: (v) => String(v ?? ""),
+      };
+      const changePct = Number(s.changePct) || 0;
+      return {
+        title: s.title,
+        value: ui.format(s.value),
+        change: `${Math.abs(changePct).toFixed(1)}%`,
+        changeType: changePct >= 0 ? "positive" : "negative",
+        icon: ui.icon,
+        bgColor: ui.bgColor,
+        iconColor: ui.iconColor,
+      };
+    });
+  }, [remote]);
+
+  const recentOrders = remote?.recentOrders || dashboardData.recentOrders;
   const salesData = dashboardData.sales;
 
   return (
@@ -611,11 +684,11 @@ const Dashboard = () => {
         `}
       </style>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {dashboardData.stats.map((stat, index) => (
+        {statsWithUi.map((stat, index) => (
           <StatCard key={index} {...stat} />
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <ChartCard title="Total Sales">
           <div className="flex space-x-4 mb-4">
             <button
@@ -669,9 +742,9 @@ const Dashboard = () => {
         <ChartCard title="Top Cities by Sales">
           <TopCitiesList cities={dashboardData.cityData} />
         </ChartCard>
-      </div>
+      </div> */}
       <ChartCard title="Recent Orders" className="mt-6">
-        <RecentOrdersTable orders={dashboardData.recentOrders} />
+        <RecentOrdersTable orders={recentOrders} />
       </ChartCard>
     </div>
   );

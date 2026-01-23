@@ -147,6 +147,8 @@ const EditProduct = () => {
           images: data.images || [],
           video: data.video || null,
           sizeChart: data.sizeChart || null,
+          zohoName:data.zohoName,
+          zohoCategory:data.zohoCategory
         });
 
         // 🟢 Preload media previews
@@ -1072,6 +1074,21 @@ const EditProduct = () => {
                     required
                   />
                 </div>
+                <div>
+                  <label className="block mb-2 whitespace-nowrap font-medium">
+                    POS Name
+                  </label>
+                  <input
+                    type="text"
+                    value={product.zohoName}
+                    className="border border-gray-300 rounded p-2 w-full"
+                    disabled
+                  />
+                </div>
+               
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 {/* URL Slug/SKU */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap font-medium">
@@ -1085,9 +1102,6 @@ const EditProduct = () => {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 {/* Brand */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
@@ -1102,6 +1116,9 @@ const EditProduct = () => {
                     className="border border-gray-300 rounded p-2 w-full"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 {/* Category */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap font-medium">
@@ -1117,7 +1134,20 @@ const EditProduct = () => {
                     onChange={handleCategoriesChange}
                   />
                 </div>
+                {/* POS Category */}
+                <div>
+                  <label className="block mb-2 whitespace-nowrap font-medium">
+                    POS Category
+                  </label>
+                  <input
+                    type="text"
+                    value={product.zohoCategory}
+                    className="border border-gray-300 rounded p-2 w-full"
+                    disabled
+                  />                
+                  </div>
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 {/* Material */}
                 <div>
