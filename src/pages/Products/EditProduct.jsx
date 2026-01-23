@@ -1426,7 +1426,7 @@ const EditProduct = () => {
                 {/* Meta Title */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
-                    Meta Title
+                    SEO Title
                   </label>
                   <input
                     type="text"
@@ -1440,7 +1440,7 @@ const EditProduct = () => {
                 {/* Meta Description */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
-                    Meta Description
+                    SEO Description
                   </label>
                   <textarea
                     value={product.metaDescription}

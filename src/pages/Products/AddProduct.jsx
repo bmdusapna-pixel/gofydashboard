@@ -1234,7 +1234,7 @@ const AddProduct = () => {
                 {/* Meta Title */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
-                    Meta Title
+                    Seo Title
                   </label>
                   <input
                     type="text"
@@ -1248,7 +1248,7 @@ const AddProduct = () => {
                 {/* Meta Description */}
                 <div>
                   <label className="block mb-2 whitespace-nowrap">
-                    Meta Description
+                    SEO Description
                   </label>
                   <textarea
                     value={product.metaDescription}

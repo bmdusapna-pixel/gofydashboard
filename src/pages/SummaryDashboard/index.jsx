@@ -236,7 +236,7 @@ const StatCard = ({
       <div>
         <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
         <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p
+        {/* <p
           className={`text-xs flex items-center mt-2 ${
             changeType === "positive" ? "text-emerald-600" : "text-rose-500"
           }`}
@@ -247,7 +247,7 @@ const StatCard = ({
             <TrendingDown className="w-3 h-3 mr-1" />
           )}
           {change} from last month
-        </p>
+        </p> */}
       </div>
       <div className={`p-3 rounded-xl ${bgColor}`}>
         <Icon className={`w-6 h-6 ${iconColor}`} />
@@ -620,7 +620,7 @@ const Dashboard = () => {
       key: s.title,
       title: s.title,
       value: s.value,
-      // changePct: typeof s.change === "string" ? Number(String(s.change).replace("%", "")) : 0,
+      changePct: typeof s.change === "string" ? Number(String(s.change).replace("%", "")) : 0,
     }));
 
     const uiByKey = {
