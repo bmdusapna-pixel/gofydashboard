@@ -29,6 +29,8 @@ const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [loading, setloading] = useState(false);
+  const [error, seterror] = useState(null);
   const itemsPerPage = 20;
 
   // Debounce search query
@@ -39,9 +41,10 @@ const Products = () => {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
-  
+
   const fetchProducts = async (page = 1) => {
     try {
+      setloading(true)
       // Build query parameters
       const params = new URLSearchParams({
         page: page.toString(),
@@ -69,10 +72,14 @@ const Products = () => {
       setTotalPages(response.data.pagination.totalPages);
       setTotalCount(response.data.pagination.totalCount);
     } catch (error) {
+      seterror(error)
       console.error("Error fetching products:", error);
+    } finally {
+      setloading(false)
     }
   };
-  console.log("products",productList)
+
+  console.log("products", productList)
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -85,7 +92,7 @@ const Products = () => {
   useEffect(() => {
     fetchProducts(currentPage);
   }, [currentPage, deleted, debouncedSearchQuery, filterByDate, filterByCategory, filterByPromotion]);
-  
+
   const getStockStatus = (stock) => {
     if (stock === 0)
       return <span className="bg-red-100 text-red-800 p-2 rounded-2xl">Out of Stock</span>;
@@ -93,6 +100,9 @@ const Products = () => {
       return <span className="bg-yellow-100 text-yellow-800 p-2 rounded-2xl">Low Stock</span>;
     return <span className="bg-green-100 text-green-800 p-2 rounded-2xl">In Stock</span>;
   };
+
+
+
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -114,7 +124,7 @@ const Products = () => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
-  
+
 
   // Group products by product _id to show actions only once per product
   const groupedProducts = useMemo(() => {
@@ -169,10 +179,12 @@ const Products = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [filterByDate, filterByCategory, filterByPromotion, debouncedSearchQuery]);
-  
+
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
+
+
       <div className="">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 flex flex-col gap-5">
           {/* Header */}
@@ -241,175 +253,195 @@ const Products = () => {
               </div>
             </div>
           </div>
+          {loading &&
+            (<div className="flex justify-center m-auto">
+              <div className="animate-spin rounded-full w-8 h-8 border-b-2 border-gray-900">
+              </div>
+            </div>)}
 
-          {/* Table */}
-          <div className="overflow-x-auto rounded-lg border border-primary-100">
-            <table className="min-w-full divide-y divide-primary-200">
-              <thead className="bg-gray-100">
-                <tr>
-                  {heading_items.map((item) => (
-                    <th
-                      key={item._id}
-                      className="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                    >
-                      {item.title}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-primary-100">
-                {displayProducts.length > 0 ? (
-                  displayProducts.map((product, index) => (
-                    <tr
-                      key={`${product.productId}-${product.itemId}`}
-                      className={`hover:bg-gray-50 transition duration-150 ease-in-out ${
-                        !product.isFirstVariant ? "bg-gray-50/50" : ""
-                      }`}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                       {(currentPage - 1) * itemsPerPage + index + 1}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        {product.productId}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 flex items-center">
-                        {product.isFirstVariant && (
-                          <img
-                            src={product.images?.[0]}
-                            alt={product.name}
-                            className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src =
-                                "https://placehold.co/40x40/CCCCCC/000?text=N/A";
-                            }}
-                          />
-                        )}
-                        {!product.isFirstVariant && (
-                          <div className="w-10 h-10 mr-3"></div>
-                        )}
-                        <span className="text-sm font-medium text-gray-800">
-                          {product.isFirstVariant ? product.name : ""}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {product.isFirstVariant && (
-                          <div className="mb-1">
-                            {Array.isArray(product.category) && product.category[0]?.categoryName
-                              ? product.category[0].categoryName
-                              : typeof product.category === "string"
-                              ? product.category
-                              : "N/A"}
-                          </div>
-                        )}
-                        <div className="flex flex-col gap-1">
-                          <span className="text-sm text-gray-600">
-                            {product.color}
-                          </span>
-                          <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-600">
-                            {product.ageGroup}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {product.stock}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        ₹{" "}
-                        {parseFloat(
-                          product.price
-                        ).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {getStockStatus(product.stock)}
-                      </td>
-                      <td className="px-4 py-3 relative whitespace-nowrap">
-                        {product.isFirstVariant ? (
-                          <>
-                            <button
-                              className="flex cursor-pointer items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100"
-                              onClick={() => toggleDropdown(product.productId)}
-                              title="More Actions"
-                            >
-                              <EllipsisVertical className="w-5 h-5 text-gray-600" />
-                            </button>
-                            {openDropdownId === product.productId && (
-                              <div
-                                ref={dropdownRef}
-                                className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
-                              >
-                                <div className="flex flex-col gap-1 p-1">
-                                  <button
-                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
-                                    onClick={() => handleView(product)}
-                                  >
-                                    <Eye className="w-4 h-4 text-blue-500" />
-                                    View
-                                  </button>
-                                  <button
-                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
-                                    onClick={() => handleEdit(product)}
-                                  >
-                                    <Pencil className="w-4 h-4 text-yellow-500" />
-                                    Edit
-                                  </button>
-                                  <button
-                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-red-600"
-                                    onClick={() => handleDelete(product._id)}
-                                  >
-                                    <Trash2 className="w-4 h-4 text-red-500" />
-                                    Delete
-                                  </button>
-                                </div>
+          {error && !loading &&
+            (
+              <div className="text-red-500 text-md">
+                {error}
+              </div>
+            )
+          }
+          {
+            !loading && !error &&
+            (<>
+              {/* Table */}
+              <div className="overflow-x-auto rounded-lg border border-primary-100">
+
+                <table className="min-w-full divide-y divide-primary-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      {heading_items.map((item) => (
+                        <th
+                          key={item._id}
+                          className="px-4 py-3 whitespace-nowrap text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                        >
+                          {item.title}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-primary-100">
+                    {displayProducts.length > 0 ? (
+                      displayProducts.map((product, index) => (
+                        <tr
+                          key={`${product.productId}-${product.itemId}`}
+                          className={`hover:bg-gray-50 transition duration-150 ease-in-out ${!product.isFirstVariant ? "bg-gray-50/50" : ""
+                            }`}
+                        >
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                            {(currentPage - 1) * itemsPerPage + index + 1}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                            {product.productId}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 flex items-center">
+                            {product.isFirstVariant && (
+                              <img
+                                src={product.images?.[0]}
+                                alt={product.name}
+                                className="w-10 h-10 rounded-md mr-3 object-cover shadow-sm"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src =
+                                    "https://placehold.co/40x40/CCCCCC/000?text=N/A";
+                                }}
+                              />
+                            )}
+                            {!product.isFirstVariant && (
+                              <div className="w-10 h-10 mr-3"></div>
+                            )}
+                            <span className="text-sm font-medium text-gray-800">
+                              {product.isFirstVariant ? product.name : ""}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
+                            {product.isFirstVariant && (
+                              <div className="mb-1">
+                                {Array.isArray(product.category) && product.category[0]?.categoryName
+                                  ? product.category[0].categoryName
+                                  : typeof product.category === "string"
+                                    ? product.category
+                                    : "N/A"}
                               </div>
                             )}
-                          </>
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="8"
-                      className="px-4 py-3 text-center text-sm text-gray-500"
-                    >
-                      No products found for the selected filter.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-sm text-gray-600">
+                                {product.color}
+                              </span>
+                              <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-600">
+                                {product.ageGroup}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                            {product.stock}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
+                            ₹{" "}
+                            {parseFloat(
+                              product.price
+                            ).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {getStockStatus(product.stock)}
+                          </td>
+                          <td className="px-4 py-3 relative whitespace-nowrap">
+                            {product.isFirstVariant ? (
+                              <>
+                                <button
+                                  className="flex cursor-pointer items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100"
+                                  onClick={() => toggleDropdown(product.productId)}
+                                  title="More Actions"
+                                >
+                                  <EllipsisVertical className="w-5 h-5 text-gray-600" />
+                                </button>
+                                {openDropdownId === product.productId && (
+                                  <div
+                                    ref={dropdownRef}
+                                    className="absolute right-0 w-36 bg-white rounded-md shadow-lg z-10 border border-primary-100"
+                                  >
+                                    <div className="flex flex-col gap-1 p-1">
+                                      <button
+                                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
+                                        onClick={() => handleView(product)}
+                                      >
+                                        <Eye className="w-4 h-4 text-blue-500" />
+                                        View
+                                      </button>
+                                      <button
+                                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-gray-700"
+                                        onClick={() => handleEdit(product)}
+                                      >
+                                        <Pencil className="w-4 h-4 text-yellow-500" />
+                                        Edit
+                                      </button>
+                                      <button
+                                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 rounded-md text-sm text-red-600"
+                                        onClick={() => handleDelete(product._id)}
+                                      >
+                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="8"
+                          className="px-4 py-3 text-center text-sm text-gray-500"
+                        >
+                          No products found for the selected filter.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>)
+          }
 
           {/* Pagination */}
           {totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-4 py-2 text-gray-700">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    Next
-                  </button>
-                </div>
+            <div className="flex justify-center mt-8">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2 text-gray-700">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Next
+                </button>
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
+
+
+
     </div>
   );
 };

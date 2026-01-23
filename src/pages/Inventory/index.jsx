@@ -44,6 +44,8 @@ const Inventory = () => {
   const [inventory,setInventory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const itemsPerPage = 20;
 
   const [filterByStock, setFilterByStock] = useState("all");
@@ -54,15 +56,16 @@ const Inventory = () => {
 
   const fetchInventory = async(req,res)=>{
     try {
-      console.log("i am called")
+      setLoading(true);
       const res = await api.get("products/inventory");
       console.log("res",res);
       setInventory(res.data.data);
-
+      setLoading(false);
+      setError(null);
     } 
     catch (error) {
-      console.log("i am called")
-      console.log(error);
+      setError(error);
+      setLoading(false);
     }
   }
   useEffect(() => {
@@ -162,7 +165,17 @@ const Inventory = () => {
       </tr>
     </thead>
 
-    {/* Body */}
+    {loading && (
+      <div className="flex justify-center m-auto">
+        <div className="animate-spin rounded-full w-8 h-8 border-b-2 border-gray-100"></div>
+      </div>
+    )}
+    {error && !loading && (
+      <div className="text-red-500">{error}</div>
+    )}
+    {!loading && !error && (
+      <>
+      {/* Body */}
     <tbody className="divide-y divide-gray-100">
       {currentProducts.length > 0 ? (
         currentProducts.map((item, index) => (
@@ -230,6 +243,9 @@ const Inventory = () => {
         </tr>
       )}
     </tbody>
+      </>
+    )}
+    
   </table>
           </div>
 

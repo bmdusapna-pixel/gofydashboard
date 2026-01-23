@@ -22,6 +22,8 @@ const AllOrders = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
+  const [loading,  setloading] = useState(false);
+  const [error, seterror] = useState(null);
 
   const itemsPerPage = 20;
   const [filterByStatus, setFilterByStatus] = useState("all");
@@ -54,6 +56,7 @@ const AllOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
+        setloading(true)
         const params = {
           page: currentPage,
           limit: itemsPerPage,
@@ -77,7 +80,10 @@ const AllOrders = () => {
         setCurrentPage(data.currentPage || currentPage);
         setTotalOrders(data.totalOrders || 0);
       } catch (err) {
+        seterror(err)
         console.error("Error fetching orders:", err);
+      } finally{
+        setloading(false)
       }
     };
     fetchOrders();
@@ -150,6 +156,21 @@ const AllOrders = () => {
             </div>
           </div>
 
+          {
+            loading && (
+              <div className ="flex justify-center m-auto">
+                <div className="animate-spin rounded-full w-8 h-8 border-b-2 border-gray-100"></div>
+              </div>
+            )
+          }
+
+          {
+            error && !loading && (
+              <div className="text-red-500">{error}</div>
+            )
+          }
+          {!loading && !error && (
+          <>
           {/* Table */}
           <div className="overflow-x-auto rounded-lg border border-primary-100">
             <table className="min-w-full divide-y divide-primary-100">
@@ -259,6 +280,9 @@ const AllOrders = () => {
               </tbody>
             </table>
           </div>
+          </>
+          )}
+          
 
           {/* Pagination */}
           <div className="flex justify-end items-center gap-2 mt-4">
