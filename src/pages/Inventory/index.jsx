@@ -173,11 +173,9 @@ const Inventory = () => {
     {error && !loading && (
       <div className="text-red-500">{error}</div>
     )}
-    {!loading && !error && (
-      <>
       {/* Body */}
     <tbody className="divide-y divide-gray-100">
-      {currentProducts.length > 0 ? (
+      { !loading && !error && currentProducts.length > 0 ? (
         currentProducts.map((item, index) => (
           <tr
             key={item.itemId}
@@ -232,7 +230,16 @@ const Inventory = () => {
             </td>
           </tr>
         ))
-      ) : (
+      ) : loading ? (
+        <tr>
+                      <td
+                        colSpan="8"
+                        className="px-4 py-8 text-center text-sm text-gray-500"
+                      >
+                        Loading inventory...
+                      </td>
+                    </tr>
+      ) :(
         <tr>
           <td
             colSpan={inventoryTableHeaders.length}
@@ -243,8 +250,6 @@ const Inventory = () => {
         </tr>
       )}
     </tbody>
-      </>
-    )}
     
   </table>
           </div>

@@ -156,21 +156,8 @@ const AllOrders = () => {
             </div>
           </div>
 
-          {
-            loading && (
-              <div className ="flex justify-center m-auto">
-                <div className="animate-spin rounded-full w-8 h-8 border-b-2 border-gray-100"></div>
-              </div>
-            )
-          }
-
-          {
-            error && !loading && (
-              <div className="text-red-500">{error}</div>
-            )
-          }
-          {!loading && !error && (
-          <>
+        
+          
           {/* Table */}
           <div className="overflow-x-auto rounded-lg border border-primary-100">
             <table className="min-w-full divide-y divide-primary-100">
@@ -186,8 +173,21 @@ const AllOrders = () => {
                   ))}
                 </tr>
               </thead>
+              {
+            loading && (
+              <div className ="flex justify-center m-auto">
+                <div className="animate-spin rounded-full w-8 h-8 border-b-2 border-gray-100"></div>
+              </div>
+            )
+          }
+
+          {
+            error && !loading && (
+              <div className="text-red-500">{error}</div>
+            )
+          }
               <tbody className="bg-white divide-y divide-primary-100">
-                {currentOrders.length > 0 ? (
+                {!loading && !error && currentOrders.length > 0 ? (
                   currentOrders.map((order, index) => (
                     <tr
                       key={order._id}
@@ -267,7 +267,18 @@ const AllOrders = () => {
                       </td>
                     </tr>
                   ))
-                ) : (
+                ) : loading ? 
+                (
+                  <tr>
+                    <td
+                      colSpan="9"
+                      className="px-4 py-8 text-center text-sm text-gray-500"
+                    >
+                      Loading orders...
+                    </td>
+                  </tr>
+                )
+                :(
                   <tr>
                     <td
                       colSpan="7"
@@ -280,8 +291,6 @@ const AllOrders = () => {
               </tbody>
             </table>
           </div>
-          </>
-          )}
           
 
           {/* Pagination */}
