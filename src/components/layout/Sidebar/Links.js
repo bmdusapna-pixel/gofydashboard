@@ -20,12 +20,12 @@ export const navItems = [
     path: "/",
     type: "link",
   },
-  // {
-  //   name: "Sales Dashboard",
-  //   icon: faHome,
-  //   path: "/sales-dashboard",
-  //   type: "link",
-  // },
+  {
+    name: "Sales Dashboard",
+    icon: faHome,
+    path: "/sales-dashboard",
+    type: "link",
+  },
   {
     name: "Products",
     icon: faBoxOpen,

@@ -1,12 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
 const FilterForm = () => {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div className="mx-auto bg-white p-6 rounded-xl shadow-md border border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-800 mb-6">
-        Order Filters
-      </h2>
-      <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="mx-auto bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((e) => !e)}
+        className="w-full flex items-center justify-between p-4 md:p-6 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset rounded-xl"
+        aria-expanded={expanded}
+      >
+        <h2 className="text-lg font-semibold text-gray-800">Order Filters</h2>
+        <span className="flex items-center gap-2 text-sm font-medium text-gray-600">
+          {expanded ? "Collapse" : "Expand"}
+          <FontAwesomeIcon
+            icon={expanded ? faChevronUp : faChevronDown}
+            className="h-4 w-4"
+          />
+        </span>
+      </button>
+      {expanded && (
+        <div className="px-4 md:px-6 pb-6 pt-0 border-t border-gray-100">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6"
+          >
         {/* Order Filters */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -344,6 +365,8 @@ const FilterForm = () => {
           </button>
         </div>
       </form>
+        </div>
+      )}
     </div>
   );
 };

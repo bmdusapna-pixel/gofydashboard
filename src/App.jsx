@@ -117,8 +117,8 @@ const App = () => {
                 <Route path="/admin" element={<Admin />} />
                 <Route
                   path="/product-analytics"
-                  // element={<ProductAnalytics />}
-                  element={<ComingSoon />}
+                  element={<ProductAnalytics />}
+                  // element={<ComingSoon />}
                 />
                 <Route
                   path="/referral-dashboard"
@@ -137,9 +137,9 @@ const App = () => {
                 <Route path="/activities" element={<Activities />} />
                 <Route
                   path="/notifications"
-                  element={<ComingSoon />}
+                  element={<NotificationDashboard />}
                 />
-                <Route path="/notification-logger" element={<ComingSoon />} />
+                <Route path="/notification-logger" element={<Notification />} />
                 <Route path="/cart-list" element={<CartList />} />
                 <Route path="/coupon-form" element={<CouponForm />} />
                 <Route

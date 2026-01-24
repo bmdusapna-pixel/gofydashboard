@@ -10,7 +10,7 @@ const Index = () => {
     e.preventDefault();
     try {
       const data = await loginApi(form);
-      localStorage.setItem("token", data.token);
+      sessionStorage.setItem("adminToken", data.token);
       navigate("/");
     } catch (error) {
       alert(error.response?.data?.message || "Login failed");

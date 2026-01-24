@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -28,20 +28,65 @@ import {
   faFileExcel,
   faEnvelope,
   faCity,
+  faSyncAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import * as XLSX from "xlsx";
+import api from "../../api/axios";
 import FilterForm from "./FilterForm";
+
+const formatCurrency = (n) =>
+  typeof n === "number"
+    ? `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : "₹0.00";
+const formatDate = (d) => {
+  if (!d) return "-";
+  const dt = typeof d === "string" ? new Date(d) : d;
+  return dt.toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
 const Index = () => {
   const [timeFilter, setTimeFilter] = useState("This Month");
   const [liveVisitors, setLiveVisitors] = useState(1247);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Simulate real-time updates
+  const [stats, setStats] = useState(null);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [topBuyers, settopBuyers] = useState([]);
+  const [topProducts,settopProducts] = useState([]);
+
+  const fetchDashboardStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.get("dashboard/stats");
+      setStats(data.stats || []);
+      setRecentOrders(data.recentOrders || []);
+      settopBuyers(data.topBuyers);
+      settopProducts(data.topSellingProducts)
+      setLastUpdated(new Date());
+    } catch (err) {
+      setError(err?.response?.data?.error || "Failed to load dashboard stats");
+      setStats([]);
+      setRecentOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
+
+  // Simulate real-time updates for live visitors only
   useEffect(() => {
     const interval = setInterval(() => {
       setLiveVisitors((prev) => prev + Math.floor(Math.random() * 10) - 4);
-      setLastUpdated(new Date());
     }, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -69,17 +114,25 @@ const Index = () => {
     </div>
   );
 
-  const exportData = () => {
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      "Metric,Value\n" +
-      "Total Sales,₹247800\n" +
-      "Total Orders,1245\n" +
-      "COD Orders,745\n" +
-      "Prepaid Orders,500\n" +
-      "New Customers,342\n" +
-      "Average Order Value,₹456.67\n";
+  const getStat = (key) => {
+    const s = (stats || []).find((x) => x.key === key);
+    return s ? s.value : null;
+  };
 
+  const exportData = () => {
+    const totalSales = getStat("totalSales");
+    const totalOrders = getStat("totalOrders");
+    const newCustomers = getStat("newCustomers");
+    const avgOrderValue = getStat("avgOrderValue");
+    const rows = [
+      "Metric,Value",
+      `Total Sales,${totalSales != null ? formatCurrency(totalSales) : "—"}`,
+      `Total Orders,${totalOrders != null ? totalOrders : "—"}`,
+      `New Customers,${newCustomers != null ? newCustomers : "—"}`,
+      `Average Order Value,${avgOrderValue != null ? formatCurrency(avgOrderValue) : "—"}`,
+    ];
+    const csvContent =
+      "data:text/csv;charset=utf-8," + rows.join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -88,22 +141,22 @@ const Index = () => {
     link.click();
     document.body.removeChild(link);
   };
+
   const exportExcel = () => {
+    const totalSales = getStat("totalSales");
+    const totalOrders = getStat("totalOrders");
+    const newCustomers = getStat("newCustomers");
+    const avgOrderValue = getStat("avgOrderValue");
     const data = [
       ["Metric", "Value"],
-      ["Total Sales", "₹247800"],
-      ["Total Orders", 1245],
-      ["COD Orders", 745],
-      ["Prepaid Orders", 500],
-      ["New Customers", 342],
-      ["Average Order Value", "₹456.67"],
+      ["Total Sales", totalSales != null ? formatCurrency(totalSales) : "—"],
+      ["Total Orders", totalOrders != null ? totalOrders : "—"],
+      ["New Customers", newCustomers != null ? newCustomers : "—"],
+      ["Average Order Value", avgOrderValue != null ? formatCurrency(avgOrderValue) : "—"],
     ];
-
     const worksheet = XLSX.utils.aoa_to_sheet(data);
-
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Dashboard Data");
-
     XLSX.writeFile(workbook, "gofy_kids_dashboard_data.xlsx");
   };
 
@@ -134,28 +187,28 @@ const Index = () => {
     { name: "Books", value: 8, sales: "₹57,800", colorClass: "text-green-600" },
   ];
 
-  const topProducts = [
-    { name: "Cuddly Teddy Bear", sales: 347, rank: "#1", category: "Toys" },
-    {
-      name: "Colorful Building Blocks",
-      sales: 298,
-      rank: "#2",
-      category: "Toys",
-    },
-    { name: "Princess Doll Set", sales: 256, rank: "#3", category: "Toys" },
-    {
-      name: "Baby Cotton T-Shirt",
-      sales: 234,
-      rank: "#4",
-      category: "Clothes",
-    },
-    {
-      name: "Kids School Backpack",
-      sales: 189,
-      rank: "#5",
-      category: "Accessories",
-    },
-  ];
+  // const topProducts = [
+  //   { name: "Cuddly Teddy Bear", sales: 347, rank: "#1", category: "Toys" },
+  //   {
+  //     name: "Colorful Building Blocks",
+  //     sales: 298,
+  //     rank: "#2",
+  //     category: "Toys",
+  //   },
+  //   { name: "Princess Doll Set", sales: 256, rank: "#3", category: "Toys" },
+  //   {
+  //     name: "Baby Cotton T-Shirt",
+  //     sales: 234,
+  //     rank: "#4",
+  //     category: "Clothes",
+  //   },
+  //   {
+  //     name: "Kids School Backpack",
+  //     sales: 189,
+  //     rank: "#5",
+  //     category: "Accessories",
+  //   },
+  // ];
 
   const searchTermsData = [
     { term: "baby frock", searches: 2847, rate: "8.7%", trend: "+23%" },
@@ -189,64 +242,33 @@ const Index = () => {
     { code: "110001 (Delhi)", orders: 260, Sales: "₹39,200" },
   ];
 
-  const topBuyers = [
-    { name: "Priya Sharma", city: "Mumbai", orders: 23, spent: "₹34,500" },
-    { name: "Rajesh Kumar", city: "Delhi", orders: 19, spent: "₹28,700" },
-    {
-      name: "Little Stars Daycare",
-      city: "Bangalore",
-      orders: 15,
-      spent: "₹45,600",
-      flag: true,
-    },
-    { name: "Sneha Patel", city: "Pune", orders: 17, spent: "₹25,400" },
-    {
-      name: "Happy Kids School",
-      city: "Chennai",
-      orders: 12,
-      spent: "₹67,800",
-      flag: true,
-    },
-  ];
+  // const topBuyers = [
+  //   { name: "Priya Sharma", city: "Mumbai", orders: 23, spent: "₹34,500" },
+  //   { name: "Rajesh Kumar", city: "Delhi", orders: 19, spent: "₹28,700" },
+  //   {
+  //     name: "Little Stars Daycare",
+  //     city: "Bangalore",
+  //     orders: 15,
+  //     spent: "₹45,600",
+  //     flag: true,
+  //   },
+  //   { name: "Sneha Patel", city: "Pune", orders: 17, spent: "₹25,400" },
+  //   {
+  //     name: "Happy Kids School",
+  //     city: "Chennai",
+  //     orders: 12,
+  //     spent: "₹67,800",
+  //     flag: true,
+  //   },
+  // ];
 
-  const recentOrders = [
-    {
-      id: "#KM-8744",
-      customer: "Emily Johnson",
-      date: "Jun 12, 2025",
-      amount: "₹899.99",
-      status: "Delivered",
-    },
-    {
-      id: "#KM-8743",
-      customer: "Michael Brown",
-      date: "Jun 11, 2025",
-      amount: "₹1,249.50",
-      status: "Processing",
-    },
-    {
-      id: "#KM-8742",
-      customer: "Sarah Wilson",
-      date: "Jun 10, 2025",
-      amount: "₹675.99",
-      status: "Shipped",
-    },
-    {
-      id: "#KM-8741",
-      customer: "Rainbow Nursery",
-      date: "Jun 09, 2025",
-      amount: "₹4,250.00",
-      status: "Bulk Order",
-      flag: true,
-    },
-    {
-      id: "#KM-8740",
-      customer: "Lisa Garcia",
-      date: "Jun 08, 2025",
-      amount: "₹1,150.00",
-      status: "Processing",
-    },
-  ];
+  const displayOrders = recentOrders.map((o) => ({
+    id: o.id,
+    customer: o.customer || "Unknown",
+    date: formatDate(o.date),
+    amount: formatCurrency(Number(o.amount)),
+    status: o.status || "—",
+  }));
 
   return (
     <main className="flex-1 overflow-y-auto p-4 bg-primary-50">
@@ -262,6 +284,18 @@ const Index = () => {
           </div>
         </div>
         <div className="flex items-center space-x-3">
+          <button
+            onClick={fetchDashboardStats}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            title="Refresh dashboard"
+          >
+            <FontAwesomeIcon
+              icon={faSyncAlt}
+              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+            />
+            <span>Refresh</span>
+          </button>
           <select
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value)}
@@ -291,33 +325,93 @@ const Index = () => {
       <div className="mb-6">
         <FilterForm />
       </div>
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center justify-between">
+          <span>{error}</span>
+          <button
+            onClick={fetchDashboardStats}
+            className="px-3 py-1 bg-red-100 hover:bg-red-200 rounded-lg text-sm font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      )}
       {/* Main Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
           title="Total Sales"
-          value="₹24,780"
-          change="+12.5%"
+          value={
+            loading && !stats?.length
+              ? "…"
+              : (() => {
+                  const v = getStat("totalSales");
+                  return v != null ? formatCurrency(v) : "—";
+                })()
+          }
+          change={
+            (() => {
+              const s = (stats || []).find((x) => x.key === "totalSales");
+              const p = s?.changePct;
+              if (p == null || p === 0) return null;
+              return (p > 0 ? "+" : "") + Number(p).toFixed(1) + "%";
+            })() || null
+          }
           icon={faIndianRupeeSign}
           iconColorClass="bg-blue-200 text-blue-700"
         />
         <MetricCard
           title="Total Orders"
-          value="1,245"
-          change="+8.2%"
+          value={
+            loading && !stats?.length
+              ? "…"
+              : (() => {
+                  const v = getStat("totalOrders");
+                  return v != null ? Number(v).toLocaleString() : "—";
+                })()
+          }
+          change={
+            (() => {
+              const s = (stats || []).find((x) => x.key === "totalOrders");
+              const p = s?.changePct;
+              if (p == null || p === 0) return null;
+              return (p > 0 ? "+" : "") + Number(p).toFixed(1) + "%";
+            })() || null
+          }
           icon={faShoppingBag}
           iconColorClass="bg-yellow-200 text-yellow-700"
         />
         <MetricCard
           title="New Customers"
-          value="342"
-          change="+5.3%"
+          value={
+            loading && !stats?.length
+              ? "…"
+              : (() => {
+                  const v = getStat("newCustomers");
+                  return v != null ? Number(v).toLocaleString() : "—";
+                })()
+          }
+          change={
+            (() => {
+              const s = (stats || []).find((x) => x.key === "newCustomers");
+              const p = s?.changePct;
+              if (p == null || p === 0) return null;
+              return (p > 0 ? "+" : "") + Number(p).toFixed(1) + "%";
+            })() || null
+          }
           icon={faUserPlus}
           iconColorClass="bg-red-200 text-red-700"
         />
         <MetricCard
           title="Avg. Order Value"
-          value="₹45.67"
-          change="+3.1%"
+          value={
+            loading && !stats?.length
+              ? "…"
+              : (() => {
+                  const v = getStat("avgOrderValue");
+                  return v != null ? formatCurrency(v) : "—";
+                })()
+          }
+          change={null}
           icon={faChartPie}
           iconColorClass="bg-green-200 text-green-700"
         />
@@ -326,30 +420,48 @@ const Index = () => {
       {/* Second Row Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard
-          title="COD Orders"
-          value="745"
-          change="+6.8%"
+         title="COD Orders"
+         value={
+           loading && !stats?.length
+             ? "…"
+             : (() => {
+                 const v = getStat("codOrders");
+                 return v != null ? formatCurrency(v) : "—";
+                })()
+              }
           icon={faBox}
-          iconColorClass="bg-purple-200 text-purple-700"
+          iconColor Class="bg-purple-200 text-purple-700"
         />
         <MetricCard
-          title="Prepaid Orders"
-          value="500"
-          change="+9.2%"
+          title="Online Orders"
+          value={
+            loading && !stats?.length
+              ? "…"
+              : (() => {
+                  const v = getStat("onlineOrders");
+                  return v != null ? formatCurrency(v) : "—";
+                 })()
+               }
           icon={faCreditCard}
           iconColorClass="bg-cyan-200 text-cyan-700"
         />
         <MetricCard
           title="Returns/Cancelled"
-          value="42"
-          change="-2.1%"
+          value="0"
+          change="0%"
           icon={faExchangeAlt}
           iconColorClass="bg-red-200 text-red-700"
         />
         <MetricCard
           title="Products Sold"
-          value="2,847"
-          change="+15.3%"
+          value={
+            loading && !stats?.length
+              ? "…"
+              : (() => {
+                  const v = getStat("productsSold");
+                  return v != null ? formatCurrency(v) : "—";
+                 })()
+               }
           icon={faBox}
           iconColorClass="bg-teal-200 text-teal-700"
         />
@@ -477,22 +589,22 @@ const Index = () => {
                       {product.name}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {product.sales} sales this month • {product.category}
+                      Total Sold {product.totalSold} 
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                {/* <div className="text-right">
                   <div className="ml-auto bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium">
                     {product.rank}
                   </div>
-                </div>
+                </div> */}
               </div>
             ))}
           </div>
         </div>
 
         {/* Search Terms Analytics */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             What Parents Search
           </h2>
@@ -527,13 +639,54 @@ const Index = () => {
               </div>
             ))}
           </div>
+        </div> */}
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Top Buyers
+          </h2>
+          <div className="space-y-3">
+            {topBuyers.map((buyer, index) => (
+              <div
+                key={index}
+                className={`flex items-center justify-between p-3 rounded-xl border ${
+                  buyer.flag
+                    ? "bg-red-50 border-red-200"
+                    : "bg-gray-50 border-gray-200"
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-purple-600">
+                      {buyer.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {buyer.name}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      Delhi • {buyer.totalOrders} orders
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-sm text-green-600">
+                    {buyer.totalSpent}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Advanced Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"> */}
         {/* Quick Stats */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Quick Stats
           </h2>
@@ -563,10 +716,10 @@ const Index = () => {
               <span className="font-bold text-purple-600">₹12,450</span>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Top States */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Top States
           </h2>
@@ -600,10 +753,10 @@ const Index = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Top Buyers */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Top Buyers
           </h2>
@@ -630,24 +783,24 @@ const Index = () => {
                       </p>
                     </div>
                     <p className="text-xs text-gray-600">
-                      {buyer.city} • {buyer.orders} orders
+                      Delhi • {buyer.totalOrders} orders
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm text-green-600">
-                    {buyer.spent}
+                    {buyer.totalSpent}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"> */}
         {/* Top Cities */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Top Cities
           </h2>
@@ -678,10 +831,10 @@ const Index = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Top Postal Codes */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Top Postal Codes
           </h2>
@@ -715,8 +868,8 @@ const Index = () => {
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
 
       {/* Recent Orders Table */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 mb-6">
@@ -727,73 +880,82 @@ const Index = () => {
           </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-primary-100">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  DATE
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  AMOUNT
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  STATUS
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ACTION
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-primary-100">
-              {recentOrders.map((order, index) => (
-                <tr
-                  key={index}
-                  className="border-b border-gray-50 hover:bg-gray-100 transition-all"
-                >
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
-                    {order.id}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                    {order.customer}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                    {order.date}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                    {order.amount}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        order.status === "Delivered"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "Processing"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : order.status === "Shipped"
-                          ? "bg-blue-100 text-blue-800"
-                          : order.status === "Bulk Order"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                    <button className="text-primary-600 hover:text-primary-700">
-                      <FontAwesomeIcon icon={faEllipsisH} />
-                    </button>
-                  </td>
+          {loading && !displayOrders.length ? (
+            <div className="py-12 text-center text-gray-500">
+              <FontAwesomeIcon icon={faSyncAlt} className="animate-spin h-8 w-8 mb-2" />
+              <p>Loading recent orders…</p>
+            </div>
+          ) : !displayOrders.length ? (
+            <div className="py-12 text-center text-gray-500">No recent orders</div>
+          ) : (
+            <table className="min-w-full divide-y divide-primary-100">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Order ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    DATE
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    AMOUNT
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    STATUS
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ACTION
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-primary-100">
+                {displayOrders.map((order, index) => (
+                  <tr
+                    key={order.id || index}
+                    className="border-b border-gray-50 hover:bg-gray-100 transition-all"
+                  >
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
+                      {order.id}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                      {order.customer}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                      {order.date}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                      {order.amount}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          order.status === "Delivered" || order.status === "DELIVERED"
+                            ? "bg-green-100 text-green-800"
+                            : order.status === "Processing" || order.status === "PROCESSING"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : order.status === "Shipped" || order.status === "SHIPPED"
+                            ? "bg-blue-100 text-blue-800"
+                            : order.status === "Bulk Order" || order.status === "BULK_ORDER"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                      <button className="text-primary-600 hover:text-primary-700">
+                        <FontAwesomeIcon icon={faEllipsisH} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

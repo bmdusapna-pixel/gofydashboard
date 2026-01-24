@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function AdminProfile() {
   const [data, setdata] = useState(null);
-  const token = localStorage.getItem("admintoken");
+  const token = sessionStorage.getItem("adminToken");
 
   useEffect(() => {
     const fetchProfile = async () => {
