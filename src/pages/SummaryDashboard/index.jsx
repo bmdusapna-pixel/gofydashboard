@@ -621,7 +621,6 @@ const Dashboard = () => {
     setShowAllOrders] = useState(false);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
-  const [loading, setLoading] = useState(true);
   
 
   const mapOrderForTable = (o) => ({
@@ -637,15 +636,12 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true);
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/dashboard/stats`);
+        const res = await axios.get("http://localhost:3000/api/dashboard/stats");
         setRemote(res.data);
         setOrders(res.data.recentOrders); // 👈 important
         console.log(res.data)
       } catch (e) {
         console.error("Failed to load dashboard stats:", e);
-      } finally {
-        setLoading(false);
       }
     };
     fetchStats();
@@ -654,7 +650,7 @@ const Dashboard = () => {
   // 🔹 Load all orders (your existing API)
   const fetchAllOrders = async (pageNo = 1) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/user/order/admin`, {
+      const res = await axios.get("http://localhost:3000/api/user/order/admin", {
         params: { page: pageNo, limit: 20 },
         headers:{
           Authorization:`Bearer ${sessionStorage.getItem("adminToken")}`
@@ -688,9 +684,12 @@ const Dashboard = () => {
   };
 
   const statsWithUi = useMemo(() => {
-    if (!remote?.stats) return [];
-    
-    const stats = remote.stats;
+    const stats = remote?.stats || dashboardData.stats.map((s) => ({
+      key: s.title,
+      title: s.title,
+      value: s.value,
+      changePct: typeof s.change === "string" ? Number(String(s.change).replace("%", "")) : 0,
+    }));
 
     const uiByKey = {
       totalSales: {
@@ -741,27 +740,6 @@ const Dashboard = () => {
 
   const salesData = dashboardData.sales;
 
-  if (loading) {
-    return (
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-        <style jsx global>
-          {`
-            @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-            body {
-              font-family: "Inter", sans-serif;
-            }
-          `}
-        </style>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mb-4"></div>
-            <p className="text-gray-600 text-lg">Loading dashboard data...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
       <style jsx global>
@@ -772,19 +750,11 @@ const Dashboard = () => {
           }
         `}
       </style>
-      {statsWithUi.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsWithUi.map((stat, index) => (
-            <StatCard key={index} {...stat} />
-          ))}
-        </div>
-      ) : (
-        !loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No dashboard data available</p>
-          </div>
-        )
-      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {statsWithUi.map((stat, index) => (
+          <StatCard key={index} {...stat} />
+        ))}
+      </div>
       {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <ChartCard title="Total Sales">
           <div className="flex space-x-4 mb-4">
@@ -840,18 +810,16 @@ const Dashboard = () => {
           <TopCitiesList cities={dashboardData.cityData} />
         </ChartCard>
       </div> */}
-      {orders.length > 0 && (
-        <ChartCard title="Recent Orders" className="mt-6">
-          <RecentOrdersTable
-            orders={orders}
-            showAll={showAllOrders}
-            onViewAll={handleViewAll}
-            onShowRecent={showRecentOrders}
-            pagination={pagination}
-            onPageChange={fetchAllOrders}
-          />
-        </ChartCard>
-      )}
+      <ChartCard title="Recent Orders" className="mt-6">
+      <RecentOrdersTable
+          orders={orders}
+          showAll={showAllOrders}
+          onViewAll={handleViewAll}
+          onShowRecent={showRecentOrders}
+          pagination={pagination}
+          onPageChange={fetchAllOrders}
+        />
+      </ChartCard>
     </div>
   );
 };
