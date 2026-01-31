@@ -18,7 +18,7 @@ const AgeGroups = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [ageGroups, setAgeGroups] = useState([]); // State to store fetched data
   const [loading, setLoading] = useState(true); // State to manage loading status
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const navigate = useNavigate();
 

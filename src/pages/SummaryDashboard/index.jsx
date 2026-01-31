@@ -29,8 +29,8 @@ import {
   Truck,
   Package,
 } from "lucide-react";
-import api from "../../api/axios";
 import axios from "axios";
+import api from "../../api/axios";
 
 const dashboardData = {
   sales: [
@@ -533,80 +533,112 @@ const TopCitiesList = ({ cities }) => (
   </div>
 );
 
-const RecentOrdersTable = ({ orders }) => (
+const RecentOrdersTable = ({
+  orders,
+  showAll,
+  onViewAll,
+  onShowRecent,
+  pagination,
+  onPageChange,
+}) => (
   <>
     <div className="overflow-x-auto">
       <table className="min-w-full">
         <thead>
           <tr className="border-b border-gray-200">
-            {["Order ID", "Customer", "Date", "Amount", "Status", "Action"].map(
-              (header) => (
-                <th
-                  key={header}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  {header}
-                </th>
-              )
-            )}
+            {["Order ID", "Customer", "Date", "Amount", "Status"].map((h) => (
+              <th
+                key={h}
+                className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase"
+              >
+                {h}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {orders.map((order, index) => (
-            <tr
-              key={index}
-              className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
+          {orders.map((order, idx) => (
+            <tr key={idx} className="border-b hover:bg-gray-50">
+              <td className="px-6 py-4 text-blue-600 font-semibold">
                 {order.id}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {order.customer}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {order.date}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                ₹{order.amount}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    order.status === "Delivered"
-                      ? "bg-green-100 text-green-800"
-                      : order.status === "Processing"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-blue-100 text-blue-800"
-                  }`}
-                >
-                  {order.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                <button className="hover:text-gray-600">•••</button>
-              </td>
+              <td className="px-6 py-4">{order.customer}</td>
+              <td className="px-6 py-4">{order.date}</td>
+              <td className="px-6 py-4 font-semibold">₹{order.amount}</td>
+              <td className="px-6 py-4">{order.status}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-    <div className="mt-4 flex justify-end">
-      {/* <button className="text-rose-600 hover:text-rose-800 font-medium text-sm">
-        View All
-      </button> */}
+
+    {/* Footer */}
+    <div className="mt-4 flex justify-between items-center">
+      {showAll && pagination && (
+        <div className="flex gap-2">
+          <button
+            disabled={pagination.currentPage === 1}
+            onClick={() => onPageChange(pagination.currentPage - 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <button
+            disabled={pagination.currentPage === pagination.totalPages}
+            onClick={() => onPageChange(pagination.currentPage + 1)}
+            className="px-3 py-1 border rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {!showAll ? (
+        <button
+          onClick={onViewAll}
+          className="text-rose-600 font-medium text-sm"
+        >
+          View All
+        </button>
+      ) : (
+        <button
+          onClick={onShowRecent}
+          className="text-gray-600 font-medium text-sm"
+        >
+          Show Recent
+        </button>
+      )}
     </div>
   </>
 );
 
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("This Month");
   const [remote, setRemote] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [showAllOrders, 
+    setShowAllOrders] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
+  
+
+  const mapOrderForTable = (o) => ({
+    id: o.orderId ? `#${o.orderId}` : String(o._id),
+    customer: o.userId?.name || "Unknown",
+    date: new Date(o.createdAt).toISOString().slice(0, 10),
+    amount: Number(o.pricing?.total) || 0,
+    status: o.orderStatus,
+  });
+  
+
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await axios.get("http://localhost:3000/api/dashboard/stats");
         setRemote(res.data);
+        setOrders(res.data.recentOrders); // 👈 important
         console.log(res.data)
       } catch (e) {
         console.error("Failed to load dashboard stats:", e);
@@ -614,6 +646,42 @@ const Dashboard = () => {
     };
     fetchStats();
   }, []);
+
+  // 🔹 Load all orders (your existing API)
+  const fetchAllOrders = async (pageNo = 1) => {
+    try {
+      const res = await axios.get("http://localhost:3000/api/user/order/admin", {
+        params: { page: pageNo, limit: 20 },
+        headers:{
+          Authorization:`Bearer ${sessionStorage.getItem("adminToken")}`
+        }
+      });
+
+      setOrders(res.data.orders.map(mapOrderForTable));
+      setPagination({
+        totalPages: res.data.totalPages,
+        currentPage: res.data.currentPage,
+        totalOrders: res.data.totalOrders,
+      });
+      setShowAllOrders(true);
+      setPage(pageNo);
+    } catch (err) {
+      console.error("Failed to fetch all orders", err);
+    }
+  };
+
+  // 🔹 View all handler
+  const handleViewAll = () => {
+    fetchAllOrders(1);
+  };
+
+  // 🔹 Back to recent
+  const showRecentOrders = () => {
+    setOrders(remote.recentOrders);
+    setShowAllOrders(false);
+    setPagination(null);
+    setPage(1);
+  };
 
   const statsWithUi = useMemo(() => {
     const stats = remote?.stats || dashboardData.stats.map((s) => ({
@@ -670,7 +738,6 @@ const Dashboard = () => {
     });
   }, [remote]);
 
-  const recentOrders = remote?.recentOrders || dashboardData.recentOrders;
   const salesData = dashboardData.sales;
 
   return (
@@ -744,7 +811,14 @@ const Dashboard = () => {
         </ChartCard>
       </div> */}
       <ChartCard title="Recent Orders" className="mt-6">
-        <RecentOrdersTable orders={recentOrders} />
+      <RecentOrdersTable
+          orders={orders}
+          showAll={showAllOrders}
+          onViewAll={handleViewAll}
+          onShowRecent={showRecentOrders}
+          pagination={pagination}
+          onPageChange={fetchAllOrders}
+        />
       </ChartCard>
     </div>
   );

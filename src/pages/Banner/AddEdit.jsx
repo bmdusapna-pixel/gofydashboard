@@ -9,6 +9,14 @@ const bannerOptions = {
   "bottom banner": { web: "1920x250 px", app: "1080x250 px" },
 };
 
+const theme = [
+  "Diwali",
+  "Holi",
+  "Eid",
+  "Christmas",
+  "Navratri"
+]
+
 const BannerForm = () => {
   const { bannerId } = useParams();
   const navigate = useNavigate();
@@ -21,6 +29,7 @@ const BannerForm = () => {
     webImageUrl: "",
     appImageUrl: "",
     bannerUrl: "",
+    theme:"",
   });
 
   const [files, setFiles] = useState({ web: null, app: null });
@@ -41,6 +50,7 @@ const BannerForm = () => {
             webImageUrl: b.webImageUrl || "",
             appImageUrl: b.appImageUrl || "",
             bannerUrl: b.bannerUrl || "",
+            theme:b.theme || ""
           });
           setPreviews({
             web: b.webImageUrl || "",
@@ -83,6 +93,7 @@ const BannerForm = () => {
       formData.append("title", banner.title);
       formData.append("description", banner.description);
       formData.append("bannerUrl", banner.bannerUrl);
+      formData.append("theme", banner.theme);
 
       if (files.web) formData.append("webImage", files.web);
       if (files.app) formData.append("appImage", files.app);
@@ -109,6 +120,7 @@ const BannerForm = () => {
           webImageUrl: "",
           appImageUrl: "",
           bannerUrl: "",
+          theme:""
         });
         setFiles({ web: null, app: null });
         setPreviews({ web: "", app: "" });
@@ -119,8 +131,12 @@ const BannerForm = () => {
         navigate("/banners");
       }, 1500);
     } catch (err) {
-      console.error(err);
-      setMessage({ text: "Something went wrong!", type: "error" });
+      const msg = err?.response?.data?.msg || "Something went wrong";
+    
+      setMessage({
+        text: msg,
+        type: "error",
+      });
     }
   };
 
@@ -162,6 +178,24 @@ const BannerForm = () => {
                 {Object.keys(bannerOptions).map((type) => (
                   <option key={type} value={type}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2">Theme</label>
+              <select
+                name="theme"
+                value={banner.theme}
+                onChange={handleInputChange}
+                disabled={!!banner.id} // disable when editing
+                className="border border-gray-300 rounded-md p-2 w-full"
+              >
+                <option value="">Select Banner Theme</option>
+                {theme.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
                   </option>
                 ))}
               </select>

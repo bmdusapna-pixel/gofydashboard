@@ -59,6 +59,8 @@ import AddBlog from "./pages/Blogs/AddBlog";
 import ComingSoon from "./pages/ComingSoon";
 import UnderDevelopment from "./pages/Underdevelopment";
 import AdminProfile from "./pages/Admin/Profile";
+import Payment from "./pages/Payment/payment";
+import PaymentDetail from "./pages/Payment/PaymentDetail";
 
 const App = () => {
   return (
@@ -112,7 +114,7 @@ const App = () => {
                 />
                 <Route path="/setting" element={<Settings />} />
                 <Route path="/inventory" element={<Inventory />} />
-                <Route path="/seo-analytics" element={<UnderDevelopment />} />
+                <Route path="/seo-analytics" element={<SeoAnalytics/>} />
                 <Route path="/admin-settings" element={<AdminSettings />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route
@@ -152,6 +154,8 @@ const App = () => {
                 <Route path="/blogs" element={<ComingSoon/>} />
                 <Route path="/blogs/add-new" element={<ComingSoon />} />
                 <Route path="/profile" element={<AdminProfile/>}/>
+                <Route path="/payments" element = {<Payment/>}/>
+                <Route path="/payment/:id" element = {<PaymentDetail/>}/>
               </Route>
             </Route>
           </Route>

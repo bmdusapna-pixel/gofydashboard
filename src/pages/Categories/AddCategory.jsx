@@ -12,6 +12,14 @@ const AddCategory = ({ onAdd, onCancel }) => {
     metaKeywords: "",
     image: null,
     bannerImage: null, // New state for the banner image
+    displayOrder: 0,
+    isVisible: true,
+    visibleFrom: null,
+    visibleTo: null,
+    homepageTag: null,
+    layoutType: 'grid',
+    isPinned: false,
+    pinOrder: 0,
   });
   const navigate = useNavigate();
 
@@ -29,11 +37,20 @@ const AddCategory = ({ onAdd, onCancel }) => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value, files, type, checked } = e.target;
+
+    if (type === "checkbox") {
+      setNewCategory((prev) => ({
+        ...prev,
+        [name]: checked,
+      }));
+      return;
+    }
+
     if (files && files.length > 0) {
       setNewCategory((prev) => ({
         ...prev,
-        [name]: files[0], // The name attribute now correctly maps to either 'image' or 'bannerImage'
+        [name]: files[0],
       }));
     } else {
       setNewCategory((prev) => ({
@@ -43,14 +60,12 @@ const AddCategory = ({ onAdd, onCancel }) => {
     }
   };
 
+
   const handleAddCategory = async () => {
     // Basic validation
     if (
       !newCategory.name ||
       !newCategory.collectionId ||
-      // !newCategory.metaTitle ||
-      // !newCategory.metaKeywords ||
-      // !newCategory.metaDescription ||
       !newCategory.image ||
       !newCategory.bannerImage // Add validation for the new banner image
     ) {
@@ -66,6 +81,12 @@ const AddCategory = ({ onAdd, onCancel }) => {
     formData.append("metaDescription", newCategory.metaDescription);
     formData.append("categoryImage", newCategory.image);
     formData.append("categoryBannerImage", newCategory.bannerImage); // Append the new banner image
+    formData.append("displayOrder", newCategory.displayOrder);
+    formData.append("isVisible", newCategory.isVisible);
+    formData.append("homepageTag", newCategory.homepageTag);
+    formData.append("layoutType", newCategory.layoutType);
+    formData.append("isPinned", newCategory.isPinned);
+    formData.append("pinOrder", newCategory.pinOrder);
 
     try {
       const response = await api.post("/categories", formData, {
@@ -87,6 +108,14 @@ const AddCategory = ({ onAdd, onCancel }) => {
         metaKeywords: "",
         image: null,
         bannerImage: null,
+        displayOrder: 0,
+        isVisible: true,
+        visibleFrom: null,
+        visibleTo: null,
+        homepageTag: null,
+        layoutType: 'grid',
+        isPinned: false,
+        pinOrder: 0,
       });
     } catch (error) {
       console.error(
@@ -269,6 +298,89 @@ const AddCategory = ({ onAdd, onCancel }) => {
                 Max 160 characters for optimal search engine display.
               </p>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Display Order
+              </label>
+              <input
+                type="number"
+                name="displayOrder"
+                value={newCategory.displayOrder}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md text-sm"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 mt-6">
+              <input
+                type="checkbox"
+                name="isVisible"
+                checked={newCategory.isVisible}
+                onChange={handleChange}
+              />
+              <label className="text-sm text-gray-700">Visible on Website</label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Homepage Tag
+              </label>
+              <select
+                name="homepageTag"
+                value={newCategory.homepageTag}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md text-sm"
+              >
+                <option value="">None</option>
+                <option value="Trending">Trending</option>
+                <option value="Bestseller">Bestseller</option>
+                <option value="New">New</option>
+                <option value="Featured">Featured</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Category Layout
+              </label>
+              <select
+                name="layoutType"
+                value={newCategory.layoutType}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md text-sm"
+              >
+                <option value="grid">Grid</option>
+                <option value="list">List</option>
+                <option value="banner-first">Banner First</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="isPinned"
+                checked={newCategory.isPinned}
+                onChange={handleChange}
+              />
+              <label className="text-sm text-gray-700">Pin this Category</label>
+            </div>
+
+            {newCategory.isPinned && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Pin Order
+                </label>
+                <input
+                  type="number"
+                  name="pinOrder"
+                  value={newCategory.pinOrder}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-md text-sm"
+                />
+              </div>
+            )}
+
           </div>
 
           {/* Action Buttons */}

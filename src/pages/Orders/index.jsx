@@ -47,7 +47,7 @@ const AllOrders = () => {
     }
   };
 
-  const token = Cookies.get("token");
+  const token = sessionStorage.getItem("adminToken");
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -147,10 +147,11 @@ const AllOrders = () => {
                 onChange={(e) => setFilterByStatus(e.target.value)}
               >
                 <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
-                <option value="Pending">Pending</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
             </div>

@@ -32,6 +32,9 @@ const EditProduct = () => {
     metaDescription: "",
     metaKeywords: "",
     relatedCategories: [],
+    active: false,
+    offersEnabled: false,
+    offers: [],
   });
 
   const [ageGroupOptions, setAgeGroupOptions] = useState([]);
@@ -39,7 +42,7 @@ const EditProduct = () => {
   const genders = ["Unisex", "Boys", "Girls"];
   const [materials, setMaterials] = useState([]);
   const [colors, setColor] = useState([]);
-
+  const [coupons, setCoupons] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [newImages, setNewImages] = useState([]); // will store objects: { file, preview }
@@ -86,7 +89,19 @@ const EditProduct = () => {
     fetchAgeGroups();
     fetchMaterials();
     fetchColors();
+    fetchCoupons();
   }, []);
+
+  const fetchCoupons = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/offers`);
+      const result = await response.json();
+      console.log(result.coupons);
+      setCoupons(result.coupons);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+    }
+  };
 
   const statuses = ["In Stock", "Out of Stock", "Discontinued"];
 
@@ -147,8 +162,11 @@ const EditProduct = () => {
           images: data.images || [],
           video: data.video || null,
           sizeChart: data.sizeChart || null,
-          zohoName:data.zohoName,
-          zohoCategory:data.zohoCategory
+          zohoName: data.zohoName,
+          zohoCategory: data.zohoCategory,
+          active: data.active || false,
+          offersEnabled: data.offersEnabled || false,
+          offers: data.offers || [],
         });
 
         // 🟢 Preload media previews
@@ -166,9 +184,9 @@ const EditProduct = () => {
             selectedImages:
               v.images?.length > 1
                 ? v.images
-                    .slice(1)
-                    .map((img) => data.images.findIndex((i) => i === img))
-                    .filter((index) => index !== -1)
+                  .slice(1)
+                  .map((img) => data.images.findIndex((i) => i === img))
+                  .filter((index) => index !== -1)
                 : [],
             ageGroups: v.ageGroups?.map((ag) => ({
               ageGroup: ag.ageGroup._id || "",
@@ -179,16 +197,16 @@ const EditProduct = () => {
               tax: ag.tax || "",
               sku: ag.sku || "",
             })) || [
-              {
-                ageGroup: "",
-                price: "",
-                cutPrice: "",
-                discount: 0,
-                stock: "",
-                tax: "",
-                sku: "",
-              },
-            ],
+                {
+                  ageGroup: "",
+                  price: "",
+                  cutPrice: "",
+                  discount: 0,
+                  stock: "",
+                  tax: "",
+                  sku: "",
+                },
+              ],
             specifications: v.specifications?.length
               ? v.specifications
               : [{ key: "", value: "" }],
@@ -205,6 +223,27 @@ const EditProduct = () => {
 
     fetchProduct();
   }, [url]);
+
+  const handleOfferToggle = (checked) => {
+    setProduct((prev) => ({
+      ...prev,
+      offersEnabled: checked,
+      offers: checked ? coupons.map(c => c._id) : [],
+    }));
+  };
+
+
+  const handleOfferChange = (offerId) => {
+    setProduct((prev) => {
+      const exists = prev.offers.includes(offerId);
+      return {
+        ...prev,
+        offers: exists
+          ? prev.offers.filter(id => id !== offerId)
+          : [...prev.offers, offerId],
+      };
+    });
+  };
 
   const generateSKU = (productName, colorName, ageGroupName) => {
     if (!productName || !colorName || !ageGroupName) return "";
@@ -720,15 +759,15 @@ const EditProduct = () => {
         ];
 
         const updatedImages = variantImages
-            .map((url) => {
-              if (url.startsWith("blob:")) {
-                const newImageIndex = newImages.findIndex(
-                  (obj) => obj.preview === url
-                );
-                return `new-image-${newImageIndex}`;
-              }
-              return url;
-            })
+          .map((url) => {
+            if (url.startsWith("blob:")) {
+              const newImageIndex = newImages.findIndex(
+                (obj) => obj.preview === url
+              );
+              return `new-image-${newImageIndex}`;
+            }
+            return url;
+          })
           .filter(Boolean);
 
         return {
@@ -769,7 +808,7 @@ const EditProduct = () => {
       console.error("Error updating product:", error);
       alert(
         "❌ Failed to update product: " +
-          (error.response?.data?.message || error.message)
+        (error.response?.data?.message || error.message)
       );
     }
   };
@@ -801,6 +840,10 @@ const EditProduct = () => {
 
   const allUsedIndexes = getAllUsedImageIndexes();
 
+  const handleActiveChange = (product) => {
+    setProduct({ ...product, active: !product.active });
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
       <div className="">
@@ -821,43 +864,69 @@ const EditProduct = () => {
 
           <form onSubmit={handleSubmit} className="space-y-8 text-sm">
             {/* Moved Product Display Section inside the form */}
-            <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4 mb-8">
-              <h2 className="font-medium text-gray-700">
-                Product Display Options
-              </h2>
-              <p>Select where this product will be visible:</p>
-              <div className="flex items-center gap-4">
+
+            <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
+              <label className="block font-medium text-gray-700">
+                Product Active
+              </label>
+              <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    value="web"
-                    checked={product.displayOn.includes("web")}
-                    onChange={() => handleDisplayChange("web")}
+                    value="active"
+                    checked={product.active}
+                    onChange={() => handleActiveChange(product)}
                   />
-                  <span>Web</span>
+                  <span>Active</span>
                 </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    value="app"
-                    checked={product.displayOn.includes("app")}
-                    onChange={() => handleDisplayChange("app")}
-                  />
-                  <span>App</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={handleBothDisplayChange}
-                  className={`px-4 py-2 text-sm rounded transition-colors ${
-                    isBothSelected
-                      ? "bg-blue-600 text-white hover:bg-blue-700"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  {isBothSelected ? "Unselect Both" : "Select Both"}
-                </button>
               </div>
             </div>
+
+              <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="font-medium text-gray-700">
+                    Apply Offers
+                  </label>
+
+                  <input
+                    type="checkbox"
+                    checked={product.offersEnabled}
+                    onChange={(e) => handleOfferToggle(e.target.checked)}
+                    className="h-5 w-5"
+                  />
+                </div>
+
+                {product.offersEnabled && (
+                  <>
+                    <label className="flex items-center gap-2 font-medium">
+                      <input
+                        type="checkbox"
+                        checked={product.offers.length === coupons.length}
+                        onChange={(e) =>
+                          setProduct((prev) => ({
+                            ...prev,
+                            offers: e.target.checked ? coupons.map(c => c._id) : [],
+                          }))
+                        }
+                      />
+                      Select All Offers
+                    </label>
+
+                    <div className="space-y-2">
+                      {coupons.map((coupon) => (
+                        <label key={coupon._id} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={product.offers.includes(coupon._id)}
+                            onChange={() => handleOfferChange(coupon._id)}
+                          />
+                          <span>{coupon.title}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
 
             {/* Promotions */}
             <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
@@ -867,8 +936,8 @@ const EditProduct = () => {
               <div className="space-y-2">
                 {[
                   { value: "new_arrival", label: "New Arrivals" },
-                  // { value: "super_deal", label: "Super Deal" },
-                  { value: "offers", label: "Offers" },
+                  { value: "super_deal", label: "Super Deal" },
+                  // { value: "offers", label: "Offers" },
                   { value: "trending", label: "Trending Product" },
                   { value: "deal_of_the_day", label: "Deal of the Day" },
                 ].map((promo) => (
@@ -914,11 +983,10 @@ const EditProduct = () => {
                   Product Media (Images & Video)
                 </label>
                 <div
-                  className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${
-                    isDragging
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300"
-                  }`}
+                  className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${isDragging
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300"
+                    }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e)}
@@ -1002,11 +1070,10 @@ const EditProduct = () => {
                   Size Chart (Optional)
                 </label>
                 <div
-                  className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${
-                    isDragging
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300"
-                  }`}
+                  className={`border-2 border-dashed rounded p-4 text-center cursor-pointer transition-colors ${isDragging
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300"
+                    }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => {
@@ -1085,7 +1152,7 @@ const EditProduct = () => {
                     disabled
                   />
                 </div>
-               
+
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1144,8 +1211,8 @@ const EditProduct = () => {
                     value={product.zohoCategory}
                     className="border border-gray-300 rounded p-2 w-full"
                     disabled
-                  />                
-                  </div>
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1552,15 +1619,13 @@ const EditProduct = () => {
                                   );
                                 }}
                                 className={`relative w-24 h-24 border-2 rounded overflow-hidden cursor-pointer
-                                  ${
-                                    variant.mainImageIndex === index
-                                      ? "border-blue-500 ring-2 ring-blue-500"
-                                      : "border-gray-300"
+                                  ${variant.mainImageIndex === index
+                                    ? "border-blue-500 ring-2 ring-blue-500"
+                                    : "border-gray-300"
                                   }
-                                  ${
-                                    isUsedInOtherVariant
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : ""
+                                  ${isUsedInOtherVariant
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
                                   }
                                 `}
                               >
@@ -1622,20 +1687,17 @@ const EditProduct = () => {
                                   );
                                 }}
                                 className={`relative w-24 h-24 border-2 rounded overflow-hidden cursor-pointer
-                                  ${
-                                    variant.selectedImages.includes(index)
-                                      ? "border-green-500 ring-2 ring-green-500"
-                                      : "border-gray-300"
+                                  ${variant.selectedImages.includes(index)
+                                    ? "border-green-500 ring-2 ring-green-500"
+                                    : "border-gray-300"
                                   }
-                                  ${
-                                    variant.mainImageIndex === index
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : ""
+                                  ${variant.mainImageIndex === index
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
                                   }
-                                  ${
-                                    isUsedInOtherVariant
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : ""
+                                  ${isUsedInOtherVariant
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
                                   }
                                 `}
                               >
@@ -1648,13 +1710,13 @@ const EditProduct = () => {
                                 {/* 🔹 Show order number for selected images */}
                                 {(variant.mainImageIndex === index ||
                                   variant.selectedImages.includes(index)) && (
-                                  <span className="absolute top-1 left-1 bg-blue-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                                    {variant.mainImageIndex === index
-                                      ? 1
-                                      : variant.selectedImages.indexOf(index) +
+                                    <span className="absolute top-1 left-1 bg-blue-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                      {variant.mainImageIndex === index
+                                        ? 1
+                                        : variant.selectedImages.indexOf(index) +
                                         2}
-                                  </span>
-                                )}
+                                    </span>
+                                  )}
                               </div>
                             );
                           })}

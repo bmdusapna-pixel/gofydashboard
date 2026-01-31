@@ -17,6 +17,14 @@ const EditCategory = () => {
     newImage: null, // This will hold the new image file if a user uploads one
     categoryBannerImage: null, // This will hold the existing banner image URL
     newBannerImage: null, // This will hold the new banner image file
+    displayOrder: 0,
+    isVisible: true,
+    visibleFrom: null,
+    visibleTo: null,
+    homepageTag: null,
+    layoutType: 'grid',
+    isPinned: false,
+    pinOrder: 0,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +53,14 @@ const EditCategory = () => {
           categoryBannerImage: categoryData.categoryBannerImage, // Set the existing banner image URL
           newImage: null,
           newBannerImage: null,
+          displayOrder: categoryData.displayOrder || 0,
+          isVisible: categoryData.isVisible || true,
+          visibleFrom: categoryData.visibleFrom || null,
+          visibleTo: categoryData.visibleTo || null,
+          homepageTag: categoryData.homepageTag || null,
+          layoutType: categoryData.layoutType || 'grid',
+          isPinned: categoryData.isPinned || false,
+          pinOrder: categoryData.pinOrder || 0,
         });
 
         setIsLoading(false);
@@ -57,9 +73,18 @@ const EditCategory = () => {
     fetchData();
   }, [categoryId]);
 
+
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    // Handle both newImage and newBannerImage file inputs
+    const { name, value, files, type, checked } = e.target;
+
+    if (type === "checkbox") {
+      setCategory((prev) => ({
+        ...prev,
+        [name]: checked,
+      }));
+      return;
+    }
+
     if (files && files.length > 0) {
       setCategory((prev) => ({
         ...prev,
@@ -86,6 +111,12 @@ const EditCategory = () => {
     formData.append("metaTitle", category.metaTitle);
     formData.append("metaKeywords", category.metaKeywords);
     formData.append("metaDescription", category.metaDescription);
+    formData.append("displayOrder", category.displayOrder);
+    formData.append("isVisible", category.isVisible);
+    formData.append("homepageTag", category.homepageTag);
+    formData.append("layoutType", category.layoutType);
+    formData.append("isPinned", category.isPinned);
+    formData.append("pinOrder", category.pinOrder);
 
     // Only append the new image if a new one was selected
     if (category.newImage) {
@@ -283,6 +314,89 @@ const EditCategory = () => {
                 maxLength="160"
               ></textarea>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Display Order
+              </label>
+              <input
+                type="number"
+                name="displayOrder"
+                value={category.displayOrder}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md text-sm"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 mt-6">
+              <input
+                type="checkbox"
+                name="isVisible"
+                checked={category.isVisible}
+                onChange={handleChange}
+              />
+              <label className="text-sm text-gray-700">Visible on Website</label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Homepage Tag
+              </label>
+              <select
+                name="homepageTag"
+                value={category.homepageTag}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md text-sm"
+              >
+                <option value="None">None</option>
+                <option value="Trending">Trending</option>
+                <option value="Bestseller">Bestseller</option>
+                <option value="New">New</option>
+                <option value="Featured">Featured</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Category Layout
+              </label>
+              <select
+                name="layoutType"
+                value={category.layoutType}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md text-sm"
+              >
+                <option value="grid">Grid</option>
+                <option value="list">List</option>
+                <option value="banner-first">Banner First</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="isPinned"
+                checked={category.isPinned}
+                onChange={handleChange}
+              />
+              <label className="text-sm text-gray-700">Pin this Category</label>
+            </div>
+
+            {category.isPinned && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Pin Order
+                </label>
+                <input
+                  type="number"
+                  name="pinOrder"
+                  value={category.pinOrder}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-md text-sm"
+                />
+              </div>
+            )}
+
           </div>
 
           {/* Action Buttons */}

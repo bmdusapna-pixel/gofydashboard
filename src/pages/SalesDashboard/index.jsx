@@ -52,13 +52,17 @@ const Index = () => {
   const [timeFilter, setTimeFilter] = useState("This Month");
   const [liveVisitors, setLiveVisitors] = useState(1247);
   const [lastUpdated, setLastUpdated] = useState(new Date());
-
+  const [filters, setFilters] = useState({});
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [topBuyers, settopBuyers] = useState([]);
   const [topProducts,settopProducts] = useState([]);
+  const [viewAllOrders, setViewAllOrders] = useState(false);
+  const [topStates, setTopStates] = useState([]);
+  const [topCities, setTopCities] = useState([]);
+
 
   const fetchDashboardStats = useCallback(async () => {
     setLoading(true);
@@ -66,23 +70,44 @@ const Index = () => {
     try {
       const { data } = await api.get("dashboard/stats");
       setStats(data.stats || []);
-      setRecentOrders(data.recentOrders || []);
       settopBuyers(data.topBuyers);
       settopProducts(data.topSellingProducts)
       setLastUpdated(new Date());
     } catch (err) {
       setError(err?.response?.data?.error || "Failed to load dashboard stats");
       setStats([]);
-      setRecentOrders([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const fetchOrders = useCallback(async (viewAll = false) => {
+    try {
+      const { data } = await api.get("/user/order/admin", {
+        params: {
+          page: 1,
+          limit: viewAll ? 0 : 5,
+        },
+      });
+
+      console.log(data.orders)
+  
+      setRecentOrders(data.orders || []);
+    } catch (err) {
+      console.error("Fetch orders error:", err);
+      setRecentOrders([]);
+    }
+  }, []);
+
+
   useEffect(() => {
     fetchDashboardStats();
   }, [fetchDashboardStats]);
 
+  useEffect(() => {
+    fetchOrders(false); // recent orders
+  }, [fetchOrders]);
+  
   // Simulate real-time updates for live visitors only
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,6 +115,129 @@ const Index = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchTopStates = useCallback(async () => {
+    try {
+      const { data } = await api.get("dashboard/top-states");
+      console.log("topStates", data);
+      setTopStates(data.states);
+      setTopCities(data.cities);
+    } catch (err) {
+      console.error("Fetch top states error:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTopStates();
+  }, [fetchTopStates]);
+
+  // Filter logic
+const getFilteredOrders = () => {
+  return recentOrders.filter((o) => {
+    // ---------- Order Filters ----------
+    if (filters.orderId && !o.orderId?.includes(filters.orderId)) return false;
+    if (filters.paymentId && !o.paymentId?.includes(filters.paymentId)) return false;
+
+    const customer = o.userId?.name ?? "";
+    const customerEmail = o.userId?.email ?? "";
+    const customerPhone = o.userId?.phone ?? "";
+    if (filters.customer) {
+      const search = filters.customer.toLowerCase();
+      if (
+        !customer.toLowerCase().includes(search) &&
+        !customerEmail.toLowerCase().includes(search) &&
+        !customerPhone.toLowerCase().includes(search)
+      )
+        return false;
+    }
+
+    if (filters.product && !o.products?.some(p => 
+      p.name?.toLowerCase().includes(filters.product.toLowerCase()) || 
+      p.sku?.toLowerCase().includes(filters.product.toLowerCase())
+    )) return false;
+
+    if (filters.orderStatus && o.orderStatus !== filters.orderStatus) return false;
+    if (filters.paymentStatus && o.paymentStatus !== filters.paymentStatus) return false;
+    if (filters.paymentMode && o.paymentMethod !== filters.paymentMode) return false;
+
+    if (!filters.includeCancelled && ["Cancelled", "Returned"].includes(o.orderStatus))
+      return false;
+
+    // ---------- Date Filters ----------
+    if (filters.orderDateFrom && new Date(o.createdAt) < new Date(filters.orderDateFrom))
+      return false;
+    if (filters.orderDateTo && new Date(o.createdAt) > new Date(filters.orderDateTo))
+      return false;
+
+    if (filters.deliveryDateFrom && new Date(o.deliveryDate) < new Date(filters.deliveryDateFrom))
+      return false;
+    if (filters.deliveryDateTo && new Date(o.deliveryDate) > new Date(filters.deliveryDateTo))
+      return false;
+
+    // ---------- Shipping ----------
+    if (filters.trackingNo && !o.trackingNo?.includes(filters.trackingNo)) return false;
+    if (filters.city && !o.city?.toLowerCase().includes(filters.city.toLowerCase())) return false;
+    if (filters.state && o.state !== filters.state) return false;
+    if (filters.pincode && o.pincode !== filters.pincode) return false;
+
+    // ---------- Product ----------
+    if (filters.productCategory?.length > 0 && !filters.productCategory.some(cat => o.products?.some(p => p.category === cat)))
+      return false;
+    if (filters.productType && !o.products?.some(p => p.type === filters.productType))
+      return false;
+
+    // ---------- Marketing ----------
+    if (filters.channel && o.channel !== filters.channel) return false;
+    if (filters.utmSource && o.utmSource !== filters.utmSource) return false;
+    if (filters.promoApplied) {
+      const applied = Boolean(o.promoCode);
+      if ((filters.promoApplied === "Yes" && !applied) || (filters.promoApplied === "No" && applied))
+        return false;
+    }
+    if (filters.promoCode && o.promoCode !== filters.promoCode) return false;
+
+    // ---------- Ranges ----------
+    const total = Number(o.pricing?.total ?? 0);
+    if (filters.cartValueMin && total < Number(filters.cartValueMin)) return false;
+    if (filters.cartValueMax && total > Number(filters.cartValueMax)) return false;
+
+    const discount = Number(o.pricing?.discount ?? 0);
+    if (filters.discountMin && discount < Number(filters.discountMin)) return false;
+    if (filters.discountMax && discount > Number(filters.discountMax)) return false;
+
+    // ---------- Misc ----------
+    if (filters.coinsUsed) {
+      const used = Boolean(o.coinsUsed);
+      if ((filters.coinsUsed === "Yes" && !used) || (filters.coinsUsed === "No" && used)) return false;
+    }
+
+    if (filters.giftWrap) {
+      const applied = Boolean(o.giftWrap);
+      if ((filters.giftWrap === "Yes" && !applied) || (filters.giftWrap === "No" && applied)) return false;
+    }
+
+    if (filters.repeatCustomer) {
+      const repeat = Boolean(o.isRepeatCustomer);
+      if ((filters.repeatCustomer === "Yes" && !repeat) || (filters.repeatCustomer === "No" && repeat))
+        return false;
+    }
+
+    if (filters.deliveryPartner && o.deliveryPartner !== filters.deliveryPartner) return false;
+
+    if (filters.storePickup) {
+      const pickup = Boolean(o.storePickup);
+      if ((filters.storePickup === "Yes" && !pickup) || (filters.storePickup === "No" && pickup))
+        return false;
+    }
+
+    // ---------- If all conditions passed ----------
+    return true;
+  });
+};
+
+
+const filteredOrders = getFilteredOrders();
+
 
   const MetricCard = ({ title, value, change, icon, iconColorClass }) => (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -187,29 +335,6 @@ const Index = () => {
     { name: "Books", value: 8, sales: "₹57,800", colorClass: "text-green-600" },
   ];
 
-  // const topProducts = [
-  //   { name: "Cuddly Teddy Bear", sales: 347, rank: "#1", category: "Toys" },
-  //   {
-  //     name: "Colorful Building Blocks",
-  //     sales: 298,
-  //     rank: "#2",
-  //     category: "Toys",
-  //   },
-  //   { name: "Princess Doll Set", sales: 256, rank: "#3", category: "Toys" },
-  //   {
-  //     name: "Baby Cotton T-Shirt",
-  //     sales: 234,
-  //     rank: "#4",
-  //     category: "Clothes",
-  //   },
-  //   {
-  //     name: "Kids School Backpack",
-  //     sales: 189,
-  //     rank: "#5",
-  //     category: "Accessories",
-  //   },
-  // ];
-
   const searchTermsData = [
     { term: "baby frock", searches: 2847, rate: "8.7%", trend: "+23%" },
     { term: "lego set", searches: 1923, rate: "9.8%", trend: "+15%" },
@@ -242,33 +367,13 @@ const Index = () => {
     { code: "110001 (Delhi)", orders: 260, Sales: "₹39,200" },
   ];
 
-  // const topBuyers = [
-  //   { name: "Priya Sharma", city: "Mumbai", orders: 23, spent: "₹34,500" },
-  //   { name: "Rajesh Kumar", city: "Delhi", orders: 19, spent: "₹28,700" },
-  //   {
-  //     name: "Little Stars Daycare",
-  //     city: "Bangalore",
-  //     orders: 15,
-  //     spent: "₹45,600",
-  //     flag: true,
-  //   },
-  //   { name: "Sneha Patel", city: "Pune", orders: 17, spent: "₹25,400" },
-  //   {
-  //     name: "Happy Kids School",
-  //     city: "Chennai",
-  //     orders: 12,
-  //     spent: "₹67,800",
-  //     flag: true,
-  //   },
-  // ];
-
-  const displayOrders = recentOrders.map((o) => ({
-    id: o.id,
-    customer: o.customer || "Unknown",
-    date: formatDate(o.date),
-    amount: formatCurrency(Number(o.amount)),
-    status: o.status || "—",
-  }));
+const displayOrders = filteredOrders.map((o) => ({
+  id: o.orderId,
+  customer: o.userId?.name || "Unknown",
+  date: formatDate(o.createdAt),
+  amount: formatCurrency(Number(o.pricing?.total ?? 0)),
+  status: o.orderStatus || "—",
+}));
 
   return (
     <main className="flex-1 overflow-y-auto p-4 bg-primary-50">
@@ -323,7 +428,7 @@ const Index = () => {
         </div>
       </div>
       <div className="mb-6">
-        <FilterForm />
+      <FilterForm onApplyFilters={(filters) => setFilters(filters)} />
       </div>
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center justify-between">
@@ -718,13 +823,14 @@ const Index = () => {
           </div>
         </div> */}
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Top States */}
-        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Top States
           </h2>
           <div className="space-y-3">
-            {stateOrdersData.map((state, index) => (
+            {topStates.length > 0 && topStates.map((state, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-3 rounded-xl border border-gray-200"
@@ -738,74 +844,30 @@ const Index = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900 text-sm">
-                      {state.state}
+                      {state._id}
                     </p>
                     <p className="text-xs text-gray-600">
-                      {state.orders} orders
+                      {state.totalOrders} orders
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm text-indigo-600">
-                    {state.Sales}
+                    {state.totalSales}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </div> */}
+        </div>
 
-        {/* Top Buyers */}
-        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Top Buyers
-          </h2>
-          <div className="space-y-3">
-            {topBuyers.map((buyer, index) => (
-              <div
-                key={index}
-                className={`flex items-center justify-between p-3 rounded-xl border ${
-                  buyer.flag
-                    ? "bg-red-50 border-red-200"
-                    : "bg-gray-50 border-gray-200"
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-purple-600">
-                      {buyer.name.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {buyer.name}
-                      </p>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      Delhi • {buyer.totalOrders} orders
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-sm text-green-600">
-                    {buyer.totalSpent}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div> */}
-      {/* </div> */}
-
-      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"> */}
         {/* Top Cities */}
-        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Top Cities
           </h2>
           <div className="space-y-3">
-            {cityOrdersData.map((city, index) => (
+            {topCities.map((city, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-3 rounded-xl border border-gray-200"
@@ -816,22 +878,23 @@ const Index = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900 text-sm">
-                      {city.city}
+                      {city._id}
                     </p>
                     <p className="text-xs text-gray-600">
-                      {city.orders} orders
+                      {city.totalOrders} orders
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm text-indigo-600">
-                    {city.Sales}
+                    {city.totalSales}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </div> */}
+        </div>
+      </div>
 
         {/* Top Postal Codes */}
         {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100">
@@ -869,15 +932,22 @@ const Index = () => {
             ))}
           </div>
         </div> */}
-      {/* </div> */}
 
       {/* Recent Orders Table */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-primary-100 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">Recent Orders</h2>
-          <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-            View All
-          </button>
+          <button
+  onClick={() => {
+    const next = !viewAllOrders;
+    setViewAllOrders(next);
+    fetchOrders(next);
+  }}
+  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+>
+  {viewAllOrders ? "Show Less" : "View All"}
+</button>
+
         </div>
         <div className="overflow-x-auto">
           {loading && !displayOrders.length ? (

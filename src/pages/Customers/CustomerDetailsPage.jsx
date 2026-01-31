@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   Activity,
@@ -9,96 +9,97 @@ import {
   Wallet,
   MapPin,
 } from "lucide-react";
+import api from "../../api/axios";
 
-const users = [
-  {
-    id: "CUST-001",
-    name: "Alice Wonderland",
-    email: "alice@example.com",
-    mobile: "987-654-3210",
-    source: "Web", // New: User source
-    totalSpent: 1250.75,
-    walletDetails: {
-      // New: Wallet details object
-      balance: 350.5,
-      lastUpdated: "2025-08-25",
-    },
-    totalOrders: 15,
-    cartItems: 2,
-    country: "USA",
-    state: "California",
-    city: "San Francisco",
-    pincode: "94103",
-    savedAddresses: [
-      // New: Saved addresses array
-      {
-        address: "123 Main Street, Apt 4B, San Francisco, CA 94103",
-        isDefault: true,
-      },
-      { address: "456 Oak Avenue, San Francisco, CA 94103", isDefault: false },
-    ],
-    loginActivity: [
-      { date: "2025-08-20", time: "10:30 AM", device: "Chrome on Mac" },
-      { date: "2025-08-19", time: "09:15 AM", device: "Firefox on Windows" },
-    ],
-    orderFunnelStatus: "Checked Out",
-    tags: ["Loyal Customer", "High Spender"],
-  },
-  {
-    id: "CUST-002",
-    name: "Bob Builder",
-    email: "bob@example.com",
-    mobile: "123-456-7890",
-    source: "App", // New: User source
-    totalSpent: 250.0,
-    walletDetails: {
-      // New: Wallet details object
-      balance: 50.0,
-      lastUpdated: "2025-08-26",
-    },
-    totalOrders: 3,
-    cartItems: 0,
-    country: "USA",
-    state: "Texas",
-    city: "Austin",
-    pincode: "73301",
-    savedAddresses: [
-      // New: Saved addresses array
-      { address: "789 Pine Street, Austin, TX 73301", isDefault: true },
-    ],
-    loginActivity: [
-      { date: "2025-08-21", time: "02:00 PM", device: "Safari on iPhone" },
-      { date: "2025-08-18", time: "05:45 PM", device: "Chrome on Android" },
-    ],
-    orderFunnelStatus: "Browsing",
-    tags: ["New User", "Mobile User"],
-  },
-  {
-    id: "CUST-003",
-    name: "Charlie Chaplin",
-    email: "charlie@example.com",
-    mobile: "555-123-4567",
-    source: "Web", // New: User source
-    totalSpent: 89.99,
-    walletDetails: {
-      // New: Wallet details object
-      balance: 0.0,
-      lastUpdated: "2025-08-27",
-    },
-    totalOrders: 1,
-    cartItems: 5,
-    country: "UK",
-    state: "London",
-    city: "London",
-    pincode: "SW1A 0AA",
-    savedAddresses: [], // New: Empty addresses array
-    loginActivity: [
-      { date: "2025-08-23", time: "11:00 AM", device: "Edge on Windows" },
-    ],
-    orderFunnelStatus: "Cart Abandoned",
-    tags: ["At-Risk", "First-time Buyer"],
-  },
-];
+// const users = [
+//   {
+//     id: "CUST-001",
+//     name: "Alice Wonderland",
+//     email: "alice@example.com",
+//     mobile: "987-654-3210",
+//     source: "Web", // New: User source
+//     totalSpent: 1250.75,
+//     walletDetails: {
+//       // New: Wallet details object
+//       balance: 350.5,
+//       lastUpdated: "2025-08-25",
+//     },
+//     totalOrders: 15,
+//     cartItems: 2,
+//     country: "USA",
+//     state: "California",
+//     city: "San Francisco",
+//     pincode: "94103",
+//     savedAddresses: [
+//       // New: Saved addresses array
+//       {
+//         address: "123 Main Street, Apt 4B, San Francisco, CA 94103",
+//         isDefault: true,
+//       },
+//       { address: "456 Oak Avenue, San Francisco, CA 94103", isDefault: false },
+//     ],
+//     loginActivity: [
+//       { date: "2025-08-20", time: "10:30 AM", device: "Chrome on Mac" },
+//       { date: "2025-08-19", time: "09:15 AM", device: "Firefox on Windows" },
+//     ],
+//     orderFunnelStatus: "Checked Out",
+//     tags: ["Loyal Customer", "High Spender"],
+//   },
+//   {
+//     id: "CUST-002",
+//     name: "Bob Builder",
+//     email: "bob@example.com",
+//     mobile: "123-456-7890",
+//     source: "App", // New: User source
+//     totalSpent: 250.0,
+//     walletDetails: {
+//       // New: Wallet details object
+//       balance: 50.0,
+//       lastUpdated: "2025-08-26",
+//     },
+//     totalOrders: 3,
+//     cartItems: 0,
+//     country: "USA",
+//     state: "Texas",
+//     city: "Austin",
+//     pincode: "73301",
+//     savedAddresses: [
+//       // New: Saved addresses array
+//       { address: "789 Pine Street, Austin, TX 73301", isDefault: true },
+//     ],
+//     loginActivity: [
+//       { date: "2025-08-21", time: "02:00 PM", device: "Safari on iPhone" },
+//       { date: "2025-08-18", time: "05:45 PM", device: "Chrome on Android" },
+//     ],
+//     orderFunnelStatus: "Browsing",
+//     tags: ["New User", "Mobile User"],
+//   },
+//   {
+//     id: "CUST-003",
+//     name: "Charlie Chaplin",
+//     email: "charlie@example.com",
+//     mobile: "555-123-4567",
+//     source: "Web", // New: User source
+//     totalSpent: 89.99,
+//     walletDetails: {
+//       // New: Wallet details object
+//       balance: 0.0,
+//       lastUpdated: "2025-08-27",
+//     },
+//     totalOrders: 1,
+//     cartItems: 5,
+//     country: "UK",
+//     state: "London",
+//     city: "London",
+//     pincode: "SW1A 0AA",
+//     savedAddresses: [], // New: Empty addresses array
+//     loginActivity: [
+//       { date: "2025-08-23", time: "11:00 AM", device: "Edge on Windows" },
+//     ],
+//     orderFunnelStatus: "Cart Abandoned",
+//     tags: ["At-Risk", "First-time Buyer"],
+//   },
+// ];
 
 // Placeholder functions for user actions
 const handleUserAction = (action, userId) => {
@@ -112,360 +113,264 @@ const resetPassword = (userId) => {
 };
 
 const CustomerDetailsPage = () => {
+  const [user,setUser] = useState(null);
+  const [orders,setOrders] = useState([])
   const { id } = useParams();
-  const user = users.find((u) => u.id === id);
+  console.log(id)
+  useEffect(()=>{
+    const fetchDetail = async ()=>{
+      try {
+        const res= await api.get(`user/auth/profile/${id}`)
+        console.log(res.data.user)
+        setUser(res.data.user)
+      } 
+      catch (error) {
+        console.log(error)
+      }
+    }
+    const fetchOrders = async () => {
+      try {
+        const res = await api.get(`order/user/${id}`)
+        console.log(res.data)
+        setOrders(res.data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    fetchDetail();
+    fetchOrders();
+  },[id])
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <div className="text-center p-8 bg-white rounded-lg shadow-sm">
-          <h2 className="text-2xl font-semibold mb-4">User Not Found</h2>
-          <p className="text-gray-600 mb-6">
-            The user with ID "{id}" could not be found.
-          </p>
-          <Link
-            to="/"
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Go Back to User List
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  console.log("orders",orders)
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-300 p-6">
+      <div className=" rounded-lg shadow-sm p-6 border border-primary-100 bg-white">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">User Profile</h2>
           <Link
-            to="/"
+            to="/customers"
             className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
           >
             Back to List
           </Link>
         </div>
+        {!user ? (
+  <p className="text-gray-500">No User Found.....</p>
+) : (
+  <>
+    {/* Profile Header */}
+    <div className="flex items-center gap-6 mb-6">
+      <img
+        src={user.profileImg || "https://placehold.co/100x100"}
+        alt={user.name}
+        className="w-24 h-24 rounded-full border"
+      />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600 mb-1">
-                  Total Spent
-                </h3>
-                <p className="text-2xl font-bold text-blue-600">
-                  ₹{user.totalSpent.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600 mb-1">
-                  Wallet Balance
-                </h3>
-                <p className="text-2xl font-bold text-green-600">
-                  ₹{user.walletDetails.balance.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600 mb-1">
-                  Total Orders
-                </h3>
-                <p className="text-2xl font-bold text-purple-600">
-                  {user.totalOrders}
-                </p>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600 mb-1">
-                  Cart Items
-                </h3>
-                <p className="text-2xl font-bold text-orange-600">
-                  {user.cartItems}
-                </p>
-              </div>
-              <div className="bg-indigo-50 p-4 rounded-lg md:col-span-1">
-                <h3 className="text-sm font-medium text-gray-600 mb-1">
-                  Customer Source
-                </h3>
-                <p className="text-2xl font-bold text-indigo-600">
-                  {user.source}
-                </p>
-              </div>
+      <div>
+        <h3 className="text-2xl font-semibold">{user.name}</h3>
+        <p className="text-gray-600">{user.email}</p>
+        <p className="text-gray-600">{user.phone}</p>
+      </div>
+    </div>
+
+    {/* User Stats */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="bg-gray-50 p-4 rounded border">
+        <p className="text-sm text-gray-500">Points</p>
+        <p className="font-semibold">{user.point}</p>
+      </div>
+
+      <div className="bg-gray-50 p-4 rounded border">
+        <p className="text-sm text-gray-500">Age Group</p>
+        <p className="font-semibold">{user.age || "N/A"}</p>
+      </div>
+
+      <div className="bg-gray-50 p-4 rounded border">
+        <p className="text-sm text-gray-500">Total Orders</p>
+        <p className="font-semibold">{user.totalOrders || "N/A"}</p>
+      </div>
+
+      <div className="bg-gray-50 p-4 rounded border">
+        <p className="text-sm text-gray-500">Total Spent</p>
+        <p className="font-semibold">{user.totalSpent || "N/A"}</p>
+      </div>
+    </div>
+
+    {/* User Tags */}
+<div className="mb-6">
+  <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
+    🏷️ User Tags
+  </h4>
+
+  {user.tags?.length === 0 ? (
+    <p className="text-gray-500 text-sm">No tags assigned</p>
+  ) : (
+    <div className="flex flex-wrap gap-2">
+      {user.tags.map((tag, index) => (
+        <span
+          key={index}
+          className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700 border border-blue-200"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  )}
+</div>
+
+
+    {/* Addresses */}
+    <div className="mb-6">
+      <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
+        <MapPin size={18} /> Saved Addresses
+      </h4>
+
+      {user.addresses?.length === 0 ? (
+        <p className="text-gray-500">No addresses found</p>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {user.addresses.map((addr) => (
+            <div
+              key={addr._id}
+              className="border rounded-lg p-4 bg-gray-50"
+            >
+              <p className="font-semibold">{addr.nickname}</p>
+              <p className="text-sm text-gray-600">
+                {addr.houseStreet}, {addr.apartment}
+              </p>
+              <p className="text-sm text-gray-600">
+                {addr.city}, {addr.district}
+              </p>
+              <p className="text-sm text-gray-600">
+                {addr.state}, {addr.country} - {addr.zipCode}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Account Info */}
+    <div className="border-t pt-4 text-sm text-gray-500">
+      <p>Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
+      <p>Last Updated: {new Date(user.updatedAt).toLocaleDateString()}</p>
+    </div>
+    {/* ORDER HISTORY */}
+<div className="mt-8">
+  <h3 className="text-xl font-semibold mb-4">Order History</h3>
+
+  {orders.length === 0 ? (
+    <p className="text-gray-500">No orders found</p>
+  ) : (
+    <div className="space-y-6">
+      {orders.map((order) => (
+        <div
+          key={order._id}
+          className="border rounded-lg p-5 bg-white shadow-sm"
+        >
+          {/* Order Header */}
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <p className="font-semibold">
+                Order ID: {order.orderId}
+              </p>
+              <p className="text-sm text-gray-500">
+                {new Date(order.createdAt).toLocaleString()}
+              </p>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium mb-3">
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      value={user.name}
-                      readOnly
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email (Read-only)
-                    </label>
-                    <input
-                      type="email"
-                      value={user.email}
-                      disabled
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mobile
-                    </label>
-                    <input
-                      type="text"
-                      value={user.mobile}
-                      readOnly
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      User ID
-                    </label>
-                    <input
-                      type="text"
-                      value={user.id}
-                      disabled
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50"
-                    />
-                  </div>
-                </div>
-              </div>
+            <span className="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700">
+              {order.orderStatus}
+            </span>
+          </div>
 
-              <div>
-                <h3 className="text-lg font-medium mb-3">Location Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Country
-                    </label>
-                    <input
-                      type="text"
-                      value={user.country}
-                      readOnly
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      State
-                    </label>
-                    <input
-                      type="text"
-                      value={user.state}
-                      readOnly
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={user.city}
-                      readOnly
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Pincode
-                    </label>
-                    <input
-                      type="text"
-                      value={user.pincode}
-                      readOnly
-                      className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-              </div>
+          {/* Items */}
+          <div className="divide-y">
+            {order.items.map((item) => (
+              <div
+                key={item.productId}
+                className="flex gap-4 py-3"
+              >
+                <img
+                  src={item.image}
+                  alt={item.productName}
+                  className="w-16 h-16 rounded border"
+                />
 
-              <div>
-                <h3 className="text-lg font-medium mb-3">Saved Addresses</h3>
-                <div className="space-y-4">
-                  {user.savedAddresses && user.savedAddresses.length > 0 ? (
-                    user.savedAddresses.map((address, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-50 p-4 rounded-lg flex items-start gap-4"
-                      >
-                        <MapPin className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-gray-800">{address.address}</p>
-                          {address.isDefault && (
-                            <span className="mt-1 inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                              Default
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
-                      No saved addresses found.
-                    </div>
-                  )}
+                <div className="flex-1">
+                  <p className="font-medium">{item.productName}</p>
+                  <p className="text-sm text-gray-500">
+                    Age Group: {item.ageGroupName}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Qty: {item.quantity}
+                  </p>
                 </div>
-              </div>
 
-              <div>
-                <h3 className="text-lg font-medium mb-3">Login Activity</h3>
-                <div className="space-y-2">
-                  {user.loginActivity.map((activity, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Activity className="w-4 h-4 text-blue-500" />
-                        <span>
-                          {activity.date} at {activity.time}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        {activity.device}
-                      </span>
-                    </div>
-                  ))}
+                <div className="text-right">
+                  <p className="font-semibold">₹{item.totalPrice}</p>
+                  <p className="text-sm line-through text-gray-400">
+                    ₹{item.totalCutPrice}
+                  </p>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Pricing Summary */}
+          <div className="mt-4 border-t pt-4 text-sm">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>₹{order.pricing.subtotal}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>Discount</span>
+              <span className="text-green-600">
+                -₹{order.pricing.totalDiscount}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>Delivery</span>
+              <span>₹{order.pricing.deliveryCharges}</span>
+            </div>
+
+            <div className="flex justify-between font-semibold text-base mt-2">
+              <span>Total</span>
+              <span>₹{order.pricing.total}</span>
             </div>
           </div>
 
-          <div>
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">Order Funnel Status</h3>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      user.orderFunnelStatus === "Browsing"
-                        ? "bg-gray-400"
-                        : user.orderFunnelStatus === "Added to Cart"
-                        ? "bg-yellow-400"
-                        : user.orderFunnelStatus === "Cart Abandoned"
-                        ? "bg-red-400"
-                        : "bg-green-400"
-                    }`}
-                  ></div>
-                  <span className="text-sm">{user.orderFunnelStatus}</span>
-                </div>
-              </div>
+          {/* Address & Payment */}
+          <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+            <div>
+              <p className="font-medium text-gray-800">Shipping Address</p>
+              <p>
+                {order.shippingAddress.houseStreet},{" "}
+                {order.shippingAddress.city},{" "}
+                {order.shippingAddress.state} -{" "}
+                {order.shippingAddress.zipCode}
+              </p>
+            </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-medium mb-2">User Tags</h3>
-                <div className="flex flex-wrap gap-1">
-                  {user.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-medium mb-2 flex items-center gap-2">
-                  <Wallet className="w-4 h-4 text-gray-600" />
-                  Wallet Activity
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Last updated:{" "}
-                  <span className="font-medium">
-                    {user.walletDetails.lastUpdated}
-                  </span>
-                </p>
-              </div>
-
-              <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  Account Actions
-                </h3>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => handleUserAction("enable", user.id)}
-                    className="w-full group flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-green-200"
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors">
-                      <Unlock className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium">Enable Account</div>
-                      <div className="text-xs text-green-100">
-                        Activate user access
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => resetPassword(user.id)}
-                    className="w-full group flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-orange-200"
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors">
-                      <RefreshCw className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium">Reset Password</div>
-                      <div className="text-xs text-orange-100">
-                        Generate new password
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => handleUserAction("disable", user.id)}
-                    className="w-full group flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-red-200"
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors">
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium">Disable Account</div>
-                      <div className="text-xs text-red-100">
-                        Suspend user access
-                      </div>
-                    </div>
-                  </button>
-
-                  <div className="pt-2 mt-4 border-t border-gray-100">
-                    <button
-                      onClick={() => handleUserAction("delete", user.id)}
-                      className="w-full group flex items-center gap-3 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 border-2 border-transparent hover:border-red-200 transition-all duration-200"
-                    >
-                      <div className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-lg group-hover:bg-red-100 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div className="font-medium">Delete Account</div>
-                        <div className="text-xs text-gray-500 group-hover:text-red-400">
-                          Permanently remove user
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
+            <div>
+              <p className="font-medium text-gray-800">Payment</p>
+              <p>Method: {order.paymentMethod}</p>
+              <p>Status: {order.paymentStatus}</p>
             </div>
           </div>
         </div>
+      ))}
+    </div>
+  )}
+</div>
+
+  </>
+)}
+
+       
       </div>
     </div>
   );

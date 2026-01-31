@@ -10,6 +10,9 @@ import {
   faPalette,
   faGear,
   faUser,
+  faRupee,
+  faMoneyBill,
+  faCreditCard,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const navItems = [
@@ -186,6 +189,12 @@ export const navItems = [
     ],
   },
   {
+    name: "Payments",
+    icon: faCreditCard,
+    path: "/payments",
+    type: "link",
+  },
+  {
     name: "Admin",
     icon: faUsers,
     path: "/admin",
@@ -208,10 +217,5 @@ export const navItems = [
     icon: faUser,
     type:"button"
   },
-  // {
-  //   name: "Logs",
-  //   icon: faUsers,
-  //   path: "/activities",
-  //   type: "link",
-  // },
+
 ];

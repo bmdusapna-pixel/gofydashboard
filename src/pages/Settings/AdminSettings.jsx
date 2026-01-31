@@ -16,6 +16,8 @@ import {
   Link,
   Clock,
 } from "lucide-react";
+import { settingsAPI } from "../../api/settings";
+import { toast } from "react-toastify";
 
 const AdminSettings = () => {
   // State for Site & Business Settings
@@ -99,29 +101,78 @@ const AdminSettings = () => {
   const [whatsAppApiEndpoint, setWhatsAppApiEndpoint] = useState("");
 
   // State for Social Media Dashboard
-  const [socialMediaLinks, setSocialMediaLinks] = useState([
-    { platform: "Facebook", url: "https://facebook.com/yourpage" },
-    { platform: "Instagram", url: "https://instagram.com/yourhandle" },
-    { platform: "Twitter", url: "https://twitter.com/yourhandle" },
-  ]);
+  const [socialMediaLinks, setSocialMediaLinks] = useState([]);
 
-  // Dummy effect to simulate loading settings on component mount
+  // Loading and error states
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch settings on component mount
   useEffect(() => {
-    // In a real app, you would fetch these settings from your backend
-    // For now, we'll simulate some default values
-    setSiteTitle("My Awesome E-Commerce");
-    setBusinessAddress("123 E-Commerce St, Noida, India");
-    setContactNumber("+91 98765 43210");
-    setSupportEmail("support@myecommerce.com");
-    setHomeMetaTitle("Best Online Shopping Experience");
-    setHomeMetaDescription("Find the latest products and deals online.");
-    setHomeMetaKeywords("ecommerce, shopping, online store");
+    const fetchSettings = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await settingsAPI.getSettings();
+        const data = response.data.settings;
+
+        // Map all fields from API response to state
+        if (data) {
+          setSiteLogo(data.siteLogo || "");
+          setFavicon(data.favicon || "");
+          setSiteTitle(data.siteTitle || "");
+          setBusinessAddress(data.businessAddress || "");
+          setContactNumber(data.contactNumber || "");
+          setSupportEmail(data.supportEmail || "");
+          setShippingFlatRate(data.shippingFlatRate || 100);
+          setFreeShippingThreshold(data.freeShippingThreshold || 0);
+          setFooterContent(data.footerContent || "");
+          setPartnerSectionContent(data.partnerSectionContent || "");
+          setContactSectionContent(data.contactSectionContent || "");
+          setPopupShowIn(data.popupShowIn || "");
+          setPopupHideIn(data.popupHideIn || "");
+          setPopupAutoplay(data.popupAutoplay || false);
+          setSliders(data.sliders || []);
+          setSliderAutoplayTime(data.sliderAutoplayTime || 5);
+          setPopups(data.popups || {
+            home: { type: "web_app", expiry: "", url: "", image: "" },
+            logout: { type: "web_app", expiry: "", url: "", image: "" },
+          });
+          setBlogAutoplay(data.blogAutoplay !== undefined ? data.blogAutoplay : true);
+          setHomeMetaTitle(data.homeMetaTitle || "");
+          setHomeMetaDescription(data.homeMetaDescription || "");
+          setHomeMetaKeywords(data.homeMetaKeywords || "");
+          setHeadScript(data.headScript || "");
+          setBodyScript(data.bodyScript || "");
+          setWarehouseName(data.warehouseName || "");
+          setWarehouseAddress(data.warehouseAddress || "");
+          setWarehouseContact(data.warehouseContact || "");
+          setCourierApi1Key(data.courierApi1?.key || "");
+          setCourierApi1Endpoint(data.courierApi1?.endpoint || "");
+          setCourierApi2Key(data.courierApi2?.key || "");
+          setCourierApi2Endpoint(data.courierApi2?.endpoint || "");
+          setWhatsAppApiKey(data.whatsAppApi?.key || "");
+          setWhatsAppApiEndpoint(data.whatsAppApi?.endpoint || "");
+          setSocialMediaLinks(data.socialMediaLinks || []);
+        }
+      } catch (err) {
+        console.error("Error fetching settings:", err);
+        setError("Failed to load settings");
+        toast.error("Failed to load settings. Please refresh the page.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
   }, []);
 
   const handleAddSlider = () => {
+    const maxId = sliders.length > 0 ? Math.max(...sliders.map(s => s.id || 0)) : 0;
     setSliders([
       ...sliders,
-      { id: sliders.length + 1, type: "web_app", text: "", url: "", image: "" },
+      { id: maxId + 1, type: "web_app", text: "", url: "", image: "" },
     ]);
   };
 
@@ -151,45 +202,81 @@ const AdminSettings = () => {
     setSocialMediaLinks(socialMediaLinks.filter((_, i) => i !== index));
   };
 
-  const handleSaveSettings = () => {
-    // In a real application, you would send this data to your backend API
-    console.log("Saving settings:", {
-      siteLogo,
-      favicon,
-      siteTitle,
-      businessAddress,
-      contactNumber,
-      supportEmail,
-      shippingFlatRate,
-      freeShippingThreshold,
-      footerContent,
-      partnerSectionContent,
-      contactSectionContent,
-      popupShowIn,
-      popupHideIn,
-      popupAutoplay,
-      sliders,
-      sliderAutoplayTime,
-      blogAutoplay,
-      newBlogEntry,
-      homeMetaTitle,
-      homeMetaDescription,
-      homeMetaKeywords,
-      headScript,
-      bodyScript,
-      warehouseName,
-      warehouseAddress,
-      warehouseContact,
-      courierApi1Key,
-      courierApi1Endpoint,
-      courierApi2Key,
-      courierApi2Endpoint,
-      whatsAppApiKey,
-      whatsAppApiEndpoint,
-      socialMediaLinks,
-    });
-    alert("Settings saved! (Check console for data)");
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    setError(null);
+    
+    try {
+      // Prepare payload with all settings
+      const payload = {
+        siteLogo,
+        favicon,
+        siteTitle,
+        businessAddress,
+        contactNumber,
+        supportEmail,
+        shippingFlatRate,
+        freeShippingThreshold,
+        footerContent,
+        partnerSectionContent,
+        contactSectionContent,
+        popupShowIn,
+        popupHideIn,
+        popupAutoplay,
+        sliders,
+        sliderAutoplayTime,
+        blogAutoplay,
+        homeMetaTitle,
+        homeMetaDescription,
+        homeMetaKeywords,
+        headScript,
+        bodyScript,
+        warehouseName,
+        warehouseAddress,
+        warehouseContact,
+        courierApi1: {
+          key: courierApi1Key,
+          endpoint: courierApi1Endpoint,
+        },
+        courierApi2: {
+          key: courierApi2Key,
+          endpoint: courierApi2Endpoint,
+        },
+        whatsAppApi: {
+          key: whatsAppApiKey,
+          endpoint: whatsAppApiEndpoint,
+        },
+        popups,
+        socialMediaLinks,
+      };
+
+      const response = await settingsAPI.updateSettings(payload);
+      
+      if (response.data.success) {
+        toast.success("Settings saved successfully!");
+      } else {
+        throw new Error(response.data.message || "Failed to save settings");
+      }
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      const errorMessage = err.response?.data?.message || err.message || "Failed to save settings";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex-1 overflow-y-auto p-4 bg-primary-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-primary-50">
@@ -198,6 +285,12 @@ const AdminSettings = () => {
           <Settings className="mr-4 text-blue-600" size={26} /> Admin Dashboard
           Settings
         </h1>
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
 
         {/* Site & Business Settings */}
         <section className="border-b-2 pb-8">
@@ -679,17 +772,32 @@ const AdminSettings = () => {
               />
             </div>
             <button
-              onClick={() => {
-                console.log("Adding new blog:", newBlogEntry);
-                alert("New blog entry added! (Simulated)");
-                setNewBlogEntry({
-                  title: "",
-                  content: "",
-                  imageUrl: "",
-                  url: "",
-                });
+              onClick={async () => {
+                if (!newBlogEntry.title || !newBlogEntry.content) {
+                  toast.error("Please fill in title and content");
+                  return;
+                }
+                
+                try {
+                  const response = await settingsAPI.addBlog(newBlogEntry);
+                  if (response.data.success) {
+                    toast.success("Blog added successfully!");
+                    setNewBlogEntry({
+                      title: "",
+                      content: "",
+                      imageUrl: "",
+                      url: "",
+                    });
+                    // Optionally refresh settings to show the new blog
+                    // You could also add the blog to a local blogs list state
+                  }
+                } catch (err) {
+                  console.error("Error adding blog:", err);
+                  const errorMessage = err.response?.data?.message || "Failed to add blog";
+                  toast.error(errorMessage);
+                }
               }}
-              className="px-6 py-3 bg-green-600 text-white rounded-md shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
+              className="px-6 py-3 bg-green-600 text-white rounded-md shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Publish New Blog
             </button>
@@ -1023,9 +1131,10 @@ const AdminSettings = () => {
         <div className="flex justify-end pt-8">
           <button
             onClick={handleSaveSettings}
-            className="px-8 py-4 bg-blue-700 text-white text-xl font-bold rounded-lg shadow-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300"
+            disabled={saving}
+            className="px-8 py-4 bg-blue-700 text-white text-xl font-bold rounded-lg shadow-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save All Settings
+            {saving ? "Saving..." : "Save All Settings"}
           </button>
         </div>
       </div>

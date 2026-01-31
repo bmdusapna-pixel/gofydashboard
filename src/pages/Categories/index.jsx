@@ -17,7 +17,7 @@ const Categories = () => {
   const [categories, setCategories] = useState([]); // Initialize as an empty array
   const [currentPage, setCurrentPage] = useState(1);
   const dropdownRef = useRef(null);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const [filterByCollection, setFilterByCollection] = useState("all");
   const [collections, setCollections] = useState([]);
@@ -180,7 +180,7 @@ const Categories = () => {
                         {category.collectionId.collectionName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        0
+                        {category.totalProducts}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap relative">
                         {/* Dropdown Button */}
