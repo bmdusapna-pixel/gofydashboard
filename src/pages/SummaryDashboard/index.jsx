@@ -636,7 +636,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/dashboard/stats");
+        const res = await api.get("dashboard/stats");
         setRemote(res.data);
         setOrders(res.data.recentOrders); // 👈 important
         console.log(res.data)
@@ -650,7 +650,7 @@ const Dashboard = () => {
   // 🔹 Load all orders (your existing API)
   const fetchAllOrders = async (pageNo = 1) => {
     try {
-      const res = await axios.get("http://localhost:3000/api/user/order/admin", {
+      const res = await api.get("/user/order/admin", {
         params: { page: pageNo, limit: 20 },
         headers:{
           Authorization:`Bearer ${sessionStorage.getItem("adminToken")}`
