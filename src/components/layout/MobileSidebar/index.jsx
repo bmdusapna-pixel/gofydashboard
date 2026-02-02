@@ -93,6 +93,9 @@ const App = ({ isMobileSidebarOpen, toggleMobileSidebar, navItems }) => {
     console.log("User logged out!");
     setIsUserDropdownOpen(false);
     if (toggleMobileSidebar) toggleMobileSidebar();
+    sessionStorage.removeItem("adminToken");
+    sessionStorage.removeItem("adminRole");
+    sessionStorage.removeItem("adminPermissions");
     localStorage.removeItem("token");
     navigate("/login");
   };

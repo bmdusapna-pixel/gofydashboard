@@ -11,6 +11,11 @@ const Index = () => {
     try {
       const data = await loginApi(form);
       sessionStorage.setItem("adminToken", data.token);
+      // Store role and permissions for sidebar filtering
+      if (data.admin) {
+        sessionStorage.setItem("adminRole", data.admin.role);
+        sessionStorage.setItem("adminPermissions", JSON.stringify(data.admin.permissions || {}));
+      }
       navigate("/");
     } catch (error) {
       alert(error.response?.data?.message || "Login failed");

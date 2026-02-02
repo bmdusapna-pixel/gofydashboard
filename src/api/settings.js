@@ -11,4 +11,3 @@ export const settingsAPI = {
   addBlog: (data) => api.post('/admin/settings/blog', data)
 };
 
-

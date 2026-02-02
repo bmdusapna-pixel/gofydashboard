@@ -1,59 +1,128 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../../api/axios";
+import { toast } from "react-toastify";
 
 export default function AdminRBAC() {
-  const [roles, setRoles] = useState([
-    { id: 1, name: "Super Admin", twoFA: true, notifyOnLogin: true },
-    { id: 2, name: "Finance Head", twoFA: true, notifyOnLogin: false },
-    { id: 3, name: "Marketing Manager", twoFA: false, notifyOnLogin: false },
-    { id: 4, name: "Order Processor", twoFA: false, notifyOnLogin: true },
-    { id: 5, name: "Support Team", twoFA: false, notifyOnLogin: false },
-  ]);
+  const token = sessionStorage.getItem("adminToken");
 
-  const [users, setUsers] = useState([
-    { id: 101, name: "Amit Sharma", roleId: 1, email: "amit.s@example.com" },
-    { id: 102, name: "Riya Patel", roleId: 2, email: "riya.p@example.com" },
-    { id: 103, name: "Karan Singh", roleId: 3, email: "karan.s@example.com" },
-  ]);
+  /* ================= STATES ================= */
 
-  // Dynamic modules state
-  const [modules, setModules] = useState([
-    "inventory",
-    "marketing",
-    "orders",
-    "support",
-  ]);
+  const [roles, setRoles] = useState([]);
+  const [modules, setModules] = useState([]);
+  const [permissions, setPermissions] = useState({});
+  const [dirtyRoles, setDirtyRoles] = useState({}); // roleId -> boolean (has unsaved permission changes)
+  const [savingRoles, setSavingRoles] = useState({}); // roleId -> boolean (save in progress)
+
+  const [users, setUsers] = useState([]);
   const [newModule, setNewModule] = useState("");
-
-  const [permissions, setPermissions] = useState({
-    1: { inventory: { view: true, add: true, edit: true, delete: true } },
-    2: { inventory: { view: true, add: false, edit: true, delete: false } },
-    3: { marketing: { view: true, add: true, edit: true, delete: false } },
-    4: { orders: { view: true, add: true, edit: false, delete: false } },
-    5: { support: { view: true, add: true, edit: false, delete: false } },
-  });
-
-  // States for adding
   const [newRole, setNewRole] = useState("");
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-    roleId: "",
-  });
   const [editingUser, setEditingUser] = useState(null);
 
-  const togglePermission = (roleId, module, action) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [roleId]: {
-        ...prev[roleId],
-        [module]: {
-          ...prev[roleId]?.[module],
-          [action]: !prev[roleId]?.[module]?.[action],
-        },
-      },
-    }));
+  const [newUser, setNewUser] = useState({
+    email: "",
+    password: "",
+    role: "",
+  });
+
+  /* ================= FETCH ================= */
+
+  const fetchRoles = async () => {
+    try {
+      const res = await api.get("/auth/role", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      setRoles(
+        res.data.map((r) => ({
+          id: r._id,
+          name: r.name,
+          twoFA: r.twoFA,
+          notifyOnLogin: r.notifyOnLogin,
+        }))
+      );
+  
+      const perms = {};
+      res.data.forEach((r) => {
+        perms[r._id] = r.permissions || {};
+      });
+      setPermissions(perms);
+    } 
+    catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+    }
+  
   };
+
+  const fetchModules = async () => {
+    const res = await api.get("/auth/module", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log(res.data)
+    setModules(res.data.map((m) => m.name));
+  };
+
+  const fetchUsers = async () => {
+    const res = await api.get("/auth", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("users",res.data)
+    setUsers(res.data);
+  }
+
+  useEffect(() => {
+    fetchRoles();
+    fetchModules();
+    fetchUsers();
+  }, []);
+
+  /* ================= PERMISSION TOGGLE ================= */
+
+  const togglePermission = async (roleId, module, action) => {
+    console.log(roleId, module, action)
+      const updated = {
+        ...permissions,
+        [roleId]: {
+          ...permissions[roleId],
+          [module]: {
+            ...permissions[roleId]?.[module],
+            [action]: !permissions[roleId]?.[module]?.[action],
+          },
+        },
+      };
+  
+      setPermissions(updated);
+      setDirtyRoles((prev) => ({ ...prev, [roleId]: true }));
+  };
+
+  console.log(permissions)
+
+  const handleUpdateRolePermissions = async (roleId, permissions) => {
+    try {
+      await api.put(
+        `/auth/role/${roleId}`,
+        { permissions: permissions },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Permissions updated");
+    }
+    catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+      throw error;
+    }
+  }
+
+  const saveRolePermissions = async (roleId) => {
+    try {
+      setSavingRoles((prev) => ({ ...prev, [roleId]: true }));
+      await handleUpdateRolePermissions(roleId, permissions?.[roleId] || {});
+      setDirtyRoles((prev) => ({ ...prev, [roleId]: false }));
+    } finally {
+      setSavingRoles((prev) => ({ ...prev, [roleId]: false }));
+    }
+  };
+  /* ================= SECURITY TOGGLES ================= */
 
   const toggleSecurity = (roleId, key) => {
     setRoles((prev) =>
@@ -61,102 +130,104 @@ export default function AdminRBAC() {
     );
   };
 
-  const addRole = () => {
-    if (!newRole.trim()) return;
-    const id = roles.length ? Math.max(...roles.map((r) => r.id)) + 1 : 1;
+  /* ================= ADD ROLE ================= */
 
-    setRoles((prevRoles) => [
-      ...prevRoles,
-      { id, name: newRole, twoFA: false, notifyOnLogin: false },
-    ]);
+  const addRole = async () => {
+    try {
+      if (!newRole.trim()) return;
 
-    // Initialize permissions for the new role across all existing modules
-    const newRolePermissions = {};
-    modules.forEach((module) => {
-      newRolePermissions[module] = {
-        view: false,
-        add: false,
-        edit: false,
-        delete: false,
-      };
-    });
+      await api.post(
+        "/auth/role",
+        { name: newRole },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      setNewRole("");
+      fetchRoles(); 
+    } 
+    catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+    }
 
-    setPermissions((prevPermissions) => ({
-      ...prevPermissions,
-      [id]: newRolePermissions,
-    }));
-
-    setNewRole("");
   };
 
-  const addModule = () => {
-    if (!newModule.trim() || modules.includes(newModule.toLowerCase())) return;
-    const newMod = newModule.toLowerCase();
+  /* ================= ADD MODULE ================= */
 
-    // Add the new module to the modules state
-    setModules((prev) => [...prev, newMod]);
+  const addModule = async () => {
+    try {
+      if (!newModule.trim()) return;
 
-    // Update permissions for all existing roles to include the new module
-    setPermissions((prev) => {
-      const updatedPermissions = { ...prev };
-      roles.forEach((role) => {
-        updatedPermissions[role.id] = {
-          ...updatedPermissions[role.id],
-          [newMod]: {
-            view: false,
-            add: false,
-            edit: false,
-            delete: false,
-          },
-        };
-      });
-      return updatedPermissions;
-    });
-    setNewModule("");
+      await api.post(
+        "/auth/module",
+        { name: newModule.toLowerCase() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      setNewModule("");
+      fetchModules();
+    } catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+    }
   };
 
-  const addUser = () => {
-    if (
-      !newUser.name.trim() ||
-      !newUser.email.trim() ||
-      !newUser.password.trim() ||
-      !newUser.roleId
-    )
-      return;
-    const id = users.length ? Math.max(...users.map((u) => u.id)) + 1 : 101;
-    setUsers([
-      ...users,
-      {
-        id,
-        name: newUser.name,
-        email: newUser.email,
-        password: newUser.password,
-        roleId: parseInt(newUser.roleId),
-      },
-    ]);
-    setNewUser({ name: "", email: "", password: "", roleId: "" });
+  const addUser = async () => {
+    try {
+      console.log(newUser)
+      await api.post(
+        "/auth/register",
+        { email: newUser.email, password: newUser.password, roleName: newUser.role },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      setNewUser("");
+      fetchUsers();
+    } 
+    catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+    }
+
   };
 
-  const handleEditUser = (user) => {
-    setEditingUser({ ...user });
-  };
+  /* ================= USER HELPERS (UI SAME) ================= */
 
-  const handleUpdateUser = () => {
-    if (!editingUser) return;
-    setUsers((prevUsers) =>
-      prevUsers.map((u) => (u.id === editingUser.id ? editingUser : u))
-    );
-    setEditingUser(null);
-  };
+  const handleEditUser = (u) => setEditingUser(u);
 
-  const updateUserRole = (userId, roleId) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === userId ? { ...u, roleId: parseInt(roleId) } : u
-      )
-    );
-  };
+  const handleUpdateUser = async (id) => {
+    try {
+      console.log(editingUser)
+      await api.put(`/auth/user/${id}`, { email: editingUser.email, password: editingUser.password, roleName: editingUser.role }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success("User updated successfully");
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+    }
+  }
 
+  const handleDeleteUser = async (userId) => {
+    try {
+      await api.delete(`/auth/user/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success("User deleted successfully");
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+    }
+  }
+
+  const handledletemodule = async (moduleId) => {
+    try {
+      await api.delete(`/auth/module/${moduleId}`, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success("Module deleted successfully");
+      fetchModules();
+    } catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error)
+    }
+  }
   return (
     <div className="p-4 flex-1 overflow-y-auto space-y-8">
       <h2 className="sm:text-xl text-lg font-semibold">
@@ -252,9 +323,7 @@ export default function AdminRBAC() {
         <table className="w-full border-collapse border border-gray-300 text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="border border-gray-300 px-3 py-2 text-left">
-                User
-              </th>
+              
               <th className="border border-gray-300 px-3 py-2 text-left">
                 Email
               </th>
@@ -269,20 +338,9 @@ export default function AdminRBAC() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td className="border border-gray-300 px-3 py-2">{u.name}</td>
                 <td className="border border-gray-300 px-3 py-2">{u.email}</td>
                 <td className="border border-gray-300 px-3 py-2">
-                  <select
-                    className="border border-gray-300 rounded p-1"
-                    value={u.roleId}
-                    onChange={(e) => updateUserRole(u.id, e.target.value)}
-                  >
-                    {roles.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
+                  {u.role.name}
                 </td>
                 <td className="border border-gray-300 px-3 py-2">
                   <button
@@ -300,13 +358,6 @@ export default function AdminRBAC() {
         {/* Add User Form */}
         <div className="flex gap-2 mt-3 flex-wrap">
           <input
-            type="text"
-            value={newUser.name}
-            onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-            placeholder="User Name"
-            className="border border-gray-300 rounded p-2"
-          />
-          <input
             type="email"
             value={newUser.email}
             onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
@@ -323,13 +374,13 @@ export default function AdminRBAC() {
             className="border border-gray-300 rounded p-2"
           />
           <select
-            value={newUser.roleId}
-            onChange={(e) => setNewUser({ ...newUser, roleId: e.target.value })}
+            value={newUser.role}
+            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
             className="border border-gray-300 rounded p-2"
           >
             <option value="">Select Role</option>
             {roles.map((r) => (
-              <option key={r.id} value={r.id}>
+              <option key={r.id} value={r.name}>
                 {r.name}
               </option>
             ))}
@@ -345,16 +396,7 @@ export default function AdminRBAC() {
         {/* Edit User Modal/Form */}
         {editingUser && (
           <div className="mt-4 p-4 border border-gray-400 rounded-lg bg-gray-50 space-y-2">
-            <h4 className="font-semibold">Edit User: {editingUser.name}</h4>
-            <input
-              type="text"
-              value={editingUser.name}
-              onChange={(e) =>
-                setEditingUser({ ...editingUser, name: e.target.value })
-              }
-              placeholder="Name"
-              className="border border-gray-300 rounded p-2 w-full"
-            />
+            <h4 className="font-semibold">Edit User</h4>
             <input
               type="email"
               value={editingUser.email}
@@ -373,8 +415,20 @@ export default function AdminRBAC() {
               placeholder="Password"
               className="border border-gray-300 rounded p-2 w-full"
             />
+            <select
+              value={editingUser.role}
+              onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+              className="border border-gray-300 rounded p-2 w-full"
+            >
+              <option value="">Select Role</option>
+              {roles.map((r) => (
+                <option key={r.id} value={r.name}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
             <button
-              onClick={handleUpdateUser}
+              onClick={() => handleUpdateUser(editingUser._id)}
               className="bg-purple-600 text-white px-3 py-2 rounded mr-2"
             >
               Update User
@@ -392,6 +446,7 @@ export default function AdminRBAC() {
       {/* Permissions Matrix */}
       <div className="bg-white rounded-xl shadow border border-gray-300 p-5">
         <h3 className="text-lg font-semibold mb-4">Permissions</h3>
+        
         <div className="w-full overflow-x-auto">
           <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead className="bg-gray-100">
@@ -443,7 +498,26 @@ export default function AdminRBAC() {
               {roles.map((role) => (
                 <tr key={role.id}>
                   <td className="border border-gray-300 px-3 py-2 font-semibold">
-                    {role.name}
+                    <div className="flex items-center justify-between gap-3">
+                      <span>{role.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => saveRolePermissions(role.id)}
+                        disabled={!dirtyRoles?.[role.id] || savingRoles?.[role.id]}
+                        className={`px-3 py-1 rounded text-xs font-medium border ${
+                          !dirtyRoles?.[role.id] || savingRoles?.[role.id]
+                            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                            : "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                        }`}
+                        title={
+                          dirtyRoles?.[role.id]
+                            ? "Save permission changes"
+                            : "No changes to save"
+                        }
+                      >
+                        {savingRoles?.[role.id] ? "Saving..." : "Save"}
+                      </button>
+                    </div>
                   </td>
                   {modules.map((module) => (
                     <>
@@ -460,6 +534,7 @@ export default function AdminRBAC() {
                             onChange={() =>
                               togglePermission(role.id, module, action)
                             }
+
                           />
                         </td>
                       ))}

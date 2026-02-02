@@ -95,6 +95,9 @@ const App = ({ navItems }) => {
   const handleLogout = () => {
     console.log("User logged out");
     handleLinkClick();
+    sessionStorage.removeItem("adminToken");
+    sessionStorage.removeItem("adminRole");
+    sessionStorage.removeItem("adminPermissions");
     localStorage.removeItem("token");
     navigate("/login");
   };
@@ -167,7 +170,7 @@ const App = ({ navItems }) => {
                   ) : item.type === "button" ? (
                     <button
                       onClick={handleLogout}
-                      className={`${baseLinkClasses} w-full text-left text-red-200 hover:bg-red-600 hover:text-white`}
+                      className={`${baseLinkClasses} w-full text-left text-primary-100 hover:bg-red-600 hover:text-white`}
                     >
                       <FontAwesomeIcon
                         icon={item.icon}
