@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useEffect, useState } from "react";
 import api from "../../api/axios";
 import axios from "axios";
 import { Eye, Download } from 'lucide-react';
+import Invoice from "./invoice";
 
 
 // Main App component for Invoice Table
@@ -54,6 +55,17 @@ const App = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleViewInvoice = (invoice) => {
+    // Use the full raw invoice document if available
+    setViewInvoice(invoice.raw || invoice);
+  };
+
+  const handleDownloadInvoice = (invoice) => {
+    // For now, reuse the view modal + Print button inside the invoice
+    // Admin can click the Print button to download as PDF from browser.
+    handleViewInvoice(invoice);
+  };
 
   const fetchInvoices = async () => {
     try {
@@ -263,10 +275,12 @@ const App = () => {
                         <td>
                           <div className="flex justify-around m-auto p-auto">
                           <button
-                          // onClick={handleView()}
+                          type="button"
+                          onClick={() => handleViewInvoice(invoice)}
                           ><Eye className="text-sm"/></button>
                           <button
-                          // onClick={handleDownload()}
+                          type="button"
+                          onClick={() => handleDownloadInvoice(invoice)}
                           ><Download className="text-sm"/></button>
                           </div>
                         </td>
@@ -341,7 +355,25 @@ const App = () => {
         </div>
       </div>
 
-      {/* View Modal */}
+      {viewInvoice && (
+          <div
+            className="fixed inset-0 flex items-center justify-center p-4 z-50"
+            style={{ background: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="bg-white rounded-lg p-6 max-w-4xl w-full relative overflow-y-auto max-h-[90vh] shadow-2xl">
+              <button
+                onClick={() => setViewInvoice(null)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close invoice"
+              >
+                &times;
+              </button>
+              <Invoice invoiceData={viewInvoice} />
+            </div>
+          </div>
+        )}
+
+      {/* View Modal
       {viewInvoice ? (
         <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-xl shadow-xl border border-gray-200 overflow-hidden">
@@ -455,7 +487,7 @@ const App = () => {
             </div>
           </div>
         </div>
-      ) : null}
+      ) : null} */}
 
       {/* Edit Modal */}
       {editInvoice ? (
