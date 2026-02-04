@@ -94,7 +94,7 @@ const EditProduct = () => {
 
   const fetchCoupons = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/offers`);
+      const response = await api.get(`/api/offers`);
       const result = await response.json();
       console.log(result.coupons);
       setCoupons(result.coupons);
