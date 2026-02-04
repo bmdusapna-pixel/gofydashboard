@@ -89,19 +89,19 @@ const EditProduct = () => {
     fetchAgeGroups();
     fetchMaterials();
     fetchColors();
-    fetchCoupons();
+    // fetchCoupons();
   }, []);
 
-  const fetchCoupons = async () => {
-    try {
-      const response = await api.get(`offers`);
-      const result = await response.json();
-      console.log(result.coupons);
-      setCoupons(result.coupons);
-    } catch (error) {
-      console.error("Error fetching coupons:", error);
-    }
-  };
+  // const fetchCoupons = async () => {
+  //   try {
+  //     const response = await api.get(`offers`);
+  //     const result = await response.json();
+  //     console.log(result.coupons);
+  //     setCoupons(result.coupons);
+  //   } catch (error) {
+  //     console.error("Error fetching coupons:", error);
+  //   }
+  // };
 
   const statuses = ["In Stock", "Out of Stock", "Discontinued"];
 
