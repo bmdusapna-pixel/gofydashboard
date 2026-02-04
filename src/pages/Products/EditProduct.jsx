@@ -882,6 +882,45 @@ const EditProduct = () => {
               </div>
             </div>
 
+             {/* Moved Product Display Section inside the form */}
+             <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4 mb-8">
+              <h2 className="font-medium text-gray-700">
+                Product Display Options
+              </h2>
+              <p>Select where this product will be visible:</p>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    value="web"
+                    checked={product.displayOn.includes("web")}
+                    onChange={() => handleDisplayChange("web")}
+                  />
+                  <span>Web</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    value="app"
+                    checked={product.displayOn.includes("app")}
+                    onChange={() => handleDisplayChange("app")}
+                  />
+                  <span>App</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleBothDisplayChange}
+                  className={`px-4 py-2 text-sm rounded transition-colors ${
+                    isBothSelected
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {isBothSelected ? "Unselect Both" : "Select Both"}
+                </button>
+              </div>
+            </div>
+
               <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="font-medium text-gray-700">
