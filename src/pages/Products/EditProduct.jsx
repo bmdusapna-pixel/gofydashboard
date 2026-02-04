@@ -921,7 +921,7 @@ const EditProduct = () => {
               </div>
             </div>
 
-              <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
+              {/* <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="font-medium text-gray-700">
                     Apply Offers
@@ -965,7 +965,7 @@ const EditProduct = () => {
                     </div>
                   </>
                 )}
-              </div>
+              </div> */}
 
             {/* Promotions */}
             <div className="p-4 border border-gray-300 rounded-lg bg-gray-50 space-y-4">
