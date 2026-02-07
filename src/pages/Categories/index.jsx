@@ -34,11 +34,11 @@ const Categories = () => {
         const result = await api.get("/categories");
         const fetchedCategories = result.data.categories;
         setCategories(fetchedCategories);
-
+         console.log("fetchedCategories", fetchedCategories);
         // Extract unique collection names for the filter dropdown
         const uniqueCollections = [
           ...new Set(
-            fetchedCategories.map((cat) => cat.collectionId.collectionName)
+            fetchedCategories.map((cat) => cat.collectionId?.collectionName)
           ),
         ];
         setCollections(uniqueCollections);
@@ -177,7 +177,7 @@ const Categories = () => {
                         {category.categoryName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
-                        {category.collectionId.collectionName}
+                        {category.collectionId?.collectionName}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800">
                         {category.totalProducts}

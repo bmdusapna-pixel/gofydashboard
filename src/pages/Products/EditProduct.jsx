@@ -474,53 +474,61 @@ const EditProduct = () => {
   };
 
   const handleVariantChange = (variantIndex, field, value) => {
-    setVariants((prev) => {
-      const updated = [...prev];
-      updated[variantIndex][field] = value;
+    setVariants((prev) =>
+      prev.map((variant, i) => {
+        if (i !== variantIndex) return variant;
+        // base updated variant
+        const base = { ...variant, [field]: value };
 
-      // When color changes -> update all SKUs inside this variant (only if autoRewrite)
-      if (field === "color" && autoRewrite) {
-        const colorName = getColorName(value);
-        updated[variantIndex].ageGroups = updated[variantIndex].ageGroups.map(
-          (ag) => {
-            const ageName = getAgeGroupName(ag.ageGroup);
-            return {
-              ...ag,
-              sku: generateSKU(product.name, colorName, ageName),
-            };
-          }
-        );
-      }
+        // When color changes -> update all SKUs inside this variant (only if autoRewrite)
+        if (field === "color" && autoRewrite) {
+          const colorName = getColorName(value);
+          return {
+            ...base,
+            ageGroups: base.ageGroups.map((ag) => {
+              const ageName = getAgeGroupName(ag.ageGroup);
+              return { ...ag, sku: generateSKU(product.name, colorName, ageName) };
+            }),
+          };
+        }
 
-      return updated;
-    });
+        return base;
+      })
+    );
   };
 
   const handleAgeGroupChange = (variantIndex, ageIndex, field, value) => {
-    setVariants((prev) => {
-      const updated = [...prev];
-      updated[variantIndex].ageGroups[ageIndex][field] = value;
+    setVariants((prev) =>
+      prev.map((variant, vi) => {
+        if (vi !== variantIndex) return variant;
+        const newAgeGroups = variant.ageGroups.map((ag, ai) => {
+          if (ai !== ageIndex) return ag;
+          const updatedAg = { ...ag, [field]: value };
 
-      // Auto-calc discount
-      if (field === "price" || field === "cutPrice") {
-        const price =
-          parseFloat(updated[variantIndex].ageGroups[ageIndex].price) || 0;
-        const cutPrice =
-          parseFloat(updated[variantIndex].ageGroups[ageIndex].cutPrice) || 0;
-        updated[variantIndex].ageGroups[ageIndex].discount =
-          cutPrice > 0 ? Math.round(((cutPrice - price) / cutPrice) * 100) : "";
-      }
+          // Auto-calc discount
+          if (field === "price" || field === "cutPrice") {
+            const price = parseFloat(
+              updatedAg.price || updatedAg.price === 0 ? updatedAg.price : 0
+            ) || 0;
+            const cutPrice = parseFloat(
+              updatedAg.cutPrice || updatedAg.cutPrice === 0 ? updatedAg.cutPrice : 0
+            ) || 0;
+            updatedAg.discount = cutPrice > 0 ? Math.round(((cutPrice - price) / cutPrice) * 100) : "";
+          }
 
-      // Auto-generate SKU when ageGroup selected (only if autoRewrite)
-      if (field === "ageGroup" && autoRewrite) {
-        const colorName = getColorName(updated[variantIndex].color);
-        const ageName = getAgeGroupName(value);
-        const sku = generateSKU(product.name, colorName, ageName);
-        updated[variantIndex].ageGroups[ageIndex].sku = sku;
-      }
+          // Auto-generate SKU when ageGroup selected (only if autoRewrite)
+          if (field === "ageGroup" && autoRewrite) {
+            const colorName = getColorName(variant.color);
+            const ageName = getAgeGroupName(value);
+            updatedAg.sku = generateSKU(product.name, colorName, ageName);
+          }
 
-      return updated;
-    });
+          return updatedAg;
+        });
+
+        return { ...variant, ageGroups: newAgeGroups };
+      })
+    );
   };
 
   const addAgeGroup = (variantIndex) => {
@@ -795,6 +803,9 @@ const EditProduct = () => {
         variants: variantsWithPersistentImages,
         keyFeatures: product.keyFeatures.filter((f) => f.key && f.value),
       };
+
+      // Debug: show payload being sent to server
+      console.log("PUT payload:", payload);
 
       formData.append("payload", JSON.stringify(payload));
 

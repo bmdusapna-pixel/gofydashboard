@@ -46,6 +46,9 @@ const Collections = () => {
     fetch();
   }, []);
 
+  console.log("collections", collections);
+  console.log("categories", categories);
+
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
@@ -182,9 +185,7 @@ const Collections = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                         {
-                          categories.filter(
-                            (p) => p.collectionId._id === collection._id
-                          ).length
+                         categories.filter(p => p.collectionId?._id === collection._id).length
                         }
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm">

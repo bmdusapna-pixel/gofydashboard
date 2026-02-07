@@ -61,6 +61,7 @@ import UnderDevelopment from "./pages/Underdevelopment";
 import AdminProfile from "./pages/Admin/Profile";
 import Payment from "./pages/Payment/payment";
 import PaymentDetail from "./pages/Payment/PaymentDetail";
+import OrderDetails from "./pages/Orders/orderDetail";
 
 const App = () => {
   return (
@@ -86,6 +87,7 @@ const App = () => {
                 />
                 <Route path="/inventory/warehouse" element={<Warehouse />} />
                 <Route path="/orders" element={<Orders />} />
+                <Route path="/orders/:orderId" element={<OrderDetails/>} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/customers/:id" element={<CustomerDetails />} />
