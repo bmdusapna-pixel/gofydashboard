@@ -245,6 +245,81 @@ const AllOrders = () => {
     } finally {      setActionLoading(false);
     }  };
 
+    const handlePickedUp = async (orderId) => {
+      try {
+        setActionLoading(true);
+        await api.post(
+          `admin/order/${orderId}/pickedUp`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } },
+  
+        );
+        alert("✅ Order marked as Picked Up");
+        fetchOrders();
+      } catch (error) {
+        console.error("Error updating order status:", error);
+        alert(`❌ ${error.response?.data?.message || "Failed to update order status"}`);
+      } finally {      setActionLoading(false);
+      }  };
+
+  // UNDER_30_MIN delivery flow handlers
+  const handleStartProcessing = async (orderId) => {
+    try {
+      setActionLoading(orderId);
+      await api.post(
+        `admin/order/${orderId}/startProcessing`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      alert("✅ Order marked as Processing");
+      fetchOrders();
+      setOpenDropdownId(null);
+    } catch (error) {
+      console.error("Error starting processing:", error);
+      alert(`❌ ${error.response?.data?.message || "Failed to start processing"}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleOutForDelivery = async (orderId) => {
+    try {
+      setActionLoading(orderId);
+      await api.post(
+        `admin/order/${orderId}/outForDelivery`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      alert("✅ Order marked as Out for Delivery");
+      fetchOrders();
+      setOpenDropdownId(null);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      alert(`❌ ${error.response?.data?.message || "Failed to update order status"}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleMarkDelivered = async (orderId) => {
+    try {
+      setActionLoading(orderId);
+      await api.post(
+        `admin/order/${orderId}/markDelivered`,
+        { confirm: true }, // Skip OTP verification for admin
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      alert("✅ Order marked as Delivered");
+      fetchOrders();
+      setOpenDropdownId(null);
+    } catch (error) {
+      console.error("Error marking order as delivered:", error);
+      alert(`❌ ${error.response?.data?.message || "Failed to mark order as delivered"}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Server side filtering and pagination. `orders` contains current page results.
   const currentOrders = orders;
   const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
@@ -380,7 +455,7 @@ const AllOrders = () => {
                               <hr className="my-1" />
 
                               {/* NORMAL DELIVERY (DTDC) */}
-                              {order.deliveryType !== "STORE_PICKUP" && (
+                              {order.deliveryType === "NORMAL" && (
                                 <>
                                   {!order.courier?.awb ? (
                                     <button
@@ -413,19 +488,87 @@ const AllOrders = () => {
                               )}
 
                               {order.deliveryType === "STORE_PICKUP" &&
-                                order.orderStatus === "CONFIRMED" && (
-                                  <button
-                                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-600"
-                                    onClick={() =>
-                                      handleReadyForPickup(order._id)
-                                    }
-                                  >
-                                    <span className="text-lg">📦</span>
-                                    Ready for Pickup
-                                  </button>
-                                )}
+                              (
+                                <>
+                                {
+                                  order.orderStatus === "CONFIRMED" && (
+                                    <button
+                                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-600"
+                                      onClick={() =>
+                                        handleReadyForPickup(order._id)
+                                      }
+                                    >
+                                      <span className="text-lg">📦</span>
+                                      Ready for Pickup
+                                    </button>
+                                  )}
+                                  {order.orderStatus === "READY_FOR_PICKUP" && (
+                                    <button
+                                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-600"
+                                      onClick={() =>
+                                        handlePickedUp(order._id)
+                                      }
+                                    >
+                                      <span className="text-lg">📦</span>
+                                      Picked Up
+                                    </button>
+                                  ) }
+                                
+                                </>
+                              )
+                            }
 
-                              {order.orderStatus === "PLACED" && (
+                              {/* UNDER_30_MIN DELIVERY FLOW */}
+                              {order.deliveryType === "UNDER_30_MIN" && (
+                                <>
+                                  {order.orderStatus === "CONFIRMED" && (
+                                    <button
+                                      disabled={actionLoading === order._id}
+                                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-600 disabled:opacity-50"
+                                      onClick={() =>
+                                        handleStartProcessing(order._id)
+                                      }
+                                    >
+                                      <span className="text-lg">⚙️</span>
+                                      {actionLoading === order._id
+                                        ? "Processing..."
+                                        : "Start Processing"}
+                                    </button>
+                                  )}
+
+                                  {order.orderStatus === "PROCESSING" && (
+                                    <button
+                                      disabled={actionLoading === order._id}
+                                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-600 disabled:opacity-50"
+                                      onClick={() =>
+                                        handleOutForDelivery(order._id)
+                                      }
+                                    >
+                                      <span className="text-lg">🚚</span>
+                                      {actionLoading === order._id
+                                        ? "Updating..."
+                                        : "Out for Delivery"}
+                                    </button>
+                                  )}
+
+                                  {order.orderStatus === "OUT_FOR_DELIVERY" && (
+                                    <button
+                                      disabled={actionLoading === order._id}
+                                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-600 disabled:opacity-50"
+                                      onClick={() =>
+                                        handleMarkDelivered(order._id)
+                                      }
+                                    >
+                                      <span className="text-lg">✅</span>
+                                      {actionLoading === order._id
+                                        ? "Updating..."
+                                        : "Mark Delivered"}
+                                    </button>
+                                  )}
+                                </>
+                              )}
+
+                              {(order.orderStatus === "PLACED" || order.orderStatus === "PENDING") && (
                                 <>
                                   <button
                                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-sm text-gray-600"
